@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import type { SplitId } from "./fitness";
 import { readDurable, writeDurable } from "./platform";
 import type { CustomMeal, Food, LogEntry, Profile, WorkoutSession } from "./types";
@@ -112,6 +112,32 @@ export function todayKey(d = new Date()) {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+/**
+ * Today's date key, kept current while the app stays open: rechecked every minute and
+ * whenever the app returns to the foreground (e.g. opened the next morning).
+ */
+export function useTodayKey() {
+  const [key, setKey] = useState(todayKey);
+  useEffect(() => {
+    const check = () => setKey(todayKey());
+    const timer = setInterval(check, 60_000);
+    document.addEventListener("visibilitychange", check);
+    window.addEventListener("focus", check);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", check);
+      window.removeEventListener("focus", check);
+    };
+  }, []);
+  return key;
+}
+
+/** Monday = 0 … Sunday = 6, for a YYYY-MM-DD key. */
+export function weekdayOf(key: string) {
+  const [y, m, d] = key.split("-").map(Number);
+  return (new Date(y, m - 1, d).getDay() + 6) % 7;
 }
 
 // ── Actions ──────────────────────────────────────────────

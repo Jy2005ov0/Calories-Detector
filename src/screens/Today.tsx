@@ -2,9 +2,9 @@ import { useMemo } from "react";
 import { motion } from "motion/react";
 import { Camera, ChevronRight, Dumbbell, Flame, Search, Trash2, Utensils } from "lucide-react";
 import { MEALS } from "../lib/api";
-import { formatDuration, sessionKcal, sessionMinutes } from "../lib/fitness";
+import { formatDuration, plural, sessionKcal, sessionMinutes } from "../lib/fitness";
 import { round, sum, targets } from "../lib/nutrition";
-import { actions, todayKey, useStore } from "../lib/store";
+import { actions, useStore, useTodayKey } from "../lib/store";
 import type { LogEntry } from "../lib/types";
 import { Bar, MacroBars, Ring, SPRING, showToast, useNow } from "../components/ui";
 import type { Tab } from "../App";
@@ -15,7 +15,7 @@ export function Today({ go, openPhoto }: { go: (t: Tab) => void; openPhoto: () =
   const sessions = useStore((s) => s.sessions);
   const activeId = useStore((s) => s.activeSessionId);
   const now = useNow(1000, !!activeId);
-  const today = todayKey();
+  const today = useTodayKey();
   const t = targets(profile);
 
   const entries = useMemo(() => log.filter((e) => e.date === today), [log, today]);
@@ -200,7 +200,7 @@ export function Today({ go, openPhoto }: { go: (t: Tab) => void; openPhoto: () =
               <div className="row-main">
                 <div className="row-title">{s.title}</div>
                 <div className="row-sub">
-                  {formatDuration(sessionMinutes(s, now))} · {s.exercises.length} exercises {s.endedAt ? "" : "· in progress"}
+                  {formatDuration(sessionMinutes(s, now))} · {plural(s.exercises.length, "exercise")} {s.endedAt ? "" : "· in progress"}
                 </div>
               </div>
               <span className="row-value">{round(s.endedAt ? s.kcal : sessionKcal(s, profile.weightKg, now))} kcal</span>

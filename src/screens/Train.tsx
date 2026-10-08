@@ -3,10 +3,10 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, Clock, Dumbbell, Flame, History, LogIn, LogOut, Plus, Trash2, Weight } from "lucide-react";
 import { ExerciseLibrary } from "../components/ExerciseLibrary";
 import { Empty, SPRING, Sheet, Stepper, haptic, showToast, useNow } from "../components/ui";
-import { buildPlan, exerciseKcal, formatDuration, kcalFor, sessionFromPlan, sessionKcal, sessionMinutes, sessionVolume } from "../lib/fitness";
+import { buildPlan, exerciseKcal, formatDuration, kcalFor, plural, sessionFromPlan, sessionKcal, sessionMinutes, sessionVolume } from "../lib/fitness";
 import { round } from "../lib/nutrition";
 import { confirmDialog } from "../lib/platform";
-import { actions, todayKey, uid, useStore } from "../lib/store";
+import { actions, todayKey, uid, useStore, useTodayKey, weekdayOf } from "../lib/store";
 import type { Exercise, SessionExercise, WorkoutSession } from "../lib/types";
 
 function toSessionExercise(ex: Exercise, minutes?: number): SessionExercise {
@@ -32,7 +32,7 @@ export function Train() {
   const [finishing, setFinishing] = useState(false);
 
   const plan = useMemo(() => buildPlan(profile, split), [profile, split]);
-  const weekday = (new Date().getDay() + 6) % 7;
+  const weekday = weekdayOf(useTodayKey());
   const todaysPlan = plan.days.find((d) => d.weekday === weekday);
   const history = sessions.filter((s) => s.endedAt);
   const weekAgo = Date.now() - 7 * 86400000;
@@ -296,7 +296,7 @@ export function Train() {
           </div>
           <div style={{ fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em", marginTop: 4 }}>{todaysPlan.title}</div>
           <div className="row-sub">
-            {todaysPlan.focus} · {todaysPlan.exercises.length} exercises · ~{todaysPlan.estMinutes} min
+            {todaysPlan.focus} · {plural(todaysPlan.exercises.length, "exercise")} · ~{todaysPlan.estMinutes} min
           </div>
           <div className="spacer" />
           <button className="btn" onClick={() => clockIn(todaysPlan.title, sessionFromPlan(todaysPlan))}>
@@ -371,7 +371,7 @@ export function Train() {
                 <div className="row-title">{s.title}</div>
                 <div className="row-sub">
                   {new Date(s.startedAt).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} ·{" "}
-                  {formatDuration(sessionMinutes(s))} · {s.exercises.length} exercises
+                  {formatDuration(sessionMinutes(s))} · {plural(s.exercises.length, "exercise")}
                 </div>
               </div>
               <span className="row-value">{s.kcal} kcal</span>

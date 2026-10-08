@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { MEALS, defaultMeal } from "../lib/api";
 import { healthReport, isWholeProduce, round, scale, suitability, sum, targets } from "../lib/nutrition";
-import { actions, todayKey, useStore } from "../lib/store";
+import { actions, todayKey, useStore, useTodayKey } from "../lib/store";
 import type { Food, MealType } from "../lib/types";
 import { HealthCard, NutritionTable, Segmented, Sheet, Stepper, SuitabilityCard, haptic, showToast } from "./ui";
 
 export function useTodayTotals() {
   const log = useStore((s) => s.log);
+  const today = useTodayKey();
   return useMemo(() => {
-    const today = todayKey();
     return sum(log.filter((e) => e.date === today).map((e) => e.nutrients));
-  }, [log]);
+  }, [log, today]);
 }
 
 interface Props {
@@ -126,7 +126,15 @@ export function FoodSheet({ food, onClose, onPick, pickLabel = "Add to meal" }: 
                   aria-label="Weight in grams"
                 />
               ) : (
-                <Stepper value={qty} step={0.5} min={0.5} onChange={setQty} format={(v) => (v % 1 ? v.toFixed(1) : String(v))} />
+                <Stepper
+                  value={qty}
+                  min={0.5}
+                  // Whole servings (1 → 2 → 3); a half portion is available below one.
+                  step={qty < 1 ? 0.5 : 1}
+                  decrementStep={qty <= 1 ? 0.5 : 1}
+                  onChange={(v) => setQty(v > 1 ? Math.round(v) : v)}
+                  format={(v) => (v === 0.5 ? "½" : v % 1 ? v.toFixed(1) : String(v))}
+                />
               )}
             </div>
           </div>

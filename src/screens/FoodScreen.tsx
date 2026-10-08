@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Camera, ChevronRight, Globe, PencilLine, Plus, Search, Trash2, UtensilsCrossed, X } from "lucide-react";
 import { FOODS, FOOD_CATEGORIES } from "../data/foods";
 import { MEALS, defaultMeal, searchOnline } from "../lib/api";
+import { plural } from "../lib/fitness";
 import { healthReport, isWholeProduce, round, scale, searchFoods, sum } from "../lib/nutrition";
 import { actions, todayKey, useStore } from "../lib/store";
 import type { CustomMeal, Food } from "../lib/types";
@@ -167,7 +168,7 @@ export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
                         <button className="row-main pressable" style={{ textAlign: "left" }} onClick={() => setBuilder({ open: true, meal: m })}>
                           <div className="row-title">{m.name}</div>
                           <div className="row-sub">
-                            {m.items.length} items · {round(kcal)} kcal
+                            {plural(m.items.length, "item")} · {round(kcal)} kcal
                           </div>
                         </button>
                         <button className="btn small tinted" onClick={() => logMeal(m)}>

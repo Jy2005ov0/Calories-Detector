@@ -294,3 +294,6 @@ export function sessionFromPlan(day: PlannedDay): SessionExercise[] {
     };
   });
 }
+
+/** "1 exercise", "3 exercises". */
+export const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;

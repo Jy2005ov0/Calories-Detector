@@ -93,6 +93,7 @@ Everything except photo recognition works without a key. Search, plans and track
 
 ```bash
 npm test         # calculation + database integrity tests
+npm run test:e2e # user journeys on emulated iPhone 14, iPhone SE and Pixel 7
 npm run typecheck
 ```
 

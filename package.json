@@ -14,7 +14,8 @@
     "cap:sync": "npm run build && cap sync",
     "android": "npm run build && cap sync android && cap open android",
     "ios": "npm run build && cap sync ios && cap open ios",
-    "android:apk": "npm run build && cap sync android && cd android && ./gradlew assembleDebug"
+    "android:apk": "npm run build && cap sync android && cd android && ./gradlew assembleDebug",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.3",
+    "@playwright/test": "^1.56.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.4",

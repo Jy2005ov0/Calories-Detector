@@ -56,7 +56,7 @@ export function recommendedFoods(goal: Goal, diet: Diet): FoodGroupAdvice[] {
     {
       title: "Limit",
       why: "Easy to over-eat and low in nutrients. Keep them for occasional treats.",
-      foods: ["Teh tarik", "Soft drink (cola)", "Bubble milk tea (with pearls)", "Fried chicken (breaded)", "Roti tisu", "Potato chips", "Doughnut (glazed)"],
+      foods: ["Teh tarik", "Soft drink (cola)", "Bubble milk tea (with pearls)", veg ? "Curry puff" : "Fried chicken (breaded)", "Roti tisu", "Potato chips", "Doughnut (glazed)"],
     },
   ];
 }

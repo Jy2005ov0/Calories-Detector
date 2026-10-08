@@ -33,6 +33,7 @@ interface SheetProps {
 export function Sheet({ open, onClose, title, left, right, children }: SheetProps) {
   const reduce = useReducedMotion();
   const controls = useDragControls();
+  const titleId = useId();
   const ref = useRef<HTMLDivElement>(null);
 
   // Register once per opening (not per render) so nested sheets keep their stacking order.
@@ -72,6 +73,7 @@ export function Sheet({ open, onClose, title, left, right, children }: SheetProp
             className="sheet"
             role="dialog"
             aria-modal="true"
+            aria-labelledby={titleId}
             initial={reduce ? { opacity: 0 } : { y: "100%" }}
             animate={reduce ? { opacity: 1 } : { y: 0 }}
             exit={reduce ? { opacity: 0 } : { y: "100%" }}
@@ -93,7 +95,7 @@ export function Sheet({ open, onClose, title, left, right, children }: SheetProp
               <div className="sheet-grabber" />
               <div className="sheet-header">
                 <div className="side">{left}</div>
-                <h3>{title}</h3>
+                <h3 id={titleId}>{title}</h3>
                 <div className="side">
                   {right ?? (
                     <button className="icon-btn" onClick={onClose} aria-label="Close">
@@ -220,6 +222,7 @@ export function Stepper({
   value,
   onChange,
   step = 1,
+  decrementStep = step,
   min = 0,
   max = 9999,
   format,
@@ -227,13 +230,14 @@ export function Stepper({
   value: number;
   onChange: (v: number) => void;
   step?: number;
+  decrementStep?: number;
   min?: number;
   max?: number;
   format?: (v: number) => string;
 }) {
   return (
     <div className="stepper">
-      <button aria-label="Decrease" onClick={() => onChange(Math.max(min, round(value - step, 2)))}>
+      <button aria-label="Decrease" onClick={() => onChange(Math.max(min, round(value - decrementStep, 2)))}>
         <Minus size={16} />
       </button>
       <span>{format ? format(value) : value}</span>

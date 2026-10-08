@@ -7,7 +7,7 @@ import { SPRING, Segmented, Stepper, haptic, showToast } from "../components/ui"
 import { mealTiming, recommendedFoods, sampleDay } from "../lib/diet";
 import { SPLITS, WEEKDAYS, buildPlan, sessionFromPlan, type PlannedDay } from "../lib/fitness";
 import { bmr, round, targets, tdee } from "../lib/nutrition";
-import { actions, todayKey, useStore } from "../lib/store";
+import { actions, todayKey, useStore, useTodayKey, weekdayOf } from "../lib/store";
 import type { Food, MealType } from "../lib/types";
 import type { Tab } from "../App";
 
@@ -37,7 +37,7 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
   const split = useStore((s) => s.split);
   const activeId = useStore((s) => s.activeSessionId);
   const plan = useMemo(() => buildPlan(profile, split), [profile, split]);
-  const today = (new Date().getDay() + 6) % 7;
+  const today = weekdayOf(useTodayKey());
   const [open, setOpen] = useState<string | null>(plan.days.find((d) => d.weekday === today)?.key ?? plan.days[0]?.key ?? null);
 
   const start = (d: PlannedDay) => {
