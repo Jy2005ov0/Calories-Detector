@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CalendarCheck, Dumbbell, Flame, Search, UserRound } from "lucide-react";
 import { Welcome } from "./components/Auth";
+import { IntroGuide } from "./components/IntroGuide";
 import { BodyCheckSheet } from "./components/BodyCheckSheet";
 import { PhotoSheet } from "./components/PhotoSheet";
 import { HelpButton, Tour } from "./components/Tour";
@@ -29,6 +30,7 @@ export default function App() {
   const onboarded = useStore((s) => s.profile.onboarded);
   const account = useAccount();
   const chosen = !!account.token || account.guest;
+  const introDone = useStore((s) => s.introDone);
 
   useEffect(() => resumeSync(), []);
   const live = useStore((s) => !!s.activeSessionId);
@@ -66,6 +68,8 @@ export default function App() {
   );
 
   // New here: choose Apple / Google / email / no account. Existing users skip this.
+  // First launch: the step-by-step guide comes first (with Skip), then sign-in.
+  if (!onboarded && !chosen && !introDone) return <IntroGuide onDone={actions.finishIntro} />;
   // Toasts must show on these screens too (e.g. "Google sign-in isn't set up").
   if (!onboarded && !chosen)
     return (

@@ -19,7 +19,7 @@ const NASI_LEMAK_ANALYSIS = {
 
 // ── helpers ──────────────────────────────────────────────
 
-async function start(page: Page, { fakeClock = true } = {}) {
+async function start(page: Page, { fakeClock = true, skipIntro = true } = {}) {
   // The fake clock pins "today" to a Monday. It stalls animation frames after a reload,
   // so journeys that reload and then animate run on the real clock instead.
   if (fakeClock) {
@@ -29,6 +29,7 @@ async function start(page: Page, { fakeClock = true } = {}) {
   // Keep the suite hermetic: no real calls to Open Food Facts.
   await page.route("https://world.openfoodfacts.org/**", (r) => r.fulfill({ json: { products: [] } }));
   await page.goto("/");
+  if (skipIntro) await page.getByRole("region", { name: "Welcome guide" }).getByRole("button", { name: "Skip" }).click();
 }
 
 /** Move the phone's wall clock forward; timers keep running normally. */
@@ -544,6 +545,7 @@ test("Nadia: creates an account, switches phones, and her data follows her", asy
   const page2 = await phone2.newPage();
   await page2.route("https://world.openfoodfacts.org/**", (r) => r.fulfill({ json: { products: [] } }));
   await page2.goto("/");
+  await page2.getByRole("button", { name: "Skip" }).click();
   await page2.getByRole("button", { name: "Log in" }).click();
   const login = page2.getByRole("dialog", { name: "Log in" });
   await login.getByLabel("Email", { exact: true }).fill(email);
@@ -581,4 +583,53 @@ test("Nadia: creates an account, switches phones, and her data follows her", asy
   const relogin = await page2.request.post("/api/auth/login", { data: { email, password } });
   expect(relogin.status()).toBe(401);
   await phone2.close();
+});
+
+// ── Journey 5 ────────────────────────────────────────────
+
+test("First launch: the step-by-step guide comes first and can be swiped, stepped through or skipped", async ({ page }) => {
+  await start(page, { fakeClock: false, skipIntro: false });
+  const guide = page.getByRole("region", { name: "Welcome guide" });
+  await expect(guide).toBeVisible();
+  await expect(guide.getByRole("button", { name: "Skip" })).toBeVisible();
+  await expectNoHorizontalScroll(page);
+
+  const titles = ["Snap or search your food", "Know if it's good for you", "Clock in at the gym", "A plan made for your body", "Your data, on every phone"];
+  const current = (i: number) => guide.getByRole("heading", { name: titles[i] });
+
+  // Next walks through every page; the visible page is fully on screen.
+  for (let i = 0; i < titles.length; i++) {
+    await expect(guide).toContainText(`${i + 1} of ${titles.length}`);
+    await expect(current(i)).toBeInViewport({ ratio: 0.9 });
+    await expect(guide.getByRole("tab", { name: `Page ${i + 1}: ${titles[i]}` })).toHaveAttribute("aria-selected", "true");
+    if (i < titles.length - 1) await guide.getByRole("button", { name: "Next" }).click();
+  }
+  await expect(guide.getByRole("button", { name: "Get started" })).toBeVisible();
+
+  // Back, dots, and swiping all move between pages.
+  await guide.getByRole("button", { name: "Back" }).click();
+  await expect(current(3)).toBeInViewport({ ratio: 0.9 });
+  await guide.getByRole("tab", { name: /Page 1:/ }).click();
+  await expect(current(0)).toBeInViewport({ ratio: 0.9 });
+  const box = (await page.locator(".intro-viewport").boundingBox())!;
+  await page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2, { steps: 6 });
+  await page.mouse.up();
+  await expect(current(1)).toBeInViewport({ ratio: 0.9 });
+  await expect(guide).toContainText("2 of 5");
+
+  // Finishing goes to sign-in; the guide doesn't come back after a reload.
+  await guide.getByRole("tab", { name: /Page 5:/ }).click();
+  await guide.getByRole("button", { name: "Get started" }).click();
+  await expect(page.getByRole("button", { name: "Continue with Apple" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("region", { name: "Welcome guide" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Continue with Apple" })).toBeVisible();
+});
+
+test("First launch: Skip goes straight to sign-in", async ({ page }) => {
+  await start(page, { fakeClock: false, skipIntro: false });
+  await page.getByRole("region", { name: "Welcome guide" }).getByRole("button", { name: "Skip" }).click();
+  await expect(page.getByRole("button", { name: "Sign up with email" })).toBeVisible();
 });

@@ -13,7 +13,7 @@ Runs on **iOS and Android** three ways:
 | | |
 |---|---|
 | **Photo calories** | Snap or upload a meal. Claude vision lists each food, estimates the grams and works out the calories and macros. You can fix the grams before logging. |
-| **Food search** | 410 built-in foods (per 100 g, from USDA and the Malaysian Food Composition Database), including nasi lemak, roti canai, char kway teow, teh tarik and kuih. Typing 3+ letters also searches **Open Food Facts** (millions of packaged products, no key needed). |
+| **Food search** | 705 built-in foods (per 100 g, from USDA, UK CoFID and the Malaysian Food Composition Database) across 26 cuisines and groups: Malaysian, Chinese, Japanese, Korean, Thai & Vietnamese, Indian, Middle Eastern, Italian, Mexican & Latin American, American & British, European and African & Caribbean, plus everyday staples. Typing 3+ letters also searches **Open Food Facts** (millions of packaged products, no key needed). |
 | **Meal builder** | Combine any foods and quantities. See live totals, a health grade (A–E) and whether it fits your goal. Then log it or save it to reuse later. |
 | **Custom foods** | Copy any nutrition label into *My Foods*. |
 | **Health check** | Every food and meal gets a 0–100 score (protein and fibre per calorie versus sugar, saturated fat and sodium) plus a verdict against what you still have left today. |

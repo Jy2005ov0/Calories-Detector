@@ -1,4 +1,5 @@
 import type { Food } from "../lib/types";
+import { WORLD_ROWS } from "./worldFoods";
 
 // Values are per 100 g (or 100 ml for drinks), compiled from USDA FoodData Central
 // and the Malaysian Food Composition Database. Cooked dishes include typical oil.
@@ -447,7 +448,7 @@ const rows: Row[] = [
   ["BCAA drink", "Supplements", 0, 0, 0, 0, 0, 0, 0, 30, "1 scoop", 10],
 ];
 
-export const FOODS: Food[] = rows.map((r, i) => ({
+export const FOODS: Food[] = [...rows, ...WORLD_ROWS].map((r, i) => ({
   id: `db-${i}`,
   name: r[0],
   category: r[1],

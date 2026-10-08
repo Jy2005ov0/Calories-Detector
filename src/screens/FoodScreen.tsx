@@ -87,7 +87,7 @@ export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
       <h1 className="large-title" style={{ marginTop: 14 }}>
         Food
       </h1>
-      <p className="subtitle">{FOODS.length}+ foods built in, plus millions of packaged products online.</p>
+      <p className="subtitle">{FOODS.length} foods from {FOOD_CATEGORIES.length} cuisines and groups, plus millions of packaged products online.</p>
 
       <div className="search" data-tour="food-search">
         <Search size={17} />

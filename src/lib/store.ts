@@ -14,6 +14,8 @@ export interface AppState {
   recentFoodIds: string[];
   /** The guided tour has been shown (or skipped) once. */
   tourDone: boolean;
+  /** The first-launch intro guide has been finished or skipped. */
+  introDone: boolean;
   /** IDs of deleted entries, so a delete on one device isn't undone by another during sync. */
   deleted: string[];
   /** When each field last changed on this device; sync keeps the newer side field by field. */
@@ -46,6 +48,7 @@ const initial: AppState = {
   split: "auto",
   recentFoodIds: [],
   tourDone: false,
+  introDone: false,
   deleted: [],
   stamps: {},
 };
@@ -224,6 +227,9 @@ export const actions = {
       activeSessionId: st.activeSessionId === id ? null : st.activeSessionId,
       deleted: tombstone(st.deleted, id),
     }));
+  },
+  finishIntro() {
+    setState({ introDone: true });
   },
   finishTour() {
     setState({ tourDone: true });

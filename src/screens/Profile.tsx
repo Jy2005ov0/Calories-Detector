@@ -252,7 +252,7 @@ export function Onboarding() {
       body: (
         <div style={{ display: "grid", gap: 10 }}>
           {[
-            { Icon: Flame, color: "var(--orange)", t: "Count calories", s: "Photo recognition and 400+ foods including Malaysian favourites" },
+            { Icon: Flame, color: "var(--orange)", t: "Count calories", s: "Photo recognition and 700+ foods from around the world" },
             { Icon: Dumbbell, color: "var(--green)", t: "Clock in at the gym", s: "Live timer and calories for 230+ exercises and sports" },
             { Icon: Target, color: "var(--blue)", t: "Get a plan", s: "Chest, back, arms, legs splits and a matching meal plan" },
             { Icon: Leaf, color: "var(--teal)", t: "Eat smarter", s: "See if a meal is healthy and right for your goal" },
