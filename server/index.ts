@@ -5,17 +5,13 @@ import { fileURLToPath } from "node:url";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
+import { authConfigFromEnv, authRouter, type AuthConfig } from "./auth";
+import { openDb, type DB } from "./db";
+import { syncRouter } from "./sync";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 8787);
 const MODEL = "claude-opus-5-5";
-
-const app = express();
-// The iOS and Android apps load from these local origins and call this server cross-origin.
-const NATIVE_ORIGINS = ["capacitor://localhost", "ionic://localhost", "https://localhost", "http://localhost"];
-const extraOrigins = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean);
-app.use("/api", cors({ origin: [...NATIVE_ORIGINS, ...extraOrigins] }));
-app.use(express.json({ limit: "12mb" }));
 
 const DetectedFood = z.object({
   name: z.string().describe("Common English name of the food, e.g. 'Fried egg'"),
@@ -48,80 +44,100 @@ function getClient() {
   return client;
 }
 
-app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, photoAnalysis: getClient() !== null });
-});
+export function createApp(db: DB = openDb(), authConfig: AuthConfig = authConfigFromEnv()) {
+  const app = express();
+  // Behind a proxy (Render, Fly, Railway…) so rate limits see the real client IP.
+  app.set("trust proxy", 1);
+  // The iOS and Android apps load from these local origins and call this server cross-origin.
+  const NATIVE_ORIGINS = ["capacitor://localhost", "ionic://localhost", "https://localhost", "http://localhost"];
+  const extraOrigins = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean);
+  app.use("/api", cors({ origin: [...NATIVE_ORIGINS, ...extraOrigins] }));
+  app.use(express.json({ limit: "12mb" }));
+  app.use("/api/auth", authRouter(db, authConfig));
+  app.use("/api/data", syncRouter(db));
 
-const ALLOWED_MEDIA = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
-type AllowedMedia = (typeof ALLOWED_MEDIA)[number];
+  app.get("/api/health", (_req, res) => {
+    res.json({ ok: true, photoAnalysis: getClient() !== null });
+  });
 
-app.post("/api/analyze-photo", async (req, res) => {
-  const anthropic = getClient();
-  if (!anthropic) {
-    res.status(503).json({ error: "Photo analysis is not configured. Set ANTHROPIC_API_KEY on the server." });
-    return;
-  }
-  const { image, mediaType, hint } = req.body ?? {};
-  if (typeof image !== "string" || !ALLOWED_MEDIA.includes(mediaType)) {
-    res.status(400).json({ error: "Send { image: <base64>, mediaType: 'image/jpeg' | 'image/png' | 'image/webp' }" });
-    return;
-  }
+  const ALLOWED_MEDIA = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
+  type AllowedMedia = (typeof ALLOWED_MEDIA)[number];
 
-  try {
-    const response = await anthropic.beta.messages.parse({
-      model: MODEL,
-      max_tokens: 16000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      output_config: { effort: "medium", format: betaZodOutputFormat(PhotoAnalysis) },
-      system: SYSTEM,
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: mediaType as AllowedMedia, data: image } },
-            {
-              type: "text",
-              text:
-                "Estimate the nutrition of this meal." +
-                (typeof hint === "string" && hint.trim() ? ` The user adds: "${hint.trim().slice(0, 300)}"` : ""),
-            },
-          ],
-        },
-      ],
-    });
-
-    if (response.stop_reason === "refusal") {
-      res.status(422).json({ error: "The image could not be analysed. Try another photo." });
+  app.post("/api/analyze-photo", async (req, res) => {
+    const anthropic = getClient();
+    if (!anthropic) {
+      res.status(503).json({ error: "Photo analysis is not configured. Set ANTHROPIC_API_KEY on the server." });
       return;
     }
-    if (!response.parsed_output) {
-      res.status(502).json({ error: "Could not read the analysis. Please try again." });
+    const { image, mediaType, hint } = req.body ?? {};
+    if (typeof image !== "string" || !ALLOWED_MEDIA.includes(mediaType)) {
+      res.status(400).json({ error: "Send { image: <base64>, mediaType: 'image/jpeg' | 'image/png' | 'image/webp' }" });
       return;
     }
-    res.json(response.parsed_output);
-  } catch (error) {
-    if (error instanceof Anthropic.AuthenticationError) {
-      res.status(503).json({ error: "The server's Anthropic API key is invalid." });
-    } else if (error instanceof Anthropic.RateLimitError) {
-      res.status(429).json({ error: "Too many requests right now. Try again in a moment." });
-    } else if (error instanceof Anthropic.BadRequestError) {
-      res.status(400).json({ error: "That image could not be processed. Try a smaller JPEG or PNG." });
-    } else if (error instanceof Anthropic.APIError) {
-      res.status(502).json({ error: `AI service error (${error.status ?? "network"}).` });
-    } else {
-      console.error(error);
-      res.status(500).json({ error: "Unexpected server error." });
-    }
-  }
-});
 
-if (process.env.NODE_ENV === "production") {
-  const dist = path.resolve(here, "../dist");
-  app.use(express.static(dist));
-  app.get(/^(?!\/api).*/, (_req, res) => res.sendFile(path.join(dist, "index.html")));
+    try {
+      const response = await anthropic.beta.messages.parse({
+        model: MODEL,
+        max_tokens: 16000,
+        betas: ["server-side-fallback-2026-07-01"],
+        fallbacks: "default",
+        output_config: { effort: "medium", format: betaZodOutputFormat(PhotoAnalysis) },
+        system: SYSTEM,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "image", source: { type: "base64", media_type: mediaType as AllowedMedia, data: image } },
+              {
+                type: "text",
+                text:
+                  "Estimate the nutrition of this meal." +
+                  (typeof hint === "string" && hint.trim() ? ` The user adds: "${hint.trim().slice(0, 300)}"` : ""),
+              },
+            ],
+          },
+        ],
+      });
+
+      if (response.stop_reason === "refusal") {
+        res.status(422).json({ error: "The image could not be analysed. Try another photo." });
+        return;
+      }
+      if (!response.parsed_output) {
+        res.status(502).json({ error: "Could not read the analysis. Please try again." });
+        return;
+      }
+      res.json(response.parsed_output);
+    } catch (error) {
+      if (error instanceof Anthropic.AuthenticationError) {
+        res.status(503).json({ error: "The server's Anthropic API key is invalid." });
+      } else if (error instanceof Anthropic.RateLimitError) {
+        res.status(429).json({ error: "Too many requests right now. Try again in a moment." });
+      } else if (error instanceof Anthropic.BadRequestError) {
+        res.status(400).json({ error: "That image could not be processed. Try a smaller JPEG or PNG." });
+      } else if (error instanceof Anthropic.APIError) {
+        res.status(502).json({ error: `AI service error (${error.status ?? "network"}).` });
+      } else {
+        console.error(error);
+        res.status(500).json({ error: "Unexpected server error." });
+      }
+    }
+  });
+
+  if (process.env.NODE_ENV === "production") {
+    const dist = path.resolve(here, "../dist");
+    app.use(express.static(dist));
+    app.get(/^(?!\/api).*/, (_req, res) => res.sendFile(path.join(dist, "index.html")));
+  }
+
+  return app;
 }
 
-app.listen(PORT, () => {
-  console.log(`API listening on http://localhost:${PORT} (photo analysis ${getClient() ? "enabled" : "disabled"})`);
-});
+// Run the server unless this file is imported (tests import createApp).
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const db = openDb();
+  setInterval(() => db.purgeSessions(), 60 * 60 * 1000).unref();
+  createApp(db).listen(PORT, () => {
+    console.log(`API listening on http://localhost:${PORT} (photo analysis ${getClient() ? "enabled" : "disabled"})`);
+  });
+}

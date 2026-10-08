@@ -1266,3 +1266,59 @@ button.row:active,
 [data-tour] {
   scroll-margin-top: calc(var(--safe-top) + 56px);
 }
+
+/* ── Sign in ────────────────────────────────────────── */
+/* Sign in with Apple: black in light mode, white in dark mode (Apple HIG). */
+.auth-apple {
+  background: #000;
+  color: #fff;
+}
+
+.auth-google {
+  background: #fff;
+  color: #1f1f1f;
+  box-shadow: inset 0 0 0 1px #747775;
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-apple {
+    background: #fff;
+    color: #000;
+  }
+  .auth-google {
+    background: #131314;
+    color: #e3e3e3;
+    box-shadow: inset 0 0 0 1px #8e918f;
+  }
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 14px;
+  color: var(--label-2);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 0.5px solid var(--separator);
+}
+
+.avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 22px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--orange), var(--pink));
+  flex: none;
+}

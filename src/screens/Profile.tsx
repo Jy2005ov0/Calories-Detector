@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { AccountCard } from "../components/Account";
 import { AnimatePresence, motion } from "motion/react";
 import { Activity, ChevronRight, Dumbbell, Flame, Leaf, Scale, Target, TrendingDown, TrendingUp, User } from "lucide-react";
 import { Segmented, SPRING, Stepper, showToast } from "../components/ui";
 import { bmi, bmiLabel, bmr, round, targets, tdee } from "../lib/nutrition";
+import { getAccount, syncNow, useAccount } from "../lib/account";
 import { confirmDialog } from "../lib/platform";
 import { actions, useStore } from "../lib/store";
 import type { Profile as P } from "../lib/types";
@@ -110,12 +112,16 @@ export function ProfileScreen({ openBodyCheck }: { openBodyCheck: () => void }) 
   const p = useStore((s) => s.profile);
   const t = targets(p);
   const b = bmi(p);
+  const signedIn = !!useAccount().token;
   return (
     <div className="screen">
       <h1 className="large-title" style={{ marginTop: 14 }}>
         Profile
       </h1>
       <p className="subtitle">Your numbers drive every target and plan in the app.</p>
+
+      <AccountCard />
+      <div className="spacer" />
 
       <div className="card">
         <div className="stat-grid">
@@ -208,8 +214,11 @@ export function ProfileScreen({ openBodyCheck }: { openBodyCheck: () => void }) 
           className="row"
           style={{ color: "var(--red)" }}
           onClick={async () => {
-            if (await confirmDialog("Delete all data?", "Your logs, workouts, custom foods and profile will be erased. This can't be undone.")) {
+            const signedIn = !!getAccount().token;
+            const where = signedIn ? "on this phone and in your account" : "on this phone";
+            if (await confirmDialog("Delete all data?", `Your logs, workouts, custom foods and profile ${where} will be erased. This can't be undone.`)) {
               actions.resetAll();
+              if (signedIn) syncNow();
               showToast("All data deleted");
             }
           }}
@@ -217,7 +226,11 @@ export function ProfileScreen({ openBodyCheck }: { openBodyCheck: () => void }) 
           Delete all data
         </button>
       </div>
-      <p className="footnote">Everything is stored only on this device. Photos are sent to the server just for analysis and are not kept.</p>
+      <p className="footnote">
+        {signedIn
+          ? "Your data is stored on this phone and backed up to your account. Photos are sent to the server only for analysis and are not kept."
+          : "Everything is stored only on this phone. Photos are sent to the server only for analysis and are not kept."}
+      </p>
     </div>
   );
 }
@@ -226,7 +239,8 @@ export function ProfileScreen({ openBodyCheck }: { openBodyCheck: () => void }) 
 
 export function Onboarding() {
   const stored = useStore((s) => s.profile);
-  const [p, setP] = useState<P>(stored);
+  // Signed in with Google/Apple/email? Start with the account's first name.
+  const [p, setP] = useState<P>(() => ({ ...stored, name: stored.name || getAccount().user?.name?.split(" ")[0] || "" }));
   const [step, setStep] = useState(0);
   const set = (x: Partial<P>) => setP((o) => ({ ...o, ...x }));
   const valid = p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300;

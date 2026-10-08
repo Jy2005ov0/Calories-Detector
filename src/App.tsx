@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CalendarCheck, Dumbbell, Flame, Search, UserRound } from "lucide-react";
+import { Welcome } from "./components/Auth";
 import { BodyCheckSheet } from "./components/BodyCheckSheet";
 import { PhotoSheet } from "./components/PhotoSheet";
 import { HelpButton, Tour } from "./components/Tour";
 import { ToastHost } from "./components/ui";
+import { resumeSync, useAccount } from "./lib/account";
 import { onBackButton } from "./lib/platform";
 import { actions, useStore } from "./lib/store";
 import { FoodScreen } from "./screens/FoodScreen";
@@ -25,6 +27,10 @@ const TABS: { id: Tab; label: string; Icon: typeof Flame }[] = [
 
 export default function App() {
   const onboarded = useStore((s) => s.profile.onboarded);
+  const account = useAccount();
+  const chosen = !!account.token || account.guest;
+
+  useEffect(() => resumeSync(), []);
   const live = useStore((s) => !!s.activeSessionId);
   const [tab, setTab] = useState<Tab>("today");
   const [photo, setPhoto] = useState(false);
@@ -59,7 +65,22 @@ export default function App() {
     [],
   );
 
-  if (!onboarded) return <Onboarding />;
+  // New here: choose Apple / Google / email / no account. Existing users skip this.
+  // Toasts must show on these screens too (e.g. "Google sign-in isn't set up").
+  if (!onboarded && !chosen)
+    return (
+      <>
+        <Welcome />
+        <ToastHost />
+      </>
+    );
+  if (!onboarded)
+    return (
+      <>
+        <Onboarding />
+        <ToastHost />
+      </>
+    );
 
   const openPhoto = () => setPhoto(true);
 

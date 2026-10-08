@@ -14,6 +14,10 @@ export interface AppState {
   recentFoodIds: string[];
   /** The guided tour has been shown (or skipped) once. */
   tourDone: boolean;
+  /** IDs of deleted entries, so a delete on one device isn't undone by another during sync. */
+  deleted: string[];
+  /** When each field last changed on this device; sync keeps the newer side field by field. */
+  stamps: Partial<Record<keyof AppState, number>>;
 }
 
 const KEY = "calories-detector:v1";
@@ -42,9 +46,13 @@ const initial: AppState = {
   split: "auto",
   recentFoodIds: [],
   tourDone: false,
+  deleted: [],
+  stamps: {},
 };
 
-function parse(raw: string | null): AppState | null {
+export const INITIAL_STATE = initial;
+
+export function parseState(raw: string | null): AppState | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Partial<AppState>;
@@ -56,7 +64,7 @@ function parse(raw: string | null): AppState | null {
 
 function load(): AppState {
   try {
-    return parse(localStorage.getItem(KEY)) ?? initial;
+    return parseState(localStorage.getItem(KEY)) ?? initial;
   } catch {
     return initial;
   }
@@ -71,7 +79,19 @@ export function getState() {
 
 export function setState(update: Partial<AppState> | ((s: AppState) => Partial<AppState>)) {
   const patch = typeof update === "function" ? update(state) : update;
-  state = { ...state, ...patch };
+  const now = Date.now();
+  const stamps = { ...state.stamps };
+  for (const k of Object.keys(patch) as (keyof AppState)[]) if (k !== "stamps" && k !== "deleted") stamps[k] = now;
+  commit({ ...state, ...patch, stamps });
+}
+
+/** Replace the whole state as-is (used when sync brings in merged data). */
+export function replaceState(next: AppState) {
+  commit(next);
+}
+
+function commit(next: AppState) {
+  state = next;
   const json = JSON.stringify(state);
   try {
     localStorage.setItem(KEY, json);
@@ -84,7 +104,7 @@ export function setState(update: Partial<AppState> | ((s: AppState) => Partial<A
 
 /** In the native apps, restore from OS-backed storage in case the WebView's storage was evicted. */
 export async function hydrate() {
-  const durable = parse(await readDurable(KEY).catch(() => null));
+  const durable = parseState(await readDurable(KEY).catch(() => null));
   if (durable) {
     state = durable;
     try {
@@ -96,6 +116,13 @@ export async function hydrate() {
     // First launch after this update: copy existing data into durable storage.
     writeDurable(KEY, JSON.stringify(state));
   }
+}
+
+export function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export function useStore<T>(selector: (s: AppState) => T): T {
@@ -154,10 +181,10 @@ export const actions = {
     setState((s) => ({ log: [...s.log, ...entries.map((e, i) => ({ ...e, id: uid(), createdAt: now + i }))] }));
   },
   removeLog(id: string) {
-    setState((s) => ({ log: s.log.filter((e) => e.id !== id) }));
+    setState((s) => ({ log: s.log.filter((e) => e.id !== id), deleted: tombstone(s.deleted, id) }));
   },
   restoreLog(entry: LogEntry) {
-    setState((s) => ({ log: [...s.log, entry] }));
+    setState((s) => ({ log: [...s.log, entry], deleted: s.deleted.filter((d) => d !== entry.id) }));
   },
   touchRecent(foodId: string) {
     setState((s) => ({ recentFoodIds: [foodId, ...s.recentFoodIds.filter((x) => x !== foodId)].slice(0, 20) }));
@@ -166,10 +193,10 @@ export const actions = {
     setState((s) => ({ customFoods: [f, ...s.customFoods] }));
   },
   saveCustomMeal(m: CustomMeal) {
-    setState((s) => ({ customMeals: [m, ...s.customMeals.filter((x) => x.id !== m.id)] }));
+    setState((s) => ({ customMeals: [m, ...s.customMeals.filter((x) => x.id !== m.id)], deleted: s.deleted.filter((d) => d !== m.id) }));
   },
   deleteCustomMeal(id: string) {
-    setState((s) => ({ customMeals: s.customMeals.filter((x) => x.id !== id) }));
+    setState((s) => ({ customMeals: s.customMeals.filter((x) => x.id !== id), deleted: tombstone(s.deleted, id) }));
   },
   clockIn(title: string, exercises: WorkoutSession["exercises"] = []) {
     const s: WorkoutSession = { id: uid(), date: todayKey(), title, startedAt: Date.now(), exercises, kcal: 0 };
@@ -186,12 +213,16 @@ export const actions = {
     }));
   },
   addSession(session: WorkoutSession) {
-    setState((st) => ({ sessions: [...st.sessions, session].sort((a, b) => b.startedAt - a.startedAt) }));
+    setState((st) => ({
+      sessions: [...st.sessions, session].sort((a, b) => b.startedAt - a.startedAt),
+      deleted: st.deleted.filter((d) => d !== session.id),
+    }));
   },
   discardSession(id: string) {
     setState((st) => ({
       sessions: st.sessions.filter((s) => s.id !== id),
       activeSessionId: st.activeSessionId === id ? null : st.activeSessionId,
+      deleted: tombstone(st.deleted, id),
     }));
   },
   finishTour() {
@@ -201,6 +232,11 @@ export const actions = {
     setState({ split });
   },
   resetAll() {
-    setState({ ...initial });
+    // Every field is stamped as changed now, so the reset wins over older synced copies.
+    setState({ ...initial, stamps: {} });
   },
 };
+
+function tombstone(list: string[], id: string) {
+  return [...list.filter((d) => d !== id), id].slice(-2000);
+}
