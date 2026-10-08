@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Activity, Dumbbell, Flame, Leaf, Scale, Target, TrendingDown, TrendingUp, User } from "lucide-react";
+import { Activity, ChevronRight, Dumbbell, Flame, Leaf, Scale, Target, TrendingDown, TrendingUp, User } from "lucide-react";
 import { Segmented, SPRING, Stepper, showToast } from "../components/ui";
 import { bmi, bmiLabel, bmr, round, targets, tdee } from "../lib/nutrition";
 import { confirmDialog } from "../lib/platform";
@@ -30,7 +30,7 @@ const DIETS: { value: P["diet"]; label: string }[] = [
 
 function NumField({ label, value, unit, onChange, step = 1 }: { label: string; value: number; unit: string; onChange: (v: number) => void; step?: number }) {
   return (
-    <div className="field">
+    <div className="field" data-tour={`field-${label.toLowerCase()}`}>
       <label>{label}</label>
       <input
         inputMode="decimal"
@@ -106,7 +106,7 @@ function OptionList<T extends string | number>({
   );
 }
 
-export function ProfileScreen() {
+export function ProfileScreen({ openBodyCheck }: { openBodyCheck: () => void }) {
   const p = useStore((s) => s.profile);
   const t = targets(p);
   const b = bmi(p);
@@ -151,6 +151,19 @@ export function ProfileScreen() {
 
       <div className="section-header">About you</div>
       <ProfileFields p={p} set={actions.updateProfile} />
+
+      <div className="group" style={{ marginTop: 12 }}>
+        <button className="row with-icon" onClick={openBodyCheck}>
+          <div className="icon-tile" style={{ background: "var(--teal)" }}>
+            <Scale size={17} />
+          </div>
+          <div className="row-main">
+            <div className="row-title">Body check</div>
+            <div className="row-sub">BMI calculator with training and diet advice</div>
+          </div>
+          <ChevronRight size={16} className="chev" />
+        </button>
+      </div>
 
       <div className="section-header">Goal</div>
       <OptionList options={GOALS} value={p.goal} onChange={(goal) => actions.updateProfile({ goal })} />

@@ -1,15 +1,16 @@
 import { useMemo } from "react";
 import { motion } from "motion/react";
-import { Camera, ChevronRight, Dumbbell, Flame, Search, Trash2, Utensils } from "lucide-react";
+import { Camera, ChevronRight, Dumbbell, Flame, Scale, Search, Trash2, Utensils } from "lucide-react";
 import { MEALS } from "../lib/api";
 import { formatDuration, plural, sessionKcal, sessionMinutes } from "../lib/fitness";
-import { round, sum, targets } from "../lib/nutrition";
+import { bmi, round, sum, targets } from "../lib/nutrition";
+import { bmiBand } from "../lib/recommend";
 import { actions, useStore, useTodayKey } from "../lib/store";
 import type { LogEntry } from "../lib/types";
 import { Bar, MacroBars, Ring, SPRING, showToast, useNow } from "../components/ui";
 import type { Tab } from "../App";
 
-export function Today({ go, openPhoto }: { go: (t: Tab) => void; openPhoto: () => void }) {
+export function Today({ go, openPhoto, openBodyCheck }: { go: (t: Tab) => void; openPhoto: () => void; openBodyCheck: () => void }) {
   const profile = useStore((s) => s.profile);
   const log = useStore((s) => s.log);
   const sessions = useStore((s) => s.sessions);
@@ -17,6 +18,7 @@ export function Today({ go, openPhoto }: { go: (t: Tab) => void; openPhoto: () =
   const now = useNow(1000, !!activeId);
   const today = useTodayKey();
   const t = targets(profile);
+  const bmiValue = bmi(profile);
 
   const entries = useMemo(() => log.filter((e) => e.date === today), [log, today]);
   const eaten = useMemo(() => sum(entries.map((e) => e.nutrients)), [entries]);
@@ -59,7 +61,7 @@ export function Today({ go, openPhoto }: { go: (t: Tab) => void; openPhoto: () =
       )}
 
       <div className="card">
-        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+        <div data-tour="summary" style={{ display: "flex", alignItems: "center", gap: 18 }}>
           <Ring progress={eaten.kcal / (t.kcal + burned)} size={136} stroke={14}>
             <div>
               <div className="stat-value" style={{ fontSize: 28, color: remaining < 0 ? "var(--red)" : undefined }}>
@@ -104,7 +106,7 @@ export function Today({ go, openPhoto }: { go: (t: Tab) => void; openPhoto: () =
       </div>
 
       <div className="tiles" style={{ marginTop: 12 }}>
-        <button className="tile" onClick={openPhoto}>
+        <button className="tile" onClick={openPhoto} data-tour="scan">
           <div className="icon-tile" style={{ background: "var(--blue)" }}>
             <Camera size={18} />
           </div>
@@ -123,6 +125,19 @@ export function Today({ go, openPhoto }: { go: (t: Tab) => void; openPhoto: () =
           </div>
         </button>
       </div>
+
+      <button className="card pressable" data-tour="body-check" onClick={openBodyCheck} style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 12, marginTop: 12 }}>
+        <div className="icon-tile" style={{ background: bmiBand(bmiValue).color }}>
+          <Scale size={18} />
+        </div>
+        <div className="row-main">
+          <div className="tile-title">Body check · BMI {bmiValue.toFixed(1)}</div>
+          <div className="tile-sub">
+            {bmiBand(bmiValue).label} · see what to train and eat
+          </div>
+        </div>
+        <ChevronRight size={18} className="chev" />
+      </button>
 
       <div className="section-header">Today's limits</div>
       <div className="card">

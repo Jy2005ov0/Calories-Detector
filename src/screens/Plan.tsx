@@ -19,14 +19,16 @@ export function Plan({ go }: { go: (t: Tab) => void }) {
         Plan
       </h1>
       <p className="subtitle">Built from your profile and goal. Change your profile to update it.</p>
-      <Segmented
-        value={view}
-        onChange={setView}
-        options={[
-          { value: "training", label: "Training" },
-          { value: "nutrition", label: "Nutrition" },
-        ]}
-      />
+      <div data-tour="plan-tabs">
+        <Segmented
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "training", label: "Training" },
+            { value: "nutrition", label: "Nutrition" },
+          ]}
+        />
+      </div>
       {view === "training" ? <TrainingPlan go={go} /> : <NutritionPlan />}
     </div>
   );
@@ -54,7 +56,7 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
   return (
     <>
       <div className="section-header">Split</div>
-      <div className="chips">
+      <div className="chips" data-tour="split">
         {SPLITS.map((s) => (
           <button key={s.id} className={`chip ${split === s.id ? "active" : ""}`} onClick={() => actions.setSplit(s.id)}>
             {s.name}

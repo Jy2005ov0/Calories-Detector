@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CalendarCheck, Dumbbell, Flame, Search, UserRound } from "lucide-react";
+import { BodyCheckSheet } from "./components/BodyCheckSheet";
 import { PhotoSheet } from "./components/PhotoSheet";
+import { HelpButton, Tour } from "./components/Tour";
 import { ToastHost } from "./components/ui";
 import { onBackButton } from "./lib/platform";
-import { useStore } from "./lib/store";
+import { actions, useStore } from "./lib/store";
 import { FoodScreen } from "./screens/FoodScreen";
 import { Plan } from "./screens/Plan";
 import { Onboarding, ProfileScreen } from "./screens/Profile";
@@ -26,6 +28,20 @@ export default function App() {
   const live = useStore((s) => !!s.activeSessionId);
   const [tab, setTab] = useState<Tab>("today");
   const [photo, setPhoto] = useState(false);
+  const [bodyCheck, setBodyCheck] = useState(false);
+  const tourDone = useStore((s) => s.tourDone);
+  const [tour, setTour] = useState(false);
+
+  // Offer the guide once, right after onboarding.
+  useEffect(() => {
+    if (onboarded && !tourDone) setTour(true);
+  }, [onboarded, tourDone]);
+
+  const closeTour = () => {
+    setTour(false);
+    actions.finishTour();
+    setTab("today");
+  };
   const reduce = useReducedMotion();
 
   useEffect(() => window.scrollTo(0, 0), [tab]);
@@ -57,11 +73,11 @@ export default function App() {
           exit={{ opacity: 0 }}
           transition={{ duration: reduce ? 0.1 : 0.15 }}
         >
-          {tab === "today" && <Today go={setTab} openPhoto={openPhoto} />}
+          {tab === "today" && <Today go={setTab} openPhoto={openPhoto} openBodyCheck={() => setBodyCheck(true)} />}
           {tab === "food" && <FoodScreen openPhoto={openPhoto} />}
           {tab === "train" && <Train />}
           {tab === "plan" && <Plan go={setTab} />}
-          {tab === "profile" && <ProfileScreen />}
+          {tab === "profile" && <ProfileScreen openBodyCheck={() => setBodyCheck(true)} />}
         </motion.main>
       </AnimatePresence>
 
@@ -84,7 +100,10 @@ export default function App() {
         </div>
       </nav>
 
+      <HelpButton onClick={() => setTour(true)} />
       <PhotoSheet open={photo} onClose={() => setPhoto(false)} />
+      <BodyCheckSheet open={bodyCheck} onClose={() => setBodyCheck(false)} />
+      <Tour open={tour} onClose={closeTour} setTab={setTab} />
       <ToastHost />
     </div>
   );

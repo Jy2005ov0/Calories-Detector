@@ -89,7 +89,7 @@ export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
       </h1>
       <p className="subtitle">{FOODS.length}+ foods built in, plus millions of packaged products online.</p>
 
-      <div className="search">
+      <div className="search" data-tour="food-search">
         <Search size={17} />
         <input
           placeholder="Search nasi lemak, chicken breast, Milo…"
@@ -107,7 +107,7 @@ export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
 
       {!q && (
         <>
-          <div className="tiles" style={{ marginTop: 14, gridTemplateColumns: "1fr 1fr 1fr" }}>
+          <div className="tiles" data-tour="food-tools" style={{ marginTop: 14, gridTemplateColumns: "1fr 1fr 1fr" }}>
             <button className="tile" onClick={openPhoto} style={{ minHeight: 96 }}>
               <div className="icon-tile" style={{ background: "var(--blue)" }}>
                 <Camera size={17} />

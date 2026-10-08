@@ -129,7 +129,8 @@ img {
 }
 
 .screen {
-  padding: calc(var(--safe-top) + 8px) calc(var(--safe-right) + 16px) calc(var(--tabbar-h) + 32px) calc(var(--safe-left) + 16px);
+  /* Top row is left for the floating help button. */
+  padding: calc(var(--safe-top) + 40px) calc(var(--safe-right) + 16px) calc(var(--tabbar-h) + 32px) calc(var(--safe-left) + 16px);
 }
 
 /* Feel like an app, not a web page: no text selection or long-press callouts on controls. */
@@ -1174,4 +1175,94 @@ button.row:active,
 :focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 2px;
+}
+
+/* ── Help button & guided tour ──────────────────────── */
+.help-btn {
+  position: fixed;
+  z-index: 30;
+  top: calc(var(--safe-top) + 10px);
+  right: max(calc(var(--safe-right) + 16px), calc((100vw - 560px) / 2 + 16px));
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--blue);
+  background: var(--material-thick);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 0 0 0.5px var(--separator), 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.help-btn:active {
+  transform: scale(0.9);
+  transition: transform 80ms ease-out;
+}
+
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+
+.tour-blocker {
+  position: absolute;
+  inset: 0;
+}
+
+.tour-spotlight {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  /* The dimmed backdrop is the spotlight's own shadow, so the cut-out moves with it. */
+  box-shadow: 0 0 0 200vmax rgba(0, 0, 0, 0.58);
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 0;
+}
+
+.tour-card {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--bg-elev);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.tour-progress {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.tour-progress span {
+  flex: 1;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--bg-fill);
+}
+
+.tour-progress span.on {
+  background: var(--blue);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .help-btn {
+    background: var(--bg-elev);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Guided tour scrolls features to just below the floating ? button. */
+[data-tour] {
+  scroll-margin-top: calc(var(--safe-top) + 56px);
 }

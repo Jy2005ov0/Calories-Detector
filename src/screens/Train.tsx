@@ -197,7 +197,7 @@ export function Train() {
           <Plus size={18} /> Add exercise
         </button>
         <div className="spacer" />
-        <button className="btn red" onClick={() => setFinishing(true)}>
+        <button className="btn red" data-tour="clock-out" onClick={() => setFinishing(true)}>
           <LogOut size={18} /> Clock out
         </button>
 
@@ -277,7 +277,7 @@ export function Train() {
       </h1>
       <p className="subtitle">Clock in when you start, clock out when you're done.</p>
 
-      <motion.button className="card pressable" style={{ width: "100%", textAlign: "left", display: "block" }} onClick={() => clockIn("Workout")}>
+      <motion.button className="card pressable" data-tour="clock-in" style={{ width: "100%", textAlign: "left", display: "block" }} onClick={() => clockIn("Workout")}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div className="icon-tile" style={{ width: 52, height: 52, borderRadius: 16, background: "var(--green)" }}>
             <LogIn size={24} />
@@ -313,7 +313,7 @@ export function Train() {
       )}
 
       <div className="tiles" style={{ marginTop: 12 }}>
-        <button className="tile" onClick={() => setLibrary("log")}>
+        <button className="tile" data-tour="log-activity" onClick={() => setLibrary("log")}>
           <div className="icon-tile" style={{ background: "var(--orange)" }}>
             <Flame size={18} />
           </div>

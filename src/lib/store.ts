@@ -12,6 +12,8 @@ export interface AppState {
   activeSessionId: string | null;
   split: SplitId;
   recentFoodIds: string[];
+  /** The guided tour has been shown (or skipped) once. */
+  tourDone: boolean;
 }
 
 const KEY = "calories-detector:v1";
@@ -39,6 +41,7 @@ const initial: AppState = {
   activeSessionId: null,
   split: "auto",
   recentFoodIds: [],
+  tourDone: false,
 };
 
 function parse(raw: string | null): AppState | null {
@@ -190,6 +193,9 @@ export const actions = {
       sessions: st.sessions.filter((s) => s.id !== id),
       activeSessionId: st.activeSessionId === id ? null : st.activeSessionId,
     }));
+  },
+  finishTour() {
+    setState({ tourDone: true });
   },
   setSplit(split: SplitId) {
     setState({ split });
