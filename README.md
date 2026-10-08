@@ -8,6 +8,187 @@ Runs on **iOS and Android** three ways:
 - **Installable web app (PWA)**. In Safari tap Share → *Add to Home Screen*; in Chrome tap ⋮ → *Install app*. It works offline.
 - **Any mobile or desktop browser.**
 
+## Install the app
+
+### iPhone / iPad
+
+**Quickest: add it to your Home Screen (no App Store needed)**
+
+1. Open the app's web address in **Safari**.
+2. Tap the **Share** button (the square with an arrow pointing up).
+3. Scroll down and tap **Add to Home Screen**, then **Add**.
+4. Open **Calories** from your Home Screen. It runs full screen and works offline.
+
+**Native app from source (needs a Mac)**
+
+1. Install **Xcode** from the Mac App Store and **Node.js 22**.
+2. In Terminal:
+   ```bash
+   git clone https://github.com/jy2005ov0/calories-detector.git
+   cd calories-detector
+   npm install
+   npm run ios
+   ```
+3. Xcode opens. Plug in your iPhone, choose it at the top of the window, then select the **App** target → **Signing & Capabilities** → choose your **Team** (a free Apple ID works).
+4. Press **Run** (▶).
+5. The first time, on the iPhone go to **Settings → General → VPN & Device Management**, tap your Apple ID and tap **Trust**.
+
+With a free Apple ID the app has to be re-installed every 7 days. A paid Apple Developer account lets you share it through **TestFlight** or publish it on the App Store.
+
+### Android
+
+**Install the APK**
+
+1. On your phone, open this repository's **[Releases](../../releases)** page and download the latest `calories-vX.Y.Z.apk`.
+   (No release yet? Open the **Actions** tab → the latest green **Mobile apps** run → **Artifacts** → `calories-android-debug`. This needs you to be signed in to GitHub, and it downloads as a zip with the APK inside.)
+2. Open the downloaded file. If Android asks, allow **Install unknown apps** for your browser or Files app.
+3. Tap **Install**, then **Open**.
+
+**Or add it to your Home Screen**
+
+1. Open the app's web address in **Chrome**.
+2. Tap **⋮** → **Install app** (or **Add to Home screen**).
+
+**Native app from source**
+
+1. Install **Android Studio** and **Node.js 22**.
+2. Run:
+   ```bash
+   git clone https://github.com/jy2005ov0/calories-detector.git
+   cd calories-detector
+   npm install
+   npm run android
+   ```
+3. Android Studio opens. Turn on **USB debugging** on your phone (Settings → About phone → tap **Build number** 7 times → Developer options → USB debugging), plug it in, choose it at the top and press **Run** (▶).
+
+### For maintainers: publishing a download
+
+Push a version tag and CI builds the APK and attaches it to a new GitHub Release:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Photo recognition and accounts need the server running somewhere (see [Run it](#run-it)). Set the repository variable `API_URL` before tagging so the APK knows where your server is.
+
+## Screenshots
+
+iPhone in light mode. The Android set, in dark mode, is below it. Regenerate both with `npm run screenshots`.
+
+#### First launch
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/01-intro-guide.jpg" width="190" alt="Welcome guide (with Skip)"><br><sub>Welcome guide (with Skip)</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/02-sign-in.jpg" width="190" alt="Sign in: Apple, Google or email"><br><sub>Sign in: Apple, Google or email</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/03-create-account.jpg" width="190" alt="Create an account"><br><sub>Create an account</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/04-onboarding-goal.jpg" width="190" alt="Set your goal"><br><sub>Set your goal</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/05-guided-tour.jpg" width="190" alt="Step-by-step tour (? button)"><br><sub>Step-by-step tour (? button)</sub></td>
+</tr></table>
+
+#### Today
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/06-today.jpg" width="190" alt="Calories left, macros, burned"><br><sub>Calories left, macros, burned</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/07-today-meals.jpg" width="190" alt="Daily limits and meals"><br><sub>Daily limits and meals</sub></td>
+</tr></table>
+
+#### Food
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/08-photo-calories.jpg" width="190" alt="Calories from a photo"><br><sub>Calories from a photo</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/09-food.jpg" width="190" alt="Food home"><br><sub>Food home</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/10-food-search.jpg" width="190" alt="Search 700+ world foods"><br><sub>Search 700+ world foods</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/11-food-health-check.jpg" width="190" alt="Health grade and goal check"><br><sub>Health grade and goal check</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/12-customise-dish.jpg" width="190" alt="Change what's in a dish"><br><sub>Change what's in a dish</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/13-meal-builder.jpg" width="190" alt="Build your own meal"><br><sub>Build your own meal</sub></td>
+</tr></table>
+
+#### Gym
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/14-train.jpg" width="190" alt="Train"><br><sub>Train</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/15-exercise-library.jpg" width="190" alt="236 exercises and sports"><br><sub>236 exercises and sports</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/16-exercise-detail.jpg" width="190" alt="Calories per exercise"><br><sub>Calories per exercise</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/17-workout-clocked-in.jpg" width="190" alt="Clocked in: live timer and sets"><br><sub>Clocked in: live timer and sets</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/18-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
+</tr></table>
+
+#### Plan
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/19-training-plan.jpg" width="190" alt="Training split"><br><sub>Training split</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/20-nutrition-plan.jpg" width="190" alt="Calorie and macro targets"><br><sub>Calorie and macro targets</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/21-sample-day.jpg" width="190" alt="A sample day to log"><br><sub>A sample day to log</sub></td>
+</tr></table>
+
+#### Body check & profile
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/22-body-check-bmi.jpg" width="190" alt="BMI calculator"><br><sub>BMI calculator</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/23-body-check-advice.jpg" width="190" alt="What to train and eat"><br><sub>What to train and eat</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/24-profile.jpg" width="190" alt="Profile and appearance"><br><sub>Profile and appearance</sub></td>
+</tr></table>
+
+<details>
+<summary><b>Android · dark mode</b> (tap to open)</summary>
+
+#### First launch
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/01-intro-guide.jpg" width="190" alt="Welcome guide (with Skip)"><br><sub>Welcome guide (with Skip)</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/02-sign-in.jpg" width="190" alt="Sign in: Apple, Google or email"><br><sub>Sign in: Apple, Google or email</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/03-create-account.jpg" width="190" alt="Create an account"><br><sub>Create an account</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/04-onboarding-goal.jpg" width="190" alt="Set your goal"><br><sub>Set your goal</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/05-guided-tour.jpg" width="190" alt="Step-by-step tour (? button)"><br><sub>Step-by-step tour (? button)</sub></td>
+</tr></table>
+
+#### Today
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/06-today.jpg" width="190" alt="Calories left, macros, burned"><br><sub>Calories left, macros, burned</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/07-today-meals.jpg" width="190" alt="Daily limits and meals"><br><sub>Daily limits and meals</sub></td>
+</tr></table>
+
+#### Food
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/08-photo-calories.jpg" width="190" alt="Calories from a photo"><br><sub>Calories from a photo</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/09-food.jpg" width="190" alt="Food home"><br><sub>Food home</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/10-food-search.jpg" width="190" alt="Search 700+ world foods"><br><sub>Search 700+ world foods</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/11-food-health-check.jpg" width="190" alt="Health grade and goal check"><br><sub>Health grade and goal check</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/12-customise-dish.jpg" width="190" alt="Change what's in a dish"><br><sub>Change what's in a dish</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/13-meal-builder.jpg" width="190" alt="Build your own meal"><br><sub>Build your own meal</sub></td>
+</tr></table>
+
+#### Gym
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/14-train.jpg" width="190" alt="Train"><br><sub>Train</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/15-exercise-library.jpg" width="190" alt="236 exercises and sports"><br><sub>236 exercises and sports</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/16-exercise-detail.jpg" width="190" alt="Calories per exercise"><br><sub>Calories per exercise</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/17-workout-clocked-in.jpg" width="190" alt="Clocked in: live timer and sets"><br><sub>Clocked in: live timer and sets</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/18-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
+</tr></table>
+
+#### Plan
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/19-training-plan.jpg" width="190" alt="Training split"><br><sub>Training split</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/20-nutrition-plan.jpg" width="190" alt="Calorie and macro targets"><br><sub>Calorie and macro targets</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/21-sample-day.jpg" width="190" alt="A sample day to log"><br><sub>A sample day to log</sub></td>
+</tr></table>
+
+#### Body check & profile
+
+<table><tr>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/22-body-check-bmi.jpg" width="190" alt="BMI calculator"><br><sub>BMI calculator</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/23-body-check-advice.jpg" width="190" alt="What to train and eat"><br><sub>What to train and eat</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/24-profile.jpg" width="190" alt="Profile and appearance"><br><sub>Profile and appearance</sub></td>
+</tr></table>
+
+</details>
+
 ## Features
 
 | | |
@@ -90,7 +271,7 @@ To publish, set your own bundle ID in `capacitor.config.ts` (`appId`, currently 
 
 ### CI
 
-`.github/workflows/mobile.yml` builds the web app, an Android debug APK and an iOS simulator build on every push. You can download the APK from the workflow run's **Artifacts** and install it on an Android phone. Set the repository variable `API_URL` (Settings → Secrets and variables → Actions → Variables) to bake your server address into those builds.
+`.github/workflows/mobile.yml` builds the web app, an Android debug APK and an iOS simulator build on every push. You can download the APK from the workflow run's **Artifacts** and install it on an Android phone. Pushing a `v*` tag also attaches the APK to a GitHub Release. Set the repository variable `API_URL` (Settings → Secrets and variables → Actions → Variables) to bake your server address into those builds.
 
 ## Run it
 
