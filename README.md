@@ -193,7 +193,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 
 | | |
 |---|---|
-| **Photo calories** | Snap or upload a meal. Claude vision lists each food, estimates the grams and works out the calories and macros. You can fix the grams before logging. |
+| **Photo calories** | Snap a meal with the camera, or pick one from your **photo library** (one tap from the *Photos* button on Today or the *Photo library* tile on Food). Claude vision lists each food, estimates the grams and works out the calories and macros. You can fix the grams before logging. |
 | **Food search** | 713 built-in foods (per 100 g, from USDA, UK CoFID and the Malaysian Food Composition Database) across 26 cuisines and groups: Malaysian, Chinese, Japanese, Korean, Thai & Vietnamese, Indian, Middle Eastern, Italian, Mexican & Latin American, American & British, European and African & Caribbean, plus everyday staples. Typing 3+ letters also searches **Open Food Facts** (millions of packaged products, no key needed). |
 | **Meal builder** | Combine any foods and quantities. See live totals, a health grade (A–E) and whether it fits your goal. Then log it or save it to reuse later. |
 | **Custom foods** | Copy any nutrition label into *My Foods*. |
