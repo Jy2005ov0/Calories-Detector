@@ -1,3 +1,4 @@
+import { t as tr } from "../i18n";
 import type { Food, Goal, Nutrients, Profile } from "./types";
 
 export const ZERO: Nutrients = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, satFat: 0, sodium: 0 };
@@ -82,10 +83,10 @@ export function bmi(p: Pick<Profile, "weightKg" | "heightCm">) {
 
 export function bmiLabel(v: number) {
   // Asia-Pacific cut-offs (WHO 2004) are used because they suit Malaysian users better.
-  if (v < 18.5) return "Underweight";
-  if (v < 23) return "Healthy";
-  if (v < 27.5) return "Overweight";
-  return "Obese";
+  if (v < 18.5) return tr("Underweight");
+  if (v < 23) return tr("Healthy");
+  if (v < 27.5) return tr("Overweight");
+  return tr("Obese");
 }
 
 export type Grade = "A" | "B" | "C" | "D" | "E";
@@ -105,7 +106,7 @@ export interface HealthReport {
 export function healthReport(n: Nutrients, opts: { intrinsicSugar?: boolean } = {}): HealthReport {
   const positives: string[] = [];
   const negatives: string[] = [];
-  if (n.kcal < 10 && n.sugar < 1 && n.sodium < 100) return { score: 100, grade: "A", positives: ["Practically calorie-free"], negatives };
+  if (n.kcal < 10 && n.sugar < 1 && n.sodium < 100) return { score: 100, grade: "A", positives: [tr("Practically calorie-free")], negatives };
 
   const per100kcal = (v: number) => (v / n.kcal) * 100;
   const proteinD = per100kcal(n.protein); // g per 100 kcal
@@ -123,17 +124,17 @@ export function healthReport(n: Nutrients, opts: { intrinsicSugar?: boolean } = 
   score -= Math.min(20, Math.max(0, sodiumD - 120) / 18);
   score = Math.round(Math.max(0, Math.min(100, score)));
 
-  if (proteinD >= 6) positives.push("High in protein");
-  else if (proteinD >= 3.5) positives.push("Good protein source");
-  if (fiberD >= 1.5) positives.push("Rich in fibre");
-  if (sugarD <= 2) positives.push("Low sugar");
-  if (satD <= 1) positives.push("Low saturated fat");
-  if (sugarD > 8 && !opts.intrinsicSugar) negatives.push("High in sugar");
-  if (opts.intrinsicSugar && sugarD > 8) positives.push("Natural fruit sugar");
-  if (satD > 2.2) negatives.push("High in saturated fat");
-  if (sodiumD > 300) negatives.push("High in sodium");
-  if (n.sodium > 1000) negatives.push(`${Math.round(n.sodium)} mg sodium — half a day's limit`);
-  if (proteinD < 2 && n.kcal > 150) negatives.push("Low protein for the calories");
+  if (proteinD >= 6) positives.push(tr("High in protein"));
+  else if (proteinD >= 3.5) positives.push(tr("Good protein source"));
+  if (fiberD >= 1.5) positives.push(tr("Rich in fibre"));
+  if (sugarD <= 2) positives.push(tr("Low sugar"));
+  if (satD <= 1) positives.push(tr("Low saturated fat"));
+  if (sugarD > 8 && !opts.intrinsicSugar) negatives.push(tr("High in sugar"));
+  if (opts.intrinsicSugar && sugarD > 8) positives.push(tr("Natural fruit sugar"));
+  if (satD > 2.2) negatives.push(tr("High in saturated fat"));
+  if (sodiumD > 300) negatives.push(tr("High in sodium"));
+  if (n.sodium > 1000) negatives.push(tr("{mg} mg sodium — half a day's limit", { mg: Math.round(n.sodium) }));
+  if (proteinD < 2 && n.kcal > 150) negatives.push(tr("Low protein for the calories"));
 
   const grade: Grade = score >= 80 ? "A" : score >= 65 ? "B" : score >= 50 ? "C" : score >= 35 ? "D" : "E";
   return { score, grade, positives, negatives };
@@ -154,35 +155,35 @@ export function suitability(n: Nutrients, t: Targets, eatenToday: Nutrients, goa
   let points = 0;
 
   if (n.kcal > remaining + 150) {
-    reasons.push(`Puts you ${Math.round(n.kcal - remaining)} kcal over today's target.`);
+    reasons.push(tr("Puts you {kcal} kcal over today's target.", { kcal: Math.round(n.kcal - remaining) }));
     points -= goal === "lose" ? 3 : 1;
   } else if (remaining > 0) {
-    reasons.push(`Uses ${Math.round((n.kcal / Math.max(remaining, 1)) * 100)}% of the ${Math.round(remaining)} kcal you have left.`);
+    reasons.push(tr("Uses {pct}% of the {left} kcal you have left.", { pct: Math.round((n.kcal / Math.max(remaining, 1)) * 100), left: Math.round(remaining) }));
   }
   if (shareOfDay > 0.45) {
-    reasons.push("That's a very large single portion (over 45% of your day).");
+    reasons.push(tr("That's a very large single portion (over 45% of your day)."));
     points -= 1;
   }
 
   const proteinLeft = Math.max(0, t.protein - eatenToday.protein);
   if (n.protein >= 25 || (proteinLeft > 0 && n.protein / proteinLeft > 0.3)) {
-    reasons.push(`${Math.round(n.protein)} g protein helps you reach your ${t.protein} g goal.`);
+    reasons.push(tr("{g} g protein helps you reach your {goal} g goal.", { g: Math.round(n.protein), goal: t.protein }));
     points += 2;
   }
   if (goal === "gain" && n.kcal >= 500 && n.protein >= 25) {
-    reasons.push("Calorie-dense with solid protein — good for building muscle.");
+    reasons.push(tr("Calorie-dense with solid protein — good for building muscle."));
     points += 1;
   }
   if (goal === "lose" && n.kcal > 0 && n.protein / n.kcal >= 0.08) {
-    reasons.push("High protein per calorie keeps you full while cutting.");
+    reasons.push(tr("High protein per calorie keeps you full while cutting."));
     points += 1;
   }
   if (!intrinsicSugar && eatenToday.sugar + n.sugar > t.sugarMax) {
-    reasons.push(`Takes you past the ${t.sugarMax} g daily sugar limit.`);
+    reasons.push(tr("Takes you past the {g} g daily sugar limit.", { g: t.sugarMax }));
     points -= 1;
   }
   if (eatenToday.sodium + n.sodium > t.sodiumMax) {
-    reasons.push("Takes you past the 2,000 mg daily sodium limit.");
+    reasons.push(tr("Takes you past the 2,000 mg daily sodium limit."));
     points -= 1;
   }
   if (health.grade === "A" || health.grade === "B") points += 1;
@@ -193,10 +194,10 @@ export function suitability(n: Nutrients, t: Targets, eatenToday: Nutrients, goa
   if (health.grade === "E") points = Math.min(points, -1);
   else if (health.grade !== "A" && health.grade !== "B") points = Math.min(points, 1);
 
-  if (points >= 2) return { verdict: "great", headline: "Great choice for your goal", reasons };
-  if (points >= 0) return { verdict: "ok", headline: "Fits your plan", reasons };
-  if (points >= -2) return { verdict: "caution", headline: "OK occasionally — watch the portion", reasons };
-  return { verdict: "avoid", headline: "Not a good fit today", reasons };
+  if (points >= 2) return { verdict: "great", headline: tr("Great choice for your goal"), reasons };
+  if (points >= 0) return { verdict: "ok", headline: tr("Fits your plan"), reasons };
+  if (points >= -2) return { verdict: "caution", headline: tr("OK occasionally — watch the portion"), reasons };
+  return { verdict: "avoid", headline: tr("Not a good fit today"), reasons };
 }
 
 export function searchFoods(foods: Food[], query: string, limit = 60): Food[] {

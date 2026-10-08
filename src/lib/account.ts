@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { SocialLogin } from "@capgo/capacitor-social-login";
+import { t } from "../i18n";
 import { mergeStates } from "./merge";
 import { apiUrl, isNative, platform, readDurable, writeDurable } from "./platform";
 import { getState, parseState, replaceState, subscribe } from "./store";
@@ -98,10 +99,10 @@ async function api<T>(method: string, path: string, body?: unknown): Promise<T> 
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new ApiError(0, "You're offline. Check your connection and try again.");
+    throw new ApiError(0, t("You're offline. Check your connection and try again."));
   }
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-  if (!res.ok) throw new ApiError(res.status, (data.error as string) ?? `Something went wrong (${res.status}).`, data);
+  if (!res.ok) throw new ApiError(res.status, (data.error as string) ?? t("Something went wrong ({status}).", { status: res.status }), data);
   return data as T;
 }
 
@@ -147,7 +148,7 @@ export async function signInWith(provider: "google" | "apple"): Promise<boolean>
   const label = provider === "google" ? "Google" : "Apple";
   const appleAvailable = cfg.apple && (platform === "ios" || !!cfg.appleRedirectUrl);
   if ((provider === "google" && !cfg.google) || (provider === "apple" && !appleAvailable)) {
-    throw new Error(`${label} sign-in isn't set up on this server yet. Use email for now.`);
+    throw new Error(t("{provider} sign-in isn't set up on this server yet. Use email for now.", { provider: label }));
   }
   socialReady ??= SocialLogin.initialize({
     google: cfg.google ? { webClientId: cfg.googleWebClientId, iOSClientId: cfg.googleIosClientId, mode: "online" } : undefined,
@@ -172,9 +173,9 @@ export async function signInWith(provider: "google" | "apple"): Promise<boolean>
   } catch (e) {
     const err = e as { code?: string; message?: string };
     if (err.code === "USER_CANCELLED" || /cancel/i.test(err.message ?? "")) return false;
-    throw new Error(`Couldn't sign in with ${label}. Please try again.`);
+    throw new Error(t("Couldn't sign in with {provider}. Please try again.", { provider: label }));
   }
-  if (!idToken) throw new Error(`${label} didn't return a sign-in token. Please try again.`);
+  if (!idToken) throw new Error(t("{provider} didn't return a sign-in token. Please try again.", { provider: label }));
   await completeSignIn(await api("POST", `/api/auth/${provider}`, { idToken, name }));
   return true;
 }

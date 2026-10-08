@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { pushBackHandler } from "../lib/platform";
 import type { Tab } from "../App";
 import { SPRING } from "./ui";
+import { t, useLanguage } from "../i18n";
 
 interface Step {
   tab: Tab;
@@ -100,6 +101,7 @@ function findTarget(step: Step) {
 }
 
 export function Tour({ open, onClose, setTab }: { open: boolean; onClose: () => void; setTab: (t: Tab) => void }) {
+  useLanguage();
   const reduce = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
@@ -249,27 +251,27 @@ export function Tour({ open, onClose, setTab }: { open: boolean; onClose: () => 
                   ))}
                 </div>
                 <div className="muted" style={{ fontSize: 13, fontWeight: 600 }}>
-                  Step {index + 1} of {TOUR_STEPS.length}
+                  {t("Step {n} of {total}", { n: index + 1, total: TOUR_STEPS.length })}
                 </div>
                 <h2 id="tour-title" style={{ margin: "2px 0 6px", fontSize: 20, letterSpacing: "-0.02em" }}>
-                  {step.title}
+                  {t(step.title)}
                 </h2>
                 <p id="tour-body" style={{ margin: 0, fontSize: 15, lineHeight: 1.45, color: "var(--label-2)" }}>
-                  {step.body}
+                  {t(step.body)}
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16 }}>
                   {!last && (
                     <button className="link tap" onClick={onClose} style={{ marginRight: "auto", fontSize: 15 }}>
-                      Skip
+                      {t("Skip")}
                     </button>
                   )}
                   {index > 0 && (
                     <button className="btn small secondary" onClick={() => go(-1)}>
-                      Back
+                      {t("Back")}
                     </button>
                   )}
                   <button ref={nextRef} className="btn small" onClick={() => go(1)} style={last ? { marginLeft: "auto" } : undefined}>
-                    {index === 0 ? "Show me" : last ? "Done" : "Next"}
+                    {index === 0 ? t("Show me") : last ? t("Done") : t("Next")}
                   </button>
                 </div>
               </motion.div>
@@ -282,8 +284,9 @@ export function Tour({ open, onClose, setTab }: { open: boolean; onClose: () => 
 }
 
 export function HelpButton({ onClick }: { onClick: () => void }) {
+  useLanguage();
   return (
-    <button className="help-btn" data-tour="help" onClick={onClick} aria-label="How to use the app">
+    <button className="help-btn" data-tour="help" onClick={onClick} aria-label={t("How to use the app")}>
       ?
     </button>
   );

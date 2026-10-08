@@ -1,4 +1,5 @@
 import { FOODS } from "../data/foods";
+import { t as tr } from "../i18n";
 import { foodConflicts } from "./allergens";
 import { scale, sum, type Targets } from "./nutrition";
 import type { Allergen, Food, Goal, Nutrients, Profile } from "./types";
@@ -179,18 +180,18 @@ function withFasting(t: Template, fasting: Profile["fasting"]): Template {
 export function mealTiming(goal: Goal, fasting: Profile["fasting"] = "off") {
   if (fasting === "ramadan") {
     return [
-      { title: "Sahur", text: "Eat slow carbs and protein before dawn: oats, wholemeal bread, eggs, yogurt. Skip salty and very sweet food so you stay less thirsty." },
-      { title: "Iftar", text: "Break your fast with water and 2–3 dates, then a balanced plate: rice, lean protein and vegetables. Go easy on fried food and sweet drinks." },
-      { title: "Training", text: "Lift about an hour before iftar or after tarawih. Keep sessions shorter and drop the volume, not the weight." },
-      { title: "Hydration", text: "Drink 2–3 litres between iftar and sahur — a glass every hour or so — rather than all at once." },
+      { title: tr("Sahur"), text: tr("Eat slow carbs and protein before dawn: oats, wholemeal bread, eggs, yogurt. Skip salty and very sweet food so you stay less thirsty.") },
+      { title: tr("Iftar"), text: tr("Break your fast with water and 2–3 dates, then a balanced plate: rice, lean protein and vegetables. Go easy on fried food and sweet drinks.") },
+      { title: tr("Training"), text: tr("Lift about an hour before iftar or after tarawih. Keep sessions shorter and drop the volume, not the weight.") },
+      { title: tr("Hydration"), text: tr("Drink 2–3 litres between iftar and sahur — a glass every hour or so — rather than all at once.") },
     ];
   }
   if (fasting === "16:8") {
     return [
-      { title: "Eating window", text: "Eat between 12 pm and 8 pm. Water, black coffee and plain tea are fine while fasting." },
-      { title: "Protein", text: "Spread your protein over 2–3 meals in the window — at least 30 g each — to protect muscle." },
-      { title: "Training", text: "Train in the window if you can, or have your first meal soon after a morning session." },
-      { title: "Hydration", text: "Drink about 35 ml per kg of body weight a day, including during the fast." },
+      { title: tr("Eating window"), text: tr("Eat between 12 pm and 8 pm. Water, black coffee and plain tea are fine while fasting.") },
+      { title: tr("Protein"), text: tr("Spread your protein over 2–3 meals in the window — at least 30 g each — to protect muscle.") },
+      { title: tr("Training"), text: tr("Train in the window if you can, or have your first meal soon after a morning session.") },
+      { title: tr("Hydration"), text: tr("Drink about 35 ml per kg of body weight a day, including during the fast.") },
     ];
   }
   return defaultTiming(goal);
@@ -198,16 +199,16 @@ export function mealTiming(goal: Goal, fasting: Profile["fasting"] = "off") {
 
 function defaultTiming(goal: Goal) {
   return [
-    { title: "Before training (1–2 h)", text: "Carbs + some protein, low fat: rice with chicken, oats with yogurt, or a banana with a protein shake." },
-    { title: "After training (within 2 h)", text: "20–40 g protein plus carbs to refill glycogen: chicken rice, tuna sandwich, or a shake with fruit." },
+    { title: tr("Before training (1–2 h)"), text: tr("Carbs + some protein, low fat: rice with chicken, oats with yogurt, or a banana with a protein shake.") },
+    { title: tr("After training (within 2 h)"), text: tr("20–40 g protein plus carbs to refill glycogen: chicken rice, tuna sandwich, or a shake with fruit.") },
     {
-      title: "Hydration",
-      text: "Drink about 35 ml per kg of body weight a day, plus 500–750 ml for each hour of training in Malaysia's heat.",
+      title: tr("Hydration"),
+      text: tr("Drink about 35 ml per kg of body weight a day, plus 500–750 ml for each hour of training in Malaysia's heat."),
     },
     goal === "lose"
-      ? { title: "Cutting tips", text: "Order 'kurang manis' or 'kosong' drinks, choose soup over fried noodles, and double the vegetables at the economy rice stall." }
+      ? { title: tr("Cutting tips"), text: tr("Order 'kurang manis' or 'kosong' drinks, choose soup over fried noodles, and double the vegetables at the economy rice stall.") }
       : goal === "gain"
-        ? { title: "Bulking tips", text: "Add an extra scoop of rice, drink milk with meals, and keep easy snacks (nuts, bread with peanut butter) on hand." }
-        : { title: "Maintenance tips", text: "Use the 80/20 rule: whole foods most of the time, favourite hawker meals in moderation." },
+        ? { title: tr("Bulking tips"), text: tr("Add an extra scoop of rice, drink milk with meals, and keep easy snacks (nuts, bread with peanut butter) on hand.") }
+        : { title: tr("Maintenance tips"), text: tr("Use the 80/20 rule: whole foods most of the time, favourite hawker meals in moderation.") },
   ];
 }

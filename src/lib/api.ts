@@ -28,7 +28,7 @@ export async function searchOnline(query: string, signal?: AbortSignal): Promise
   url.searchParams.set("page_size", "30");
   url.searchParams.set("fields", "code,product_name,brands,serving_quantity,serving_size,nutriments");
   const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error(`Search failed (${res.status})`);
+  if (!res.ok) throw new Error(t("Search failed ({status})", { status: res.status }));
   const data = (await res.json()) as { products?: OffProduct[] };
   return (data.products ?? []).filter(hasNutrition).map(offToFood);
 }
@@ -64,7 +64,7 @@ export async function lookupBarcode(code: string, signal?: AbortSignal): Promise
   const url = `https://world.openfoodfacts.org/api/v2/product/${clean}.json?fields=code,product_name,brands,serving_quantity,serving_size,nutriments`;
   const res = await fetch(url, { signal });
   if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Lookup failed (${res.status})`);
+  if (!res.ok) throw new Error(t("Lookup failed ({status})", { status: res.status }));
   const data = (await res.json()) as { status?: number; product?: OffProduct };
   if (data.status !== 1 || !data.product) return null;
   const p = { ...data.product, code: data.product.code ?? clean };
@@ -93,7 +93,7 @@ export interface PhotoAnalysis {
 }
 
 export async function analyzePhoto(base64: string, mediaType: string, hint: string, signal?: AbortSignal): Promise<PhotoAnalysis> {
-  if (!apiConfigured) throw new Error("Photo analysis needs a server. Rebuild the app with VITE_API_URL set to your deployed server.");
+  if (!apiConfigured) throw new Error(t("Photo analysis needs a server. Rebuild the app with VITE_API_URL set to your deployed server."));
   const res = await fetch(apiUrl("/api/analyze-photo"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -101,7 +101,7 @@ export async function analyzePhoto(base64: string, mediaType: string, hint: stri
     signal,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
+  if (!res.ok) throw new Error(data.error ?? t("Request failed ({status})", { status: res.status }));
   return data as PhotoAnalysis;
 }
 

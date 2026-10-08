@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { animate, motion, useMotionValue, useReducedMotion } from "motion/react";
 import { Camera, CircleHelp, Cloud, Dumbbell, HeartPulse, Target, type LucideIcon } from "lucide-react";
 import { SPRING, SPRING_MOMENTUM, project } from "./ui";
+import { t, useLanguage } from "../i18n";
 
 interface Slide {
   Icon: LucideIcon;
@@ -51,6 +52,7 @@ export const INTRO_SLIDES: Slide[] = [
 
 /** Full-screen intro shown on first launch, before sign-in. Swipe, tap Next, or Skip. */
 export function IntroGuide({ onDone }: { onDone: () => void }) {
+  useLanguage();
   const reduce = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [width, setWidth] = useState(0);
@@ -88,13 +90,13 @@ export function IntroGuide({ onDone }: { onDone: () => void }) {
   const go = (i: number) => setIndex(Math.max(0, Math.min(INTRO_SLIDES.length - 1, i)));
 
   return (
-    <div className="intro" role="region" aria-roledescription="carousel" aria-label="Welcome guide">
+    <div className="intro" role="region" aria-roledescription="carousel" aria-label={t("Welcome guide")}>
       <div className="intro-top">
         <span className="muted" style={{ fontSize: 13, fontWeight: 600 }} aria-live="polite">
-          {index + 1} of {INTRO_SLIDES.length}
+          {t("{n} of {total}", { n: index + 1, total: INTRO_SLIDES.length })}
         </span>
         <button className="link bold tap" onClick={onDone}>
-          Skip
+          {t("Skip")}
         </button>
       </div>
 
@@ -121,21 +123,21 @@ export function IntroGuide({ onDone }: { onDone: () => void }) {
               className="intro-slide"
               style={{ width: width || "100%" }}
               aria-roledescription="slide"
-              aria-label={`${i + 1} of ${INTRO_SLIDES.length}`}
+              aria-label={t("{n} of {total}", { n: i + 1, total: INTRO_SLIDES.length })}
               aria-hidden={i !== index}
             >
               <div className="intro-art" style={{ background: `linear-gradient(135deg, ${s.colors[0]}, ${s.colors[1]})` }}>
                 <s.Icon size={64} strokeWidth={1.6} color="#fff" />
               </div>
               <h1 className="large-title" style={{ textAlign: "center", marginTop: 28 }}>
-                {s.title}
+                {t(s.title)}
               </h1>
               <p className="subtitle" style={{ textAlign: "center", maxWidth: 340, margin: "8px auto 0" }}>
-                {s.body}
+                {t(s.body)}
               </p>
               <ul className="intro-points">
                 {s.points.map((p) => (
-                  <li key={p}>{p}</li>
+                  <li key={p}>{t(p)}</li>
                 ))}
               </ul>
             </section>
@@ -143,13 +145,13 @@ export function IntroGuide({ onDone }: { onDone: () => void }) {
         </motion.div>
       </div>
 
-      <div className="intro-dots" role="tablist" aria-label="Pages">
+      <div className="intro-dots" role="tablist" aria-label={t("Pages")}>
         {INTRO_SLIDES.map((s, i) => (
           <button
             key={s.title}
             role="tab"
             aria-selected={i === index}
-            aria-label={`Page ${i + 1}: ${s.title}`}
+            aria-label={t("Page {n}: {title}", { n: i + 1, title: t(s.title) })}
             className={i === index ? "on" : undefined}
             onClick={() => go(i)}
           />
@@ -159,15 +161,15 @@ export function IntroGuide({ onDone }: { onDone: () => void }) {
       <div className="btn-row">
         {index > 0 && (
           <button className="btn secondary" style={{ width: 110, flex: "none" }} onClick={() => go(index - 1)}>
-            Back
+            {t("Back")}
           </button>
         )}
         <button ref={nextRef} className="btn" onClick={() => (last ? onDone() : go(index + 1))}>
-          {last ? "Get started" : "Next"}
+          {last ? t("Get started") : t("Next")}
         </button>
       </div>
       <p className="footnote" style={{ textAlign: "center", marginTop: 12 }}>
-        <CircleHelp size={13} style={{ verticalAlign: "-2px" }} /> You can replay the guide from the ? button any time.
+        <CircleHelp size={13} style={{ verticalAlign: "-2px" }} /> {t("You can replay the guide from the ? button any time.")}
       </p>
     </div>
   );

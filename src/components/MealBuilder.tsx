@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Trash2, UtensilsCrossed } from "lucide-react";
 import { FOODS } from "../data/foods";
+import { t, useLanguage } from "../i18n";
 import { defaultMeal, mealOptions } from "../lib/api";
 import { healthReport, round, scale, searchFoods, suitability, sum, targets } from "../lib/nutrition";
 import { actions, todayKey, uid, useStore } from "../lib/store";
@@ -11,6 +12,7 @@ import { Empty, HealthCard, MacroBars, Segmented, Sheet, SuitabilityCard, haptic
 type Item = CustomMeal["items"][number];
 
 export function MealBuilder({ open, onClose, initial }: { open: boolean; onClose: () => void; initial?: CustomMeal | null }) {
+  useLanguage();
   const profile = useStore((s) => s.profile);
   const eaten = useTodayTotals();
   const [name, setName] = useState("");
@@ -27,7 +29,7 @@ export function MealBuilder({ open, onClose, initial }: { open: boolean; onClose
   }, [open, initial]);
 
   const total = useMemo(() => sum(items.map((i) => scale(i.per100, i.grams))), [items]);
-  const t = targets(profile);
+  const tg = targets(profile);
 
   const addFood = (f: Food) => {
     setItems((l) => [...l, { foodId: f.id, name: f.name, grams: f.servings[0]?.grams ?? 100, per100: f.per100 }]);
@@ -39,20 +41,20 @@ export function MealBuilder({ open, onClose, initial }: { open: boolean; onClose
       items.map((i) => ({ date: todayKey(), meal, name: i.name, grams: i.grams, nutrients: scale(i.per100, i.grams), source: "custom" as const })),
     );
     haptic();
-    showToast(`Logged ${name || "meal"} · ${round(total.kcal)} kcal`);
+    showToast(t("Logged {name} · {kcal} kcal", { name: name || t("meal"), kcal: round(total.kcal) }));
     onClose();
   };
 
   const save = () => {
-    actions.saveCustomMeal({ id: initial?.id ?? uid(), name: name.trim() || "My meal", items });
+    actions.saveCustomMeal({ id: initial?.id ?? uid(), name: name.trim() || t("My meal"), items });
     haptic();
-    showToast("Meal saved to My Meals");
+    showToast(t("Meal saved to My Meals"));
   };
 
   return (
     <>
-      <Sheet open={open} onClose={onClose} title={initial ? "Edit meal" : "Build a meal"}>
-        <input className="text-input" placeholder="Meal name (e.g. Post-gym bowl)" value={name} onChange={(e) => setName(e.target.value)} />
+      <Sheet open={open} onClose={onClose} title={initial ? t("Edit meal") : t("Build a meal")}>
+        <input className="text-input" placeholder={t("Meal name (e.g. Post-gym bowl)")} value={name} onChange={(e) => setName(e.target.value)} />
 
         <div className="card" style={{ marginTop: 12 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
@@ -64,12 +66,12 @@ export function MealBuilder({ open, onClose, initial }: { open: boolean; onClose
         </div>
 
         <div className="section-header">
-          Ingredients
-          <button onClick={() => setPicking(true)}>Add food</button>
+          {t("Ingredients")}
+          <button onClick={() => setPicking(true)}>{t("Add food")}</button>
         </div>
         {items.length === 0 ? (
           <div className="group">
-            <Empty icon={<UtensilsCrossed size={28} />}>Add foods and set how much of each you'll eat.</Empty>
+            <Empty icon={<UtensilsCrossed size={28} />}>{t("Add foods and set how much of each you'll eat.")}</Empty>
           </div>
         ) : (
           <div className="group">
@@ -87,7 +89,7 @@ export function MealBuilder({ open, onClose, initial }: { open: boolean; onClose
                     className="num-input"
                     inputMode="numeric"
                     value={it.grams}
-                    aria-label={`${it.name} grams`}
+                    aria-label={t("{name} grams", { name: it.name })}
                     onChange={(e) => {
                       const g = Number(e.target.value.replace(/\D/g, "")) || 0;
                       setItems((l) => l.map((x, j) => (j === idx ? { ...x, grams: g } : x)));
@@ -96,34 +98,34 @@ export function MealBuilder({ open, onClose, initial }: { open: boolean; onClose
                   <span className="muted" style={{ fontSize: 14 }}>
                     g
                   </span>
-                  <button className="icon-btn" aria-label={`Remove ${it.name}`} onClick={() => setItems((l) => l.filter((_, j) => j !== idx))}>
+                  <button className="icon-btn" aria-label={t("Remove {name}", { name: it.name })} onClick={() => setItems((l) => l.filter((_, j) => j !== idx))}>
                     <Trash2 size={15} />
                   </button>
                 </div>
               );
             })}
             <button className="row" onClick={() => setPicking(true)} style={{ color: "var(--blue)" }}>
-              <Plus size={18} /> Add another food
+              <Plus size={18} /> {t("Add another food")}
             </button>
           </div>
         )}
 
         {items.length > 0 && (
           <>
-            <div className="section-header">Is it good for me?</div>
-            <SuitabilityCard s={suitability(total, t, eaten, profile.goal)} />
+            <div className="section-header">{t("Is it good for me?")}</div>
+            <SuitabilityCard s={suitability(total, tg, eaten, profile.goal)} />
             <div className="spacer" />
             <HealthCard report={healthReport(total)} />
 
-            <div className="section-header">Log to</div>
+            <div className="section-header">{t("Log to")}</div>
             <Segmented value={meal} options={mealOptions()} onChange={setMeal} />
             <div className="spacer" />
             <div className="btn-row">
               <button className="btn secondary" onClick={save}>
-                Save meal
+                {t("Save meal")}
               </button>
               <button className="btn" onClick={log}>
-                Log meal
+                {t("Log meal")}
               </button>
             </div>
           </>
@@ -135,6 +137,7 @@ export function MealBuilder({ open, onClose, initial }: { open: boolean; onClose
 }
 
 export function FoodPicker({ open, onClose, onPick }: { open: boolean; onClose: () => void; onPick: (f: Food) => void }) {
+  useLanguage();
   const customFoods = useStore((s) => s.customFoods);
   const [q, setQ] = useState("");
   useEffect(() => {
@@ -143,10 +146,10 @@ export function FoodPicker({ open, onClose, onPick }: { open: boolean; onClose: 
   const all = useMemo(() => [...customFoods, ...FOODS], [customFoods]);
   const results = useMemo(() => searchFoods(all, q, 40), [all, q]);
   return (
-    <Sheet open={open} onClose={onClose} title="Add food">
+    <Sheet open={open} onClose={onClose} title={t("Add food")}>
       <div className="search">
         <Search size={17} />
-        <input autoFocus placeholder="Search foods" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input autoFocus placeholder={t("Search foods")} value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
       <div className="group" style={{ marginTop: 12 }}>
         {results.map((f) => (
@@ -160,13 +163,14 @@ export function FoodPicker({ open, onClose, onPick }: { open: boolean; onClose: 
             <Plus size={18} color="var(--blue)" />
           </button>
         ))}
-        {results.length === 0 && <div className="empty">No matches. Try another word.</div>}
+        {results.length === 0 && <div className="empty">{t("No matches. Try another word.")}</div>}
       </div>
     </Sheet>
   );
 }
 
 export function CustomFoodSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  useLanguage();
   const blank = { name: "", serving: "100", kcal: "", protein: "", carbs: "", fat: "", sugar: "", fiber: "", satFat: "", sodium: "" };
   const [v, setV] = useState(blank);
   useEffect(() => {
@@ -197,40 +201,40 @@ export function CustomFoodSheet({ open, onClose }: { open: boolean; onClose: () 
       source: "custom",
     });
     haptic();
-    showToast(`${v.name.trim()} added to My Foods`);
+    showToast(t("{name} added to My Foods", { name: v.name.trim() }));
     onClose();
   };
 
   const fields: [keyof typeof blank, string, string][] = [
-    ["serving", "Serving size", "g"],
-    ["kcal", "Calories", "kcal"],
-    ["protein", "Protein", "g"],
-    ["carbs", "Carbohydrate", "g"],
-    ["sugar", "Sugar", "g"],
-    ["fiber", "Fibre", "g"],
-    ["fat", "Fat", "g"],
-    ["satFat", "Saturated fat", "g"],
-    ["sodium", "Sodium", "mg"],
+    ["serving", t("Serving size"), "g"],
+    ["kcal", t("Calories"), "kcal"],
+    ["protein", t("Protein"), "g"],
+    ["carbs", t("Carbohydrate"), "g"],
+    ["sugar", t("Sugar"), "g"],
+    ["fiber", t("Fibre"), "g"],
+    ["fat", t("Fat"), "g"],
+    ["satFat", t("Saturated fat"), "g"],
+    ["sodium", t("Sodium"), "mg"],
   ];
 
   return (
     <Sheet
       open={open}
       onClose={onClose}
-      title="New food"
+      title={t("New food")}
       left={
         <button className="link" onClick={onClose}>
-          Cancel
+          {t("Cancel")}
         </button>
       }
       right={
         <button className="link bold" onClick={save} disabled={!valid} style={{ opacity: valid ? 1 : 0.4 }}>
-          Save
+          {t("Save")}
         </button>
       }
     >
-      <input className="text-input" placeholder="Food name" value={v.name} onChange={set("name")} />
-      <div className="section-header">Per serving (copy from the label)</div>
+      <input className="text-input" placeholder={t("Food name")} value={v.name} onChange={set("name")} />
+      <div className="section-header">{t("Per serving (copy from the label)")}</div>
       <div className="group">
         {fields.map(([k, label, unit]) => (
           <div className="field" key={k}>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Cloud, CloudOff, LogOut, RefreshCw, Trash2 } from "lucide-react";
 import { deleteAccount, signOut, useAccount, type Provider } from "../lib/account";
+import { t, useLanguage } from "../i18n";
 import { confirmDialog } from "../lib/platform";
 import { EmailAuthSheet } from "./Auth";
 import { showToast, useNow } from "./ui";
@@ -8,16 +9,19 @@ import { showToast, useNow } from "./ui";
 const PROVIDER_LABEL: Record<Provider, string> = { password: "Email", google: "Google", apple: "Apple" };
 
 function syncText(status: string, lastSyncedAt: number | null, now: number) {
-  if (status === "syncing") return "Syncing…";
-  if (status === "offline") return "Offline · will sync when you're back online";
-  if (status === "error") return "Couldn't sync · will retry";
-  if (!lastSyncedAt) return "Backed up to your account";
+  if (status === "syncing") return t("Syncing…");
+  if (status === "offline") return t("Offline · will sync when you're back online");
+  if (status === "error") return t("Couldn't sync · will retry");
+  if (!lastSyncedAt) return t("Backed up to your account");
   const mins = Math.floor((now - lastSyncedAt) / 60000);
-  return `Synced ${mins < 1 ? "just now" : mins < 60 ? `${mins} min ago` : `${Math.floor(mins / 60)} h ago`}`;
+  if (mins < 1) return t("Synced just now");
+  if (mins < 60) return t("Synced {n} min ago", { n: mins });
+  return t("Synced {n} h ago", { n: Math.floor(mins / 60) });
 }
 
 /** Account status at the top of Profile: sign-in prompt for guests, sync status and controls when signed in. */
 export function AccountCard() {
+  useLanguage();
   const acc = useAccount();
   const now = useNow(30_000);
   const [sheet, setSheet] = useState<"signup" | "login" | null>(null);
@@ -31,18 +35,18 @@ export function AccountCard() {
               <Cloud size={22} />
             </div>
             <div className="row-main">
-              <div style={{ fontWeight: 700 }}>Back up & sync</div>
+              <div style={{ fontWeight: 700 }}>{t("Back up & sync")}</div>
               <div className="row-sub" style={{ whiteSpace: "normal" }}>
-                Create a free account to keep your data safe and use it on all your phones.
+                {t("Create a free account to keep your data safe and use it on all your phones.")}
               </div>
             </div>
           </div>
           <div className="btn-row" style={{ marginTop: 14 }}>
             <button className="btn secondary" onClick={() => setSheet("login")}>
-              Log in
+              {t("Log in")}
             </button>
             <button className="btn" onClick={() => setSheet("signup")}>
-              Create account
+              {t("Create account")}
             </button>
           </div>
         </div>
@@ -52,7 +56,7 @@ export function AccountCard() {
   }
 
   const u = acc.user;
-  const display = u.name || u.email || "Your account";
+  const display = u.name || u.email || t("Your account");
   const offline = acc.status === "offline" || acc.status === "error";
   return (
     <div className="group" data-testid="account">
@@ -68,7 +72,7 @@ export function AccountCard() {
           <div className="pill-list" style={{ marginTop: 6 }}>
             {u.providers.map((p) => (
               <span key={p} className="badge">
-                {PROVIDER_LABEL[p]}
+                {t(PROVIDER_LABEL[p])}
               </span>
             ))}
           </div>
@@ -90,25 +94,25 @@ export function AccountCard() {
         className="row"
         onClick={async () => {
           await signOut();
-          showToast("Signed out · your data stays on this phone");
+          showToast(t("Signed out · your data stays on this phone"));
         }}
       >
         <LogOut size={17} color="var(--blue)" />
-        <span style={{ color: "var(--blue)" }}>Sign out</span>
+        <span style={{ color: "var(--blue)" }}>{t("Sign out")}</span>
       </button>
       <button
         className="row"
         onClick={async () => {
           if (
             await confirmDialog(
-              "Delete account?",
-              "Your account and everything backed up to it will be permanently deleted. Data on this phone is kept.",
-              "Delete account",
+              t("Delete account?"),
+              t("Your account and everything backed up to it will be permanently deleted. Data on this phone is kept."),
+              t("Delete account"),
             )
           ) {
             try {
               await deleteAccount();
-              showToast("Account deleted");
+              showToast(t("Account deleted"));
             } catch (e) {
               showToast((e as Error).message);
             }
@@ -116,7 +120,7 @@ export function AccountCard() {
         }}
       >
         <Trash2 size={17} color="var(--red)" />
-        <span style={{ color: "var(--red)" }}>Delete account</span>
+        <span style={{ color: "var(--red)" }}>{t("Delete account")}</span>
       </button>
     </div>
   );

@@ -1,6 +1,7 @@
 import { devices, expect, test, type Page } from "@playwright/test";
 import { FOOD_BY_NAME } from "../src/data/foods";
 import { scale } from "../src/lib/nutrition";
+import { EXERCISE_BY_NAME } from "../src/data/exercises";
 
 /**
  * Regenerates the README screenshots: `npm run screenshots`.
@@ -20,6 +21,14 @@ function entry(id: string, meal: string, name: string, grams: number, minutesAgo
   return { id, date: "2026-10-12", meal, name, grams, nutrients: scale(f.per100, grams), source: "db", createdAt: LUNCHTIME.getTime() - minutesAgo * 60000, ...(note ? { note } : {}) };
 }
 
+const BENCH = EXERCISE_BY_NAME.get("Barbell bench press")!.id;
+const INCLINE = EXERCISE_BY_NAME.get("Incline dumbbell press")!.id;
+
+function dayKey(offset: number) {
+  const d = new Date(LUNCHTIME.getTime() + offset * 86400000 + 8 * 3600000);
+  return d.toISOString().slice(0, 10);
+}
+
 function seed() {
   return {
     profile: { name: "Aisyah", sex: "female", age: 27, heightCm: 162, weightKg: 61, activity: 1.55, goal: "lose", experience: "intermediate", trainingDays: 5, diet: "halal", onboarded: true },
@@ -37,6 +46,18 @@ function seed() {
     ],
     sessions: [
       {
+        id: "s-prev",
+        date: "2026-10-05",
+        title: "Chest Day",
+        startedAt: LUNCHTIME.getTime() - 7 * 86400000 - 3 * 3600000,
+        endedAt: LUNCHTIME.getTime() - 7 * 86400000 - 2 * 3600000,
+        exercises: [
+          { id: "pe1", exerciseId: BENCH, name: "Barbell bench press", kind: "strength", met: 5, targetReps: "8–10", sets: [40, 40, 40].map((w) => ({ weightKg: w, reps: 10, done: true })) },
+          { id: "pe2", exerciseId: INCLINE, name: "Incline dumbbell press", kind: "strength", met: 5, targetReps: "8–10", sets: [14, 14, 14].map((w) => ({ weightKg: w, reps: 9, done: true })) },
+        ],
+        kcal: 214,
+      },
+      {
         id: "s0",
         date: "2026-10-12",
         title: "Morning run",
@@ -52,10 +73,35 @@ function seed() {
     tourDone: true,
     introDone: true,
     theme: "system",
+    language: "en",
+    weights: [63.4, 63.1, 62.9, 62.6, 62.7, 62.2, 61.9, 61.8, 61.4, 61.0].map((kg, i) => ({ id: `w${i}`, date: dayKey(-(9 - i) * 4), kg, createdAt: i })),
+    days: [7400, 9100, 6200, 10400, 8300, 5600, 4200].map((steps, i) => ({ id: dayKey(i - 6), steps, waterMl: [2000, 2250, 1750, 2500, 2250, 1500, 1250][i] })),
+    reminders: { meals: true, water: true, gym: true, breakfast: "08:00", lunch: "12:30", dinner: "19:00", gymTime: "18:00" },
+    coach: [],
     deleted: [],
     stamps: {},
   };
 }
+
+const MILO = {
+  status: 1,
+  product: {
+    code: "9556001234567",
+    product_name: "Milo 3in1 Activ-Go",
+    brands: "Nestlé",
+    serving_quantity: 33,
+    serving_size: "1 sachet (33 g)",
+    nutriments: { "energy-kcal_100g": 412, proteins_100g: 7.5, carbohydrates_100g: 74, fat_100g: 9, sugars_100g: 50, fiber_100g: 3, "saturated-fat_100g": 5, sodium_100g: 0.2 },
+  },
+};
+
+const COACH_REPLY = `You have about **490 kcal** left and need **59 g** more protein, so make dinner lean and filling:
+
+- **Ikan bakar** (grilled fish, 150 g) with ½ cup rice and ulam — about 420 kcal, 38 g protein
+- Or **chicken soup** with bihun and extra veg — about 380 kcal, 32 g protein
+- Skip the sweet drink; teh O kosong or water instead
+
+That keeps you on track for 0.5 kg a week.`;
 
 const PHOTO_RESULT = {
   isFood: true,
@@ -82,11 +128,48 @@ for (const set of SETS) {
           localStorage.setItem("calories-detector:v1", s);
           localStorage.setItem("calories-detector:account", JSON.stringify({ guest: true }));
         }, JSON.stringify(state));
+      // A pretend camera showing a snack pack, so the scanner screenshot isn't a black box.
+      await ctx.addInitScript(() => {
+        navigator.mediaDevices.getUserMedia = async () => {
+          const c = document.createElement("canvas");
+          c.width = 640;
+          c.height = 480;
+          const g = c.getContext("2d")!;
+          const draw = () => {
+            g.fillStyle = "#3a2a1c";
+            g.fillRect(0, 0, 640, 480);
+            g.fillStyle = "#1f8f3a";
+            g.fillRect(90, 40, 460, 400);
+            g.fillStyle = "#fff";
+            g.font = "bold 64px sans-serif";
+            g.fillText("MILO", 120, 130);
+            g.fillStyle = "#fff";
+            g.fillRect(170, 200, 300, 150);
+            let x = 190;
+            for (let i = 0; i < 46; i++) {
+              const w = [2, 3, 4][(i * 7) % 3];
+              if (i % 2 === 0) {
+                g.fillStyle = "#111";
+                g.fillRect(x, 215, w, 100);
+              }
+              x += w + 1.6;
+            }
+            g.fillStyle = "#111";
+            g.font = "18px monospace";
+            g.fillText("9 556001 234567", 230, 340);
+            requestAnimationFrame(draw);
+          };
+          draw();
+          return c.captureStream(15);
+        };
+      });
       const pg = await ctx.newPage();
       await pg.clock.install({ time: LUNCHTIME });
       await pg.clock.resume();
       await pg.route("https://world.openfoodfacts.org/**", (r) => r.fulfill({ json: { products: [] } }));
       await pg.route("**/api/analyze-photo", (r) => r.fulfill({ json: PHOTO_RESULT }));
+      await pg.route("https://world.openfoodfacts.org/api/v2/product/**", (r) => r.fulfill({ json: MILO }));
+      await pg.route("**/api/coach", (r) => r.fulfill({ status: 200, contentType: "text/plain; charset=utf-8", body: COACH_REPLY }));
       await pg.goto("/");
       return pg;
     };
@@ -137,6 +220,32 @@ for (const set of SETS) {
     await shot("photo-calories");
     await closeSheet();
 
+    // Barcode
+    await page.getByRole("button", { name: /Scan barcode/ }).click();
+    await page.waitForTimeout(800);
+    await shot("barcode-scanner");
+    await sheet().getByLabel("Barcode number").fill("9556001234567");
+    await sheet().getByRole("button", { name: "Look up" }).click();
+    await expect(page.getByRole("dialog", { name: "Milo 3in1 Activ-Go" })).toBeVisible();
+    await shot("barcode-product");
+    await closeSheet();
+
+    // Progress, water and steps
+    await page.getByRole("button", { name: "Add a glass of water" }).click();
+    await page.getByRole("button", { name: "Progress", exact: true }).click();
+    await shot("progress-weight");
+    await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, 640));
+    await shot("progress-steps-water");
+    await closeSheet();
+
+    // AI coach
+    await page.getByRole("button", { name: /Ask coach/ }).click();
+    await sheet().getByRole("button", { name: /dinner/ }).click();
+    await expect(sheet().locator(".bubble.assistant li")).toHaveCount(3);
+    await shot("ai-coach");
+    await sheet().getByRole("button", { name: "Clear chat" }).click();
+    await closeSheet();
+
     // Food
     await tab("Food");
     await shot("food");
@@ -155,6 +264,13 @@ for (const set of SETS) {
     await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, 250));
     await shot("customise-dish");
     await closeSheet();
+    await page.getByLabel("Search foods").fill("char siu");
+    await page.getByRole("button", { name: /Hiding foods you avoid/ }).click();
+    await shot("halal-filter");
+    await page.locator(".row", { hasText: "Char siu (BBQ pork)" }).first().click();
+    await shot("halal-warning");
+    await closeSheet();
+    await page.getByRole("button", { name: /Showing all foods/ }).click();
     await page.getByLabel("Clear search").click();
     await page.getByRole("tab", { name: "My Meals" }).click();
     await page.locator(".row", { hasText: "Post-gym bowl" }).locator(".row-main").click();
@@ -172,18 +288,25 @@ for (const set of SETS) {
     await expect(page.getByRole("dialog")).toHaveCount(1);
     await closeSheet();
     await page.getByRole("button", { name: /Clock in & start/ }).click();
-    const bench = page.locator(".card", { hasText: "Barbell bench press" });
-    for (const [set, kg] of [[1, 40], [2, 45], [3, 45]] as const) {
-      await bench.getByLabel(`Set ${set} weight`).fill(String(kg));
+    const bench = page.locator(".card", { hasText: "Barbell bench press" }).first();
+    // Last week was 40 kg × 10 on every set, so the app pre-fills 42.5 kg.
+    for (const set of [1, 2]) {
+      await bench.getByLabel(`Set ${set} reps`).fill("10");
       await bench.getByRole("button", { name: "Mark set done" }).first().click();
     }
+    await expect(page.locator(".toast")).toContainText("New personal record");
+    await shot("workout-rest-timer-record", 600);
+    await page.getByRole("timer", { name: "Rest timer" }).getByRole("button", { name: "Skip" }).click();
+    await bench.getByLabel("Set 3 reps").fill("8");
+    await bench.getByRole("button", { name: "Mark set done" }).first().click();
+    await page.getByRole("timer", { name: "Rest timer" }).getByRole("button", { name: "Skip" }).click();
     await page.clock.setSystemTime(new Date(LUNCHTIME.getTime() + 38 * 60000));
     await expect(page.locator(".toast")).toHaveCount(0, { timeout: 15_000 });
-    await shot("workout-clocked-in", 1400);
     await page.getByRole("button", { name: "Clock out" }).click();
     await shot("clock-out");
     await page.getByRole("button", { name: "Finish workout" }).click();
     await expect(page.locator(".toast")).toHaveCount(0, { timeout: 15_000 });
+    await shot("workout-done-records");
 
     // Plan
     await tab("Plan");
@@ -202,6 +325,32 @@ for (const set of SETS) {
     await closeSheet();
     await tab("Profile");
     await shot("profile");
+    const scrollTo = (text: string) => page.locator(".section-header", { hasText: text }).first().evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 70));
+    await scrollTo("Allergies");
+    await shot("profile-allergies-fasting");
+    await scrollTo("Reminders");
+    await shot("profile-reminders-language");
+
+    // Ramadan mode
+    await page.getByRole("tab", { name: "Ramadan" }).click();
+    await tab("Today");
+    await shot("ramadan-today");
+    await page.evaluate(() => window.scrollTo(0, 900));
+    await shot("ramadan-meals");
+    await tab("Profile");
+    await page.getByRole("tab", { name: "Off" }).click();
+
+    // Languages
+    const nav = page.getByRole("navigation").getByRole("button");
+    await page.getByRole("button", { name: "Bahasa Melayu" }).click();
+    await nav.first().click();
+    await shot("language-malay");
+    await nav.last().click();
+    await page.getByRole("button", { name: "中文" }).click();
+    await nav.first().click();
+    await shot("language-chinese");
+    await nav.last().click();
+    await page.getByRole("button", { name: "English" }).click();
 
     await page.context().close();
   });

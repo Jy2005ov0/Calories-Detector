@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Dumbbell, Info, Salad, Target } from "lucide-react";
+import { t, useLanguage } from "../i18n";
 import { SPLITS } from "../lib/fitness";
 import { round } from "../lib/nutrition";
 import { BMI_BANDS, bodyCheck } from "../lib/recommend";
@@ -58,6 +59,7 @@ function BmiGauge({ value }: { value: number }) {
 }
 
 export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const lang = useLanguage();
   const profile = useStore((s) => s.profile);
   const [height, setHeight] = useState(String(profile.heightCm));
   const [weight, setWeight] = useState(String(profile.weightKg));
@@ -73,32 +75,32 @@ export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () =
   const h = parseFloat(height.replace(",", "."));
   const w = parseFloat(weight.replace(",", "."));
   const valid = h >= 120 && h <= 230 && w >= 30 && w <= 300;
-  const result = useMemo(() => (valid ? bodyCheck(profile, h, w) : null), [valid, profile, h, w]);
+  const result = useMemo(() => (valid ? bodyCheck(profile, h, w) : null), [valid, profile, h, w, lang]);
 
   const apply = () => {
     if (!result) return;
     actions.updateProfile({ heightCm: h, weightKg: w, goal: result.goal, trainingDays: result.training.days });
     actions.setSplit(result.training.split);
     haptic("success");
-    showToast("Plan updated from your body check");
+    showToast(t("Plan updated from your body check"));
     onClose();
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Body check">
+    <Sheet open={open} onClose={onClose} title={t("Body check")}>
       <p className="subtitle" style={{ marginTop: 4 }}>
-        Enter your height and weight to see your BMI (body mass index) and what to train and eat.
+        {t("Enter your height and weight to see your BMI (body mass index) and what to train and eat.")}
       </p>
       <div className="group">
         <div className="field">
-          <label htmlFor="bc-height">Height</label>
+          <label htmlFor="bc-height">{t("Height")}</label>
           <input id="bc-height" inputMode="decimal" value={height} onChange={(e) => setHeight(e.target.value)} />
           <span className="muted" style={{ width: 28 }}>
             cm
           </span>
         </div>
         <div className="field">
-          <label htmlFor="bc-weight">Weight</label>
+          <label htmlFor="bc-weight">{t("Weight")}</label>
           <input id="bc-weight" inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} />
           <span className="muted" style={{ width: 28 }}>
             kg
@@ -108,7 +110,7 @@ export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () =
 
       {!valid && (
         <p className="footnote" role="alert">
-          Enter a height between 120 and 230 cm and a weight between 30 and 300 kg.
+          {t("Enter a height between 120 and 230 cm and a weight between 30 and 300 kg.")}
         </p>
       )}
 
@@ -120,23 +122,27 @@ export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () =
                 {round(result.bmi, 1).toFixed(1)}
               </span>
               <span className="badge" style={{ background: result.band.fill, color: "#fff", fontSize: 13 }}>
-                {result.band.label}
+                {t(result.band.label)}
               </span>
             </div>
             <div className="row-sub" style={{ marginTop: 4 }}>
-              BMI = weight ÷ height² = {w} ÷ {(h / 100).toFixed(2)}²
+              {t("BMI = weight ÷ height² = {weight} ÷ {height}²", { weight: w, height: (h / 100).toFixed(2) })}
             </div>
             <BmiGauge value={result.bmi} />
             <p className="row-sub" style={{ whiteSpace: "normal", marginTop: 10 }}>
-              Healthy weight for {h} cm: <b style={{ color: "var(--label)" }}>
+              {t("Healthy weight for {height} cm:", { height: h })} <b style={{ color: "var(--label)" }}>
                 {result.range.min}–{result.range.max} kg
               </b>
               {result.toHealthy !== 0 &&
-                ` · ${result.toHealthy < 0 ? "lose" : "gain"} ${Math.abs(round(result.toHealthy, 1))} kg to get there (~${result.weeksToHealthy} weeks)`}
+                " · " +
+                  t(result.toHealthy < 0 ? "lose {kg} kg to get there (~{weeks} weeks)" : "gain {kg} kg to get there (~{weeks} weeks)", {
+                    kg: Math.abs(round(result.toHealthy, 1)),
+                    weeks: result.weeksToHealthy,
+                  })}
             </p>
           </div>
 
-          <div className="section-header">Recommended for you</div>
+          <div className="section-header">{t("Recommended for you")}</div>
           <div className="card">
             <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
               <div className="icon-tile" style={{ background: "var(--blue)" }}>
@@ -144,9 +150,9 @@ export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () =
               </div>
               <div className="row-main">
                 <div className="muted" style={{ fontSize: 13 }}>
-                  Goal
+                  {t("Goal")}
                 </div>
-                <div style={{ fontWeight: 700 }}>{GOAL_LABEL[result.goal]}</div>
+                <div style={{ fontWeight: 700 }}>{t(GOAL_LABEL[result.goal])}</div>
                 <div className="row-sub" style={{ whiteSpace: "normal" }}>
                   {result.goalReason}
                 </div>
@@ -161,7 +167,7 @@ export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () =
               </div>
               <div className="row-main">
                 <div className="muted" style={{ fontSize: 13 }}>
-                  Training · {SPLITS.find((s) => s.id === result.training.split)!.name}
+                  {t("Training")} · {t(SPLITS.find((s) => s.id === result.training.split)!.name)}
                 </div>
                 <div style={{ fontWeight: 700 }}>{result.training.headline}</div>
                 <ul className="row-sub" style={{ whiteSpace: "normal", paddingLeft: 18, margin: "6px 0 0" }}>
@@ -182,11 +188,15 @@ export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () =
               </div>
               <div className="row-main">
                 <div className="muted" style={{ fontSize: 13 }}>
-                  What to eat
+                  {t("What to eat")}
                 </div>
                 <div style={{ fontWeight: 700 }}>{result.nutrition.headline}</div>
                 <div className="row-sub" style={{ whiteSpace: "normal" }}>
-                  Carbs {result.nutrition.targets.carbs} g · Fat {result.nutrition.targets.fat} g · Fibre ≥ {result.nutrition.targets.fiber} g
+                  {t("Carbs {carbs} g · Fat {fat} g · Fibre ≥ {fiber} g", {
+                    carbs: result.nutrition.targets.carbs,
+                    fat: result.nutrition.targets.fat,
+                    fiber: result.nutrition.targets.fiber,
+                  })}
                 </div>
                 <div className="pill-list">
                   {result.nutrition.eat.map((f) => (
@@ -196,7 +206,7 @@ export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () =
                   ))}
                 </div>
                 <div className="muted" style={{ fontSize: 13, marginTop: 10 }}>
-                  Limit
+                  {t("Limit")}
                 </div>
                 <div className="pill-list" style={{ marginTop: 4 }}>
                   {result.nutrition.limit.map((f) => (
@@ -218,13 +228,14 @@ export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () =
 
           <div className="spacer" />
           <button className="btn" onClick={apply}>
-            Use this plan
+            {t("Use this plan")}
           </button>
-          <p className="footnote">Updates your height, weight, goal and training split. You can change them any time in Profile and Plan.</p>
+          <p className="footnote">{t("Updates your height, weight, goal and training split. You can change them any time in Profile and Plan.")}</p>
           <div className="disclaimer">
             <Info size={14} />
             <span>
-              {result.caveat} Uses the Asia-Pacific BMI bands (healthy 18.5–22.9). Calories also use your age ({profile.age}) and sex from Profile.
+              {result.caveat}{" "}
+              {t("Uses the Asia-Pacific BMI bands (healthy 18.5–22.9). Calories also use your age ({age}) and sex from Profile.", { age: profile.age })}
             </span>
           </div>
         </>

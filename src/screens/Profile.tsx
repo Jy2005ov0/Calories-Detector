@@ -40,16 +40,16 @@ const DIETS: { value: P["diet"]; label: string }[] = [
 function NumField({ label, value, unit, onChange, step = 1 }: { label: string; value: number; unit: string; onChange: (v: number) => void; step?: number }) {
   return (
     <div className="field" data-tour={`field-${label.toLowerCase()}`}>
-      <label>{label}</label>
+      <label>{t(label)}</label>
       <input
         inputMode="decimal"
         value={value || ""}
         step={step}
         onChange={(e) => onChange(parseFloat(e.target.value.replace(",", ".")) || 0)}
-        aria-label={label}
+        aria-label={t(label)}
       />
       <span className="muted" style={{ width: 28 }}>
-        {unit}
+        {t(unit)}
       </span>
     </div>
   );
@@ -60,18 +60,18 @@ function ProfileFields({ p, set }: { p: P; set: (x: Partial<P>) => void }) {
     <>
       <div className="group">
         <div className="field">
-          <label htmlFor="pf-name">Name</label>
-          <input id="pf-name" value={p.name} placeholder="Optional" onChange={(e) => set({ name: e.target.value })} />
+          <label htmlFor="pf-name">{t("Name")}</label>
+          <input id="pf-name" value={p.name} placeholder={t("Optional")} onChange={(e) => set({ name: e.target.value })} />
         </div>
         <div className="field">
-          <label>Sex</label>
+          <label>{t("Sex")}</label>
           <div style={{ width: 170 }}>
             <Segmented
               value={p.sex}
               onChange={(v) => set({ sex: v })}
               options={[
-                { value: "male", label: "Male" },
-                { value: "female", label: "Female" },
+                { value: "male", label: t("Male") },
+                { value: "female", label: t("Female") },
               ]}
             />
           </div>
@@ -105,8 +105,8 @@ function OptionList<T extends string | number>({
               </div>
             )}
             <div className="row-main">
-              <div style={{ fontWeight: 600 }}>{o.label}</div>
-              {o.sub && <div className="row-sub">{o.sub}</div>}
+              <div style={{ fontWeight: 600 }}>{t(o.label)}</div>
+              {o.sub && <div className="row-sub">{t(o.sub)}</div>}
             </div>
           </button>
         );
@@ -154,20 +154,20 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
   return (
     <div className="screen">
       <div className="title-row" style={{ marginTop: 14, alignItems: "center" }}>
-        <h1 className="large-title">Profile</h1>
+        <h1 className="large-title">{t("Profile")}</h1>
         <Segmented
           className="icon-seg"
-          ariaLabel="Appearance"
+          ariaLabel={t("Appearance")}
           value={theme}
           onChange={actions.setTheme}
           options={[
-            { value: "system", label: <SunMoon size={18} />, ariaLabel: "Match phone setting" },
-            { value: "light", label: <Sun size={18} />, ariaLabel: "Light" },
-            { value: "dark", label: <Moon size={18} />, ariaLabel: "Dark" },
+            { value: "system", label: <SunMoon size={18} />, ariaLabel: t("Match phone setting") },
+            { value: "light", label: <Sun size={18} />, ariaLabel: t("Light") },
+            { value: "dark", label: <Moon size={18} />, ariaLabel: t("Dark") },
           ]}
         />
       </div>
-      <p className="subtitle">Your numbers drive every target and plan in the app.</p>
+      <p className="subtitle">{t("Your numbers drive every target and plan in the app.")}</p>
 
       <AccountCard />
       <div className="spacer" />
@@ -183,28 +183,28 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           </div>
           <div className="stat">
             <span className="stat-label">
-              <Flame size={13} /> Resting
+              <Flame size={13} /> {t("Resting")}
             </span>
             <span className="stat-value">
               {round(bmr(p))}
               <small>kcal</small>
             </span>
-            <span className="row-sub">BMR</span>
+            <span className="row-sub">{t("BMR")}</span>
           </div>
           <div className="stat">
             <span className="stat-label">
-              <Activity size={13} /> Maintain
+              <Activity size={13} /> {t("Maintain")}
             </span>
             <span className="stat-value">
               {round(tdee(p))}
               <small>kcal</small>
             </span>
-            <span className="row-sub">Target {tg.kcal}</span>
+            <span className="row-sub">{t("Target {kcal}", { kcal: tg.kcal })}</span>
           </div>
         </div>
       </div>
 
-      <div className="section-header">About you</div>
+      <div className="section-header">{t("About you")}</div>
       <ProfileFields p={p} set={actions.updateProfile} />
 
       <div className="group" style={{ marginTop: 12 }}>
@@ -230,30 +230,30 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
         </button>
       </div>
 
-      <div className="section-header">Goal</div>
+      <div className="section-header">{t("Goal")}</div>
       <OptionList options={GOALS} value={p.goal} onChange={(goal) => actions.updateProfile({ goal })} />
 
-      <div className="section-header">Activity level</div>
+      <div className="section-header">{t("Activity level")}</div>
       <OptionList options={ACTIVITY} value={p.activity} onChange={(activity) => actions.updateProfile({ activity })} />
 
-      <div className="section-header">Training</div>
+      <div className="section-header">{t("Training")}</div>
       <div className="group">
         <div className="field">
-          <label>Experience</label>
+          <label>{t("Experience")}</label>
           <div style={{ width: 230 }}>
             <Segmented
               value={p.experience}
               onChange={(experience) => actions.updateProfile({ experience })}
               options={[
-                { value: "beginner", label: "New" },
-                { value: "intermediate", label: "1–3 yrs" },
-                { value: "advanced", label: "3+ yrs" },
+                { value: "beginner", label: t("New") },
+                { value: "intermediate", label: t("1–3 yrs") },
+                { value: "advanced", label: t("3+ yrs") },
               ]}
             />
           </div>
         </div>
         <div className="field">
-          <label>Days per week</label>
+          <label>{t("Days per week")}</label>
           <Stepper value={p.trainingDays} min={2} max={6} onChange={(trainingDays) => actions.updateProfile({ trainingDays })} />
         </div>
       </div>
@@ -410,21 +410,23 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           style={{ color: "var(--red)" }}
           onClick={async () => {
             const signedIn = !!getAccount().token;
-            const where = signedIn ? "on this phone and in your account" : "on this phone";
-            if (await confirmDialog("Delete all data?", `Your logs, workouts, custom foods and profile ${where} will be erased. This can't be undone.`)) {
+            const msg = signedIn
+              ? t("Your logs, workouts, custom foods and profile on this phone and in your account will be erased. This can't be undone.")
+              : t("Your logs, workouts, custom foods and profile on this phone will be erased. This can't be undone.");
+            if (await confirmDialog(t("Delete all data?"), msg)) {
               actions.resetAll();
               if (signedIn) syncNow();
-              showToast("All data deleted");
+              showToast(t("All data deleted"));
             }
           }}
         >
-          Delete all data
+          {t("Delete all data")}
         </button>
       </div>
       <p className="footnote">
         {signedIn
-          ? "Your data is stored on this phone and backed up to your account. Photos are sent to the server only for analysis and are not kept."
-          : "Everything is stored only on this phone. Photos are sent to the server only for analysis and are not kept."}
+          ? t("Your data is stored on this phone and backed up to your account. Photos are sent to the server only for analysis and are not kept.")
+          : t("Everything is stored only on this phone. Photos are sent to the server only for analysis and are not kept.")}
       </p>
     </div>
   );
@@ -433,6 +435,7 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
 // ── Onboarding ─────────────────────────────────────────
 
 export function Onboarding() {
+  useLanguage();
   const stored = useStore((s) => s.profile);
   // Signed in with Google/Apple/email? Start with the account's first name.
   const [p, setP] = useState<P>(() => ({ ...stored, name: stored.name || getAccount().user?.name?.split(" ")[0] || "" }));
@@ -443,7 +446,7 @@ export function Onboarding() {
   const steps = [
     {
       title: "Calories",
-      sub: "Snap or search your food, track your training, and get a plan that fits your body.",
+      sub: t("Snap or search your food, track your training, and get a plan that fits your body."),
       body: (
         <div style={{ display: "grid", gap: 10 }}>
           {[
@@ -451,15 +454,15 @@ export function Onboarding() {
             { Icon: Dumbbell, color: "var(--green)", t: "Clock in at the gym", s: "Live timer and calories for 230+ exercises and sports" },
             { Icon: Target, color: "var(--blue)", t: "Get a plan", s: "Chest, back, arms, legs splits and a matching meal plan" },
             { Icon: Leaf, color: "var(--teal)", t: "Eat smarter", s: "See if a meal is healthy and right for your goal" },
-          ].map(({ Icon, color, t, s }) => (
-            <div key={t} className="option-card" style={{ boxShadow: "none" }}>
+          ].map(({ Icon, color, t: title, s }) => (
+            <div key={title} className="option-card" style={{ boxShadow: "none" }}>
               <div className="icon-tile" style={{ background: color }}>
                 <Icon size={18} />
               </div>
               <div className="row-main">
-                <div style={{ fontWeight: 600 }}>{t}</div>
+                <div style={{ fontWeight: 600 }}>{t(title)}</div>
                 <div className="row-sub" style={{ whiteSpace: "normal" }}>
-                  {s}
+                  {t(s)}
                 </div>
               </div>
             </div>
@@ -468,12 +471,12 @@ export function Onboarding() {
       ),
       ok: true,
     },
-    { title: "About you", sub: "Used to calculate how many calories your body needs.", body: <ProfileFields p={p} set={set} />, ok: valid },
-    { title: "Your goal", sub: "You can change this any time.", body: <OptionList options={GOALS} value={p.goal} onChange={(goal) => set({ goal })} />, ok: true },
-    { title: "How active are you?", sub: "Outside of the workouts you'll log here.", body: <OptionList options={ACTIVITY} value={p.activity} onChange={(activity) => set({ activity })} />, ok: true },
+    { title: t("About you"), sub: t("Used to calculate how many calories your body needs."), body: <ProfileFields p={p} set={set} />, ok: valid },
+    { title: t("Your goal"), sub: t("You can change this any time."), body: <OptionList options={GOALS} value={p.goal} onChange={(goal) => set({ goal })} />, ok: true },
+    { title: t("How active are you?"), sub: t("Outside of the workouts you'll log here."), body: <OptionList options={ACTIVITY} value={p.activity} onChange={(activity) => set({ activity })} />, ok: true },
     {
-      title: "Training",
-      sub: "So we can build the right split for you.",
+      title: t("Training"),
+      sub: t("So we can build the right split for you."),
       body: (
         <>
           <OptionList
@@ -487,15 +490,15 @@ export function Onboarding() {
           />
           <div className="group" style={{ marginTop: 14 }}>
             <div className="field">
-              <label>Days per week</label>
+              <label>{t("Days per week")}</label>
               <Stepper value={p.trainingDays} min={2} max={6} onChange={(trainingDays) => set({ trainingDays })} />
             </div>
           </div>
-          <div className="section-header">Diet</div>
+          <div className="section-header">{t("Diet")}</div>
           <div className="chips">
             {DIETS.map((d) => (
               <button key={d.value} className={`chip ${p.diet === d.value ? "active" : ""}`} onClick={() => set({ diet: d.value })}>
-                {d.label}
+                {t(d.label)}
               </button>
             ))}
           </div>
@@ -533,7 +536,7 @@ export function Onboarding() {
       <div className="btn-row" style={{ marginTop: 24 }}>
         {step > 0 && (
           <button className="btn secondary" style={{ width: 110, flex: "none" }} onClick={() => setStep(step - 1)}>
-            Back
+            {t("Back")}
           </button>
         )}
         <button
@@ -544,7 +547,7 @@ export function Onboarding() {
             else setStep(step + 1);
           }}
         >
-          {step === 0 ? "Get started" : last ? "Build my plan" : "Continue"}
+          {step === 0 ? t("Get started") : last ? t("Build my plan") : t("Continue")}
         </button>
       </div>
     </div>

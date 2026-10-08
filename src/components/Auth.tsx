@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { motion } from "motion/react";
 import { Eye, EyeOff, Mail } from "lucide-react";
 import { continueAsGuest, logIn, register, signInWith } from "../lib/account";
+import { t, useLanguage } from "../i18n";
 import { haptic, Segmented, Sheet, showToast, SPRING } from "./ui";
 
 // Brand marks, drawn per Apple's and Google's sign-in button guidelines.
@@ -20,6 +21,7 @@ const GoogleLogo = () => (
 );
 
 export function SocialButtons({ onDone }: { onDone?: () => void }) {
+  useLanguage();
   const [busy, setBusy] = useState<null | "google" | "apple">(null);
   const go = async (p: "google" | "apple") => {
     setBusy(p);
@@ -37,10 +39,10 @@ export function SocialButtons({ onDone }: { onDone?: () => void }) {
   return (
     <div style={{ display: "grid", gap: 10 }}>
       <button className="btn auth-apple" onClick={() => go("apple")} disabled={busy !== null}>
-        {busy === "apple" ? <div className="spinner" /> : <AppleLogo />} Continue with Apple
+        {busy === "apple" ? <div className="spinner" /> : <AppleLogo />} {t("Continue with Apple")}
       </button>
       <button className="btn auth-google" onClick={() => go("google")} disabled={busy !== null}>
-        {busy === "google" ? <div className="spinner" /> : <GoogleLogo />} Continue with Google
+        {busy === "google" ? <div className="spinner" /> : <GoogleLogo />} {t("Continue with Google")}
       </button>
     </div>
   );
@@ -49,6 +51,7 @@ export function SocialButtons({ onDone }: { onDone?: () => void }) {
 type Mode = "signup" | "login";
 
 export function EmailAuthSheet({ open, mode: initialMode, onClose, onDone }: { open: boolean; mode: Mode; onClose: () => void; onDone?: () => void }) {
+  useLanguage();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -68,13 +71,13 @@ export function EmailAuthSheet({ open, mode: initialMode, onClose, onDone }: { o
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (mode === "signup" && password.length < 8) return setError("Use at least 8 characters for your password.");
+    if (mode === "signup" && password.length < 8) return setError(t("Use at least 8 characters for your password."));
     setBusy(true);
     try {
       if (mode === "signup") await register(email, password, name);
       else await logIn(email, password);
       haptic("success");
-      showToast(mode === "signup" ? "Account created · your data is backed up" : "Welcome back · your data is synced");
+      showToast(mode === "signup" ? t("Account created · your data is backed up") : t("Welcome back · your data is synced"));
       onClose();
       onDone?.();
     } catch (err) {
@@ -85,7 +88,7 @@ export function EmailAuthSheet({ open, mode: initialMode, onClose, onDone }: { o
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title={mode === "signup" ? "Create account" : "Log in"}>
+    <Sheet open={open} onClose={onClose} title={mode === "signup" ? t("Create account") : t("Log in")}>
       <Segmented
         value={mode}
         onChange={(m) => {
@@ -93,20 +96,20 @@ export function EmailAuthSheet({ open, mode: initialMode, onClose, onDone }: { o
           setError(null);
         }}
         options={[
-          { value: "signup", label: "Create account" },
-          { value: "login", label: "Log in" },
+          { value: "signup", label: t("Create account") },
+          { value: "login", label: t("Log in") },
         ]}
       />
       <form onSubmit={submit} style={{ marginTop: 14 }} noValidate>
         <div className="group">
           {mode === "signup" && (
             <div className="field">
-              <label htmlFor="au-name">Name</label>
-              <input id="au-name" autoComplete="given-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Optional" />
+              <label htmlFor="au-name">{t("Name")}</label>
+              <input id="au-name" autoComplete="given-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("Optional")} />
             </div>
           )}
           <div className="field">
-            <label htmlFor="au-email">Email</label>
+            <label htmlFor="au-email">{t("Email")}</label>
             <input
               id="au-email"
               type="email"
@@ -122,7 +125,7 @@ export function EmailAuthSheet({ open, mode: initialMode, onClose, onDone }: { o
             />
           </div>
           <div className="field">
-            <label htmlFor="au-password">Password</label>
+            <label htmlFor="au-password">{t("Password")}</label>
             <input
               id="au-password"
               type={show ? "text" : "password"}
@@ -131,10 +134,10 @@ export function EmailAuthSheet({ open, mode: initialMode, onClose, onDone }: { o
               minLength={mode === "signup" ? 8 : undefined}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={mode === "signup" ? "8+ characters" : "Required"}
+              placeholder={mode === "signup" ? t("8+ characters") : t("Required")}
               style={{ width: "50%" }}
             />
-            <button type="button" className="icon-btn" onClick={() => setShow((v) => !v)} aria-label={show ? "Hide password" : "Show password"}>
+            <button type="button" className="icon-btn" onClick={() => setShow((v) => !v)} aria-label={show ? t("Hide password") : t("Show password")}>
               {show ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
@@ -147,10 +150,10 @@ export function EmailAuthSheet({ open, mode: initialMode, onClose, onDone }: { o
         <div className="spacer" />
         <button className="btn" type="submit" disabled={busy || !email || !password}>
           {busy ? <div className="spinner" style={{ borderTopColor: "#fff" }} /> : null}
-          {mode === "signup" ? "Create account" : "Log in"}
+          {mode === "signup" ? t("Create account") : t("Log in")}
         </button>
       </form>
-      <div className="auth-divider">or</div>
+      <div className="auth-divider">{t("or")}</div>
       <SocialButtons
         onDone={() => {
           onClose();
@@ -158,13 +161,14 @@ export function EmailAuthSheet({ open, mode: initialMode, onClose, onDone }: { o
         }}
       />
       <p className="footnote" style={{ textAlign: "center" }}>
-        Your food log, workouts and plan are backed up and synced to every phone you sign in on.
+        {t("Your food log, workouts and plan are backed up and synced to every phone you sign in on.")}
       </p>
     </Sheet>
   );
 }
 
 export function Welcome() {
+  useLanguage();
   const [sheet, setSheet] = useState<Mode | null>(null);
   return (
     <div className="onboard welcome">
@@ -184,28 +188,28 @@ export function Welcome() {
             Calories
           </h1>
           <p className="subtitle" style={{ maxWidth: 300, margin: "6px auto 0" }}>
-            Count calories from a photo, clock in at the gym and follow a plan made for your body.
+            {t("Count calories from a photo, clock in at the gym and follow a plan made for your body.")}
           </p>
         </div>
       </div>
       <SocialButtons />
       <div className="spacer" />
       <button className="btn secondary" onClick={() => setSheet("signup")}>
-        <Mail size={18} /> Sign up with email
+        <Mail size={18} /> {t("Sign up with email")}
       </button>
       <p style={{ textAlign: "center", margin: "22px 0 0", fontSize: 15 }}>
-        <span className="muted">Already have an account? </span>
+        <span className="muted">{t("Already have an account?")} </span>
         <button className="link bold tap" onClick={() => setSheet("login")}>
-          Log in
+          {t("Log in")}
         </button>
       </p>
       <p style={{ textAlign: "center", margin: "26px 0 0" }}>
         <button className="link tap" onClick={continueAsGuest} style={{ fontSize: 15 }}>
-          Continue without an account
+          {t("Continue without an account")}
         </button>
       </p>
       <p className="footnote" style={{ textAlign: "center", margin: "14px 8px 0" }}>
-        Without an account, your data stays only on this phone.
+        {t("Without an account, your data stays only on this phone.")}
       </p>
       <EmailAuthSheet open={sheet !== null} mode={sheet ?? "signup"} onClose={() => setSheet(null)} />
     </div>

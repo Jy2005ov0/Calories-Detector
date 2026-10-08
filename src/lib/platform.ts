@@ -4,6 +4,7 @@ import { Camera, MediaTypeSelection } from "@capacitor/camera";
 import { Dialog } from "@capacitor/dialog";
 import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
 import { Preferences } from "@capacitor/preferences";
+import { t } from "../i18n";
 
 /** True inside the iOS / Android app, false in a browser or installed PWA. */
 export const isNative = Capacitor.isNativePlatform();
@@ -58,9 +59,9 @@ export function haptic(kind: HapticKind = "light") {
 
 // ── Dialogs ─────────────────────────────────────────────
 
-export async function confirmDialog(title: string, message: string, okButtonTitle = "Delete"): Promise<boolean> {
+export async function confirmDialog(title: string, message: string, okButtonTitle = t("Delete")): Promise<boolean> {
   if (isNative) {
-    const { value } = await Dialog.confirm({ title, message, okButtonTitle, cancelButtonTitle: "Cancel" });
+    const { value } = await Dialog.confirm({ title, message, okButtonTitle, cancelButtonTitle: t("Cancel") });
     return value;
   }
   return window.confirm(`${title}\n\n${message}`);

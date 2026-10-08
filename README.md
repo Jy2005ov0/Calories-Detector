@@ -194,7 +194,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 | | |
 |---|---|
 | **Photo calories** | Snap or upload a meal. Claude vision lists each food, estimates the grams and works out the calories and macros. You can fix the grams before logging. |
-| **Food search** | 705 built-in foods (per 100 g, from USDA, UK CoFID and the Malaysian Food Composition Database) across 26 cuisines and groups: Malaysian, Chinese, Japanese, Korean, Thai & Vietnamese, Indian, Middle Eastern, Italian, Mexican & Latin American, American & British, European and African & Caribbean, plus everyday staples. Typing 3+ letters also searches **Open Food Facts** (millions of packaged products, no key needed). |
+| **Food search** | 713 built-in foods (per 100 g, from USDA, UK CoFID and the Malaysian Food Composition Database) across 26 cuisines and groups: Malaysian, Chinese, Japanese, Korean, Thai & Vietnamese, Indian, Middle Eastern, Italian, Mexican & Latin American, American & British, European and African & Caribbean, plus everyday staples. Typing 3+ letters also searches **Open Food Facts** (millions of packaged products, no key needed). |
 | **Meal builder** | Combine any foods and quantities. See live totals, a health grade (A–E) and whether it fits your goal. Then log it or save it to reuse later. |
 | **Custom foods** | Copy any nutrition label into *My Foods*. |
 | **Health check** | Every food and meal gets a 0–100 score (protein and fibre per calorie versus sugar, saturated fat and sodium) plus a verdict against what you still have left today. |
@@ -204,6 +204,18 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 | **? guide** | The round **?** button opens a 12-step guided tour that highlights each feature in turn. It opens once automatically after sign-up and works on every screen size. |
 | **Training plans** | Body-part split (Chest / Back / Legs / Shoulders / Arms), Push-Pull-Legs, Upper/Lower or Full Body, set for 2–6 days a week. Sets, reps, rest and RIR follow your goal and experience. Start any day with one tap. |
 | **Nutrition plan** | Calorie target (Mifflin-St Jeor × activity, ±goal), protein/carb/fat targets, foods to eat and limit, a sample day scaled to your target, and tips on meal timing. Supports halal, vegetarian and vegan diets. |
+| **Barcode scanner** | Point the camera at a packaged food (EAN/UPC) or type the number. The product's nutrition comes from Open Food Facts; unknown products can be added as a new food. |
+| **Progress** | Log your weight and see a chart with your weekly trend and whether it's on pace for your goal. Steps (typed in, or synced from **Apple Health / Health Connect** in the apps), water glasses against a goal of ~35 ml per kg, and 7-day charts. |
+| **Streaks** | A logging streak on Today and a weekly gym streak in Progress. |
+| **Reminders** | Meal, water and gym-day reminders at times you choose (in the iPhone and Android apps). |
+| **Clock in/out from your watch** | Gym reminders carry a **Clock in** button and a running workout shows a **Clock out** button. Both appear on a paired **Apple Watch** or **Wear OS** watch, because the watch mirrors the phone's notifications. |
+| **Rest timer** | Finishing a set starts a countdown from your plan's rest time (+15 s or skip). The phone and watch buzz when it's over, even with the screen off. |
+| **Personal records & progressive overload** | Best lifts with estimated 1-rep max. Each exercise shows last time's sets and what to do today ("Hit 10 reps on every set — try 42.5 kg"), and plan workouts start pre-filled with that weight. A new record gets a toast. |
+| **Halal & allergen filters** | Pick allergies (peanuts, tree nuts, shellfish, fish, milk, egg, gluten, soy, sesame). Foods that usually contain them — or pork and alcohol on a halal diet, or meat on a vegetarian one — are hidden from search (one tap shows them), flagged with a warning, and left out of your meal plan. |
+| **Ramadan & 16:8 fasting** | Ramadan mode turns meals into Sahur, Iftar and Moreh, counts down to iftar or the end of sahur, uses a gentler 15% deficit, and builds a sample day around dates at iftar. 16:8 mode shows when your eating window opens and closes. |
+| **AI coach** | Ask anything about food, portions or training. The coach (Claude) sees your targets, today's log, your plan and your recent workouts, answers in your language, and streams its reply. |
+| **Export & share** | Export everything as CSV, or a 30-day PDF report for a coach or doctor. Share a finished workout as an image card. |
+| **Languages** | English, Bahasa Melayu and 中文 (Simplified Chinese), switchable in Profile. |
 
 ## Design
 
@@ -246,7 +258,16 @@ The native apps reuse the same code and switch to native features when running o
 | Safe areas | Notch, Dynamic Island, home indicator | Edge-to-edge status and navigation bars |
 | Back | Swipe sheets down | Hardware/gesture **Back** closes the top sheet, then returns to Today, then leaves the app |
 | Data | Saved to localStorage and mirrored to UserDefaults so iOS can't evict it | Mirrored to SharedPreferences |
+| Health data | Steps and weight from Apple Health (HealthKit); weigh-ins are saved back | Steps and weight from Health Connect (Android 8+) |
+| Reminders & rest timer | Local notifications, also shown on a paired Apple Watch | Local notifications, also shown on a paired Wear OS watch |
+| Watch buttons | Clock in / Clock out buttons on the notification | Same, on the notification and the watch |
+| Barcode scanner | Live camera scanning in the app | Live camera scanning in the app |
+| Export & share | Share sheet (Files, AirDrop, WhatsApp…) | Android share sheet |
 | Status bar | Follows light/dark mode | Follows light/dark mode |
+
+> **About the watch:** there is no separate watch app. The watch shows the phone's notifications with their buttons, so you can clock in from a gym reminder and clock out from the "clocked in" notification on your wrist while the app is running in the background on your phone. A standalone watchOS / Wear OS app would be a separate project.
+
+> **Health permissions:** the first time you tap *Sync from Apple Health / Health Connect* in Progress, the phone asks which data to share. On Android, Health Connect needs Android 8 or later (built in from Android 14; install it from the Play Store on older phones). Publishing to the App Store or Play Store with health access requires the privacy policy at `public/privacypolicy.html` to be hosted on your site.
 
 ### Build them
 
@@ -277,7 +298,7 @@ To publish, set your own bundle ID in `capacitor.config.ts` (`appId`, currently 
 
 ```bash
 npm install
-cp .env.example .env      # add ANTHROPIC_API_KEY to enable photo recognition
+cp .env.example .env      # add ANTHROPIC_API_KEY to enable photo recognition and the AI coach
 npm run dev               # web on http://localhost:5173, API on :8787
 ```
 

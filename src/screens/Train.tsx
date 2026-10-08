@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Clock, Dumbbell, Flame, History, LogIn, LogOut, Plus, Share, Timer, Trash2, Trophy, Weight } from "lucide-react";
-import { t, useLanguage } from "../i18n";
+import { locale, t, useLanguage } from "../i18n";
 import { workoutCard } from "../lib/export";
 import { scheduleRestEnd, shareFile } from "../lib/native";
 import { isNewRecord, lastPerformance, personalRecords, suggestNext } from "../lib/records";
@@ -71,7 +71,7 @@ function RestBar({ rest, onChange }: { rest: { endsAt: number; total: number }; 
 }
 
 export function Train() {
-  useLanguage();
+  const lang = useLanguage();
   const profile = useStore((s) => s.profile);
   const sessions = useStore((s) => s.sessions);
   const activeId = useStore((s) => s.activeSessionId);
@@ -91,7 +91,8 @@ export function Train() {
   );
   const records = useMemo(() => personalRecords(sessions), [sessions]);
 
-  const plan = useMemo(() => buildPlan(profile, split), [profile, split]);
+  // `lang` is a dependency so plan text is rebuilt in the new language.
+  const plan = useMemo(() => buildPlan(profile, split), [profile, split, lang]);
   const weekday = weekdayOf(useTodayKey());
   const todaysPlan = plan.days.find((d) => d.weekday === weekday);
   const history = sessions.filter((s) => s.endedAt);
@@ -101,7 +102,7 @@ export function Train() {
   const clockIn = (title: string, exercises: SessionExercise[] = []) => {
     actions.clockIn(title, exercises);
     haptic("success");
-    showToast(`Clocked in at ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`);
+    showToast(t("Clocked in at {time}", { time: new Date().toLocaleTimeString(locale(), { hour: "numeric", minute: "2-digit" }) }));
   };
 
   const update = (fn: (s: WorkoutSession) => WorkoutSession) => active && actions.updateSession(active.id, fn);
@@ -123,11 +124,11 @@ export function Train() {
         kcal: Math.round(kcalFor(ex.met, profile.weightKg, m)),
       };
       actions.addSession(session);
-      showToast(`Logged ${ex.name} · ${session.kcal} kcal`);
+      showToast(t("Logged {name} · {kcal} kcal", { name: ex.name, kcal: session.kcal }));
       return;
     }
     if (!active) {
-      clockIn(ex.kind === "cardio" ? ex.name : "Workout", [toSessionExercise(ex, minutes)]);
+      clockIn(ex.kind === "cardio" ? ex.name : t("Workout"), [toSessionExercise(ex, minutes)]);
       return;
     }
     update((s) => ({ ...s, exercises: [...s.exercises, toSessionExercise(ex, minutes)] }));
@@ -142,22 +143,22 @@ export function Train() {
         <div className="title-row" style={{ marginTop: 14 }}>
           <h1 className="large-title">{active.title}</h1>
           <span className="badge" style={{ background: "var(--green-fill)", color: "#fff", marginBottom: 8 }}>
-            <span className="pulse" style={{ width: 7, height: 7 }} /> LIVE
+            <span className="pulse" style={{ width: 7, height: 7 }} /> {t("LIVE")}
           </span>
         </div>
-        <p className="subtitle">Clocked in at {new Date(active.startedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</p>
+        <p className="subtitle">{t("Clocked in at {time}", { time: new Date(active.startedAt).toLocaleTimeString(locale(), { hour: "numeric", minute: "2-digit" }) })}</p>
 
         <div className="card">
           <div className="stat-grid">
             <div className="stat">
               <span className="stat-label">
-                <Clock size={13} /> Time
+                <Clock size={13} /> {t("Time")}
               </span>
               <span className="stat-value tabular">{formatDuration(minutes)}</span>
             </div>
             <div className="stat">
               <span className="stat-label">
-                <Flame size={13} color="var(--orange)" /> Burned
+                <Flame size={13} color="var(--orange)" /> {t("Burned")}
               </span>
               <span className="stat-value">
                 {round(kcal)}
@@ -166,7 +167,7 @@ export function Train() {
             </div>
             <div className="stat">
               <span className="stat-label">
-                <Weight size={13} /> Volume
+                <Weight size={13} /> {t("Volume")}
               </span>
               <span className="stat-value">
                 {round(sessionVolume(active))}
@@ -199,7 +200,7 @@ export function Train() {
                 </div>
                 <button
                   className="icon-btn"
-                  aria-label={`Remove ${ex.name}`}
+                  aria-label={t("Remove {name}", { name: ex.name })}
                   onClick={() => update((s) => ({ ...s, exercises: s.exercises.filter((e) => e.id !== ex.id) }))}
                 >
                   <Trash2 size={15} />
@@ -208,15 +209,15 @@ export function Train() {
 
               {ex.kind === "cardio" ? (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span className="muted">Duration</span>
+                  <span className="muted">{t("Duration")}</span>
                   <Stepper value={ex.minutes ?? 0} step={5} min={0} max={600} format={(v) => `${v} min`} onChange={(v) => updateEx(ex.id, (e) => ({ ...e, minutes: v }))} />
                 </div>
               ) : (
                 <>
                   <div className="set-grid">
-                    <span className="head">Set</span>
+                    <span className="head">{t("Set")}</span>
                     <span className="head">kg</span>
-                    <span className="head">Reps</span>
+                    <span className="head">{t("Reps")}</span>
                     <span />
                     {(ex.sets ?? []).map((set, i) => (
                       <SetRow
@@ -247,7 +248,7 @@ export function Train() {
                       })
                     }
                   >
-                    <Plus size={15} /> Add set
+                    <Plus size={15} /> {t("Add set")}
                   </button>
                 </>
               )}
@@ -258,44 +259,44 @@ export function Train() {
         {active.exercises.length === 0 && (
           <div className="card" style={{ marginTop: 12 }}>
             <Empty icon={<Dumbbell size={28} />}>
-              Add the exercises you do for a more accurate calorie count. Until then time is counted as general gym training.
+              {t("Add the exercises you do for a more accurate calorie count. Until then time is counted as general gym training.")}
             </Empty>
           </div>
         )}
 
         <div className="spacer" />
         <button className="btn tinted" onClick={() => setLibrary("add")}>
-          <Plus size={18} /> Add exercise
+          <Plus size={18} /> {t("Add exercise")}
         </button>
         <div className="spacer" />
         <button className="btn red" data-tour="clock-out" onClick={() => setFinishing(true)}>
-          <LogOut size={18} /> Clock out
+          <LogOut size={18} /> {t("Clock out")}
         </button>
 
-        <Sheet open={finishing} onClose={() => setFinishing(false)} title="Clock out">
+        <Sheet open={finishing} onClose={() => setFinishing(false)} title={t("Clock out")}>
           <div className="card" style={{ textAlign: "center" }}>
             <div className="muted">{active.title}</div>
             <div className="big-number" style={{ margin: "8px 0" }}>
               {round(kcal)}
             </div>
-            <div className="muted">kcal burned</div>
+            <div className="muted">{t("kcal burned")}</div>
             <div className="spacer" />
             <div className="stat-grid">
               <div className="stat">
                 <span className="stat-label" style={{ justifyContent: "center" }}>
-                  Time
+                  {t("Time")}
                 </span>
                 <span className="stat-value tabular">{formatDuration(minutes)}</span>
               </div>
               <div className="stat">
                 <span className="stat-label" style={{ justifyContent: "center" }}>
-                  Sets
+                  {t("Sets")}
                 </span>
                 <span className="stat-value">{doneSets}</span>
               </div>
               <div className="stat">
                 <span className="stat-label" style={{ justifyContent: "center" }}>
-                  Volume
+                  {t("Volume")}
                 </span>
                 <span className="stat-value">
                   {round(sessionVolume(active))}
@@ -304,7 +305,7 @@ export function Train() {
               </div>
             </div>
           </div>
-          <p className="footnote">Burned calories are added back to today's budget on the Today screen.</p>
+          <p className="footnote">{t("Burned calories are added back to today's budget on the Today screen.")}</p>
           <div className="spacer" />
           <button
             className="btn green"
@@ -318,24 +319,24 @@ export function Train() {
               showToast(t("Workout saved · {kcal} kcal", { kcal: round(kcal) }));
             }}
           >
-            <Check size={18} /> Finish workout
+            <Check size={18} /> {t("Finish workout")}
           </button>
           <div className="spacer" />
           <button className="btn secondary" onClick={() => setFinishing(false)}>
-            Keep going
+            {t("Keep going")}
           </button>
           <div className="spacer" />
           <button
             className="btn secondary"
             style={{ color: "var(--red)" }}
             onClick={async () => {
-              if (await confirmDialog("Discard workout?", "This workout won't be saved.", "Discard")) {
+              if (await confirmDialog(t("Discard workout?"), t("This workout won't be saved."), t("Discard"))) {
                 actions.discardSession(active.id);
                 setFinishing(false);
               }
             }}
           >
-            Discard workout
+            {t("Discard workout")}
           </button>
         </Sheet>
 
@@ -348,18 +349,18 @@ export function Train() {
   return (
     <div className="screen">
       <h1 className="large-title" style={{ marginTop: 14 }}>
-        Train
+        {t("Train")}
       </h1>
-      <p className="subtitle">Clock in when you start, clock out when you're done.</p>
+      <p className="subtitle">{t("Clock in when you start, clock out when you're done.")}</p>
 
-      <motion.button className="card pressable" data-tour="clock-in" style={{ width: "100%", textAlign: "left", display: "block" }} onClick={() => clockIn("Workout")}>
+      <motion.button className="card pressable" data-tour="clock-in" style={{ width: "100%", textAlign: "left", display: "block" }} onClick={() => clockIn(t("Workout"))}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div className="icon-tile" style={{ width: 52, height: 52, borderRadius: 16, background: "var(--green)" }}>
             <LogIn size={24} />
           </div>
           <div className="row-main">
-            <div style={{ fontWeight: 700, fontSize: 20, letterSpacing: "-0.02em" }}>Clock in</div>
-            <div className="row-sub">Start a free workout — timer and calories run live</div>
+            <div style={{ fontWeight: 700, fontSize: 20, letterSpacing: "-0.02em" }}>{t("Clock in")}</div>
+            <div className="row-sub">{t("Start a free workout — timer and calories run live")}</div>
           </div>
         </div>
       </motion.button>
@@ -367,7 +368,7 @@ export function Train() {
       {todaysPlan ? (
         <div className="card" style={{ marginTop: 12 }}>
           <div className="muted" style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.02em", fontWeight: 600 }}>
-            Today's plan
+            {t("Today's plan")}
           </div>
           <div style={{ fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em", marginTop: 4 }}>{todaysPlan.title}</div>
           <div className="row-sub">
@@ -387,14 +388,14 @@ export function Train() {
               )
             }
           >
-            <LogIn size={18} /> Clock in &amp; start {todaysPlan.title}
+            <LogIn size={18} /> {t("Clock in & start {title}", { title: todaysPlan.title })}
           </button>
         </div>
       ) : (
         <div className="card" style={{ marginTop: 12 }}>
-          <div style={{ fontWeight: 600 }}>Rest day</div>
+          <div style={{ fontWeight: 600 }}>{t("Rest day")}</div>
           <div className="row-sub" style={{ whiteSpace: "normal" }}>
-            No session planned today. Light cardio or a walk helps recovery.
+            {t("No session planned today. Light cardio or a walk helps recovery.")}
           </div>
         </div>
       )}
@@ -405,8 +406,8 @@ export function Train() {
             <Flame size={18} />
           </div>
           <div>
-            <div className="tile-title">Log activity</div>
-            <div className="tile-sub">Run, futsal, swim…</div>
+            <div className="tile-title">{t("Log activity")}</div>
+            <div className="tile-sub">{t("Run, futsal, swim…")}</div>
           </div>
         </button>
         <button className="tile" onClick={() => setLibrary("browse")}>
@@ -414,28 +415,28 @@ export function Train() {
             <Dumbbell size={18} />
           </div>
           <div>
-            <div className="tile-title">Exercise library</div>
-            <div className="tile-sub">Form cues &amp; calories</div>
+            <div className="tile-title">{t("Exercise library")}</div>
+            <div className="tile-sub">{t("Form cues & calories")}</div>
           </div>
         </button>
       </div>
 
-      <div className="section-header">This week</div>
+      <div className="section-header">{t("This week")}</div>
       <div className="card">
         <div className="stat-grid">
           <div className="stat">
-            <span className="stat-label">Workouts</span>
+            <span className="stat-label">{t("Workouts")}</span>
             <span className="stat-value">{week.length}</span>
           </div>
           <div className="stat">
-            <span className="stat-label">Time</span>
+            <span className="stat-label">{t("Time")}</span>
             <span className="stat-value">
               {round(week.reduce((a, s) => a + sessionMinutes(s), 0) / 60, 1)}
               <small>h</small>
             </span>
           </div>
           <div className="stat">
-            <span className="stat-label">Burned</span>
+            <span className="stat-label">{t("Burned")}</span>
             <span className="stat-value">
               {round(week.reduce((a, s) => a + s.kcal, 0))}
               <small>kcal</small>
@@ -477,10 +478,10 @@ export function Train() {
         </>
       )}
 
-      <div className="section-header">History</div>
+      <div className="section-header">{t("History")}</div>
       <div className="group">
         {history.length === 0 ? (
-          <Empty icon={<History size={28} />}>Your finished workouts will appear here.</Empty>
+          <Empty icon={<History size={28} />}>{t("Your finished workouts will appear here.")}</Empty>
         ) : (
           history.slice(0, 30).map((s) => (
             <div className="row with-icon" key={s.id}>
@@ -490,7 +491,7 @@ export function Train() {
               <div className="row-main">
                 <div className="row-title">{s.title}</div>
                 <div className="row-sub">
-                  {new Date(s.startedAt).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} ·{" "}
+                  {new Date(s.startedAt).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" })} ·{" "}
                   {formatDuration(sessionMinutes(s))} · {plural(s.exercises.length, "exercise")}
                 </div>
               </div>
@@ -500,10 +501,10 @@ export function Train() {
               </button>
               <button
                 className="icon-btn"
-                aria-label={`Delete ${s.title}`}
+                aria-label={t("Delete {title}", { title: s.title })}
                 onClick={() => {
                   actions.discardSession(s.id);
-                  showToast(`Deleted ${s.title}`, { label: "Undo", run: () => actions.addSession(s) });
+                  showToast(t("Deleted {title}", { title: s.title }), { label: t("Undo"), run: () => actions.addSession(s) });
                 }}
               >
                 <Trash2 size={15} />
@@ -517,7 +518,7 @@ export function Train() {
         open={library !== null}
         onClose={() => setLibrary(null)}
         onPick={library === "browse" ? undefined : onPick}
-        pickLabel={library === "log" ? "Log activity" : "Clock in with this"}
+        pickLabel={library === "log" ? t("Log activity") : t("Clock in with this")}
       />
     </div>
   );
@@ -525,6 +526,7 @@ export function Train() {
 
 /** Last time's sets and what to do today (progressive overload). */
 function LiftHistory({ exerciseId, targetReps, sessionId }: { exerciseId: string; targetReps?: string; sessionId: string }) {
+  useLanguage();
   const sessions = useStore((s) => s.sessions);
   const last = lastPerformance(sessions, exerciseId, sessionId);
   if (!last) return null;
@@ -547,17 +549,18 @@ function SetRow({
   set: { reps: number; weightKg: number; done: boolean };
   onChange: (s: { reps: number; weightKg: number; done: boolean }) => void;
 }) {
+  useLanguage();
   const parse = (v: string) => Math.max(0, parseFloat(v.replace(",", ".")) || 0);
   return (
     <>
       <span className="muted" style={{ fontWeight: 600 }}>
         {index + 1}
       </span>
-      <input className="num-input" style={{ width: "100%" }} inputMode="decimal" value={set.weightKg || ""} placeholder="0" aria-label={`Set ${index + 1} weight`} onChange={(e) => onChange({ ...set, weightKg: parse(e.target.value) })} />
-      <input className="num-input" style={{ width: "100%" }} inputMode="numeric" value={set.reps || ""} placeholder="0" aria-label={`Set ${index + 1} reps`} onChange={(e) => onChange({ ...set, reps: Math.round(parse(e.target.value)) })} />
+      <input className="num-input" style={{ width: "100%" }} inputMode="decimal" value={set.weightKg || ""} placeholder="0" aria-label={t("Set {n} weight", { n: index + 1 })} onChange={(e) => onChange({ ...set, weightKg: parse(e.target.value) })} />
+      <input className="num-input" style={{ width: "100%" }} inputMode="numeric" value={set.reps || ""} placeholder="0" aria-label={t("Set {n} reps", { n: index + 1 })} onChange={(e) => onChange({ ...set, reps: Math.round(parse(e.target.value)) })} />
       <button
         className={`check ${set.done ? "on" : ""}`}
-        aria-label={set.done ? "Mark set not done" : "Mark set done"}
+        aria-label={set.done ? t("Mark set not done") : t("Mark set done")}
         aria-pressed={set.done}
         onClick={() => {
           if (!set.done) haptic("light");

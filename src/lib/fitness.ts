@@ -1,4 +1,6 @@
 import { EXERCISE_BY_NAME } from "../data/exercises";
+import { t } from "../i18n";
+import { getState } from "./store";
 import type { Experience, Goal, Profile, SessionExercise, WorkoutSession } from "./types";
 
 /** Minutes of gym time one strength set represents, including the rest after it. */
@@ -243,23 +245,24 @@ export function buildPlan(p: Pick<Profile, "goal" | "experience" | "trainingDays
   const count = p.experience === "beginner" ? 5 : 6;
 
   const planned = keys.map((key, idx): PlannedDay => {
-    const t = DAYS[key];
-    const exercises = t.slots.slice(0, count).map((slot) => {
+    const tpl = DAYS[key];
+    const exercises = tpl.slots.slice(0, count).map((slot) => {
       const ex = EXERCISE_BY_NAME.get(slot.name);
       return { name: slot.name, ...scheme(p.goal, p.experience, slot.compound), tip: ex?.tip, muscles: ex?.muscles };
     });
     const cardio =
       p.goal === "lose"
-        ? "Finish with 15–20 min incline walk or bike (zone 2)"
+        ? t("Finish with 15–20 min incline walk or bike (zone 2)")
         : p.goal === "maintain" && idx % 2 === 1
-          ? "Optional: 10–15 min easy cardio"
+          ? t("Optional: 10–15 min easy cardio")
           : undefined;
     const lifting = exercises.reduce((a, e) => a + e.sets * (0.75 + e.restSec / 60), 0);
     return {
       key: `${key}-${idx}`,
       weekday: WEEK_LAYOUT[days][idx],
-      title: t.title,
-      focus: t.focus,
+      // Day titles and focus are translated here; nothing compares them to English text.
+      title: t(tpl.title),
+      focus: t(tpl.focus),
       exercises,
       cardio,
       estMinutes: Math.round((lifting + 8 + (cardio ? 15 : 0)) / 5) * 5,
@@ -267,15 +270,15 @@ export function buildPlan(p: Pick<Profile, "goal" | "experience" | "trainingDays
   });
 
   const principles = [
-    "Warm up 5–10 min, then do 1–2 lighter ramp-up sets before your first heavy exercise.",
-    "Progressive overload: when you hit the top of the rep range on every set, add 2.5 kg (upper) or 5 kg (lower) next time.",
-    'RIR = reps in reserve. "1–2" means stop each set with 1–2 good reps still in the tank.',
+    t("Warm up 5–10 min, then do 1–2 lighter ramp-up sets before your first heavy exercise."),
+    t("Progressive overload: when you hit the top of the rep range on every set, add 2.5 kg (upper) or 5 kg (lower) next time."),
+    t('RIR = reps in reserve. "1–2" means stop each set with 1–2 good reps still in the tank.'),
     p.goal === "lose"
-      ? "Keep lifting heavy while cutting — it's what tells your body to keep its muscle. Aim for 8–10k steps a day."
+      ? t("Keep lifting heavy while cutting — it's what tells your body to keep its muscle. Aim for 8–10k steps a day.")
       : p.goal === "gain"
-        ? "Eat in a small surplus and sleep 7–9 hours. Expect about 0.25–0.5% bodyweight gain per week."
-        : "Train consistently and keep protein high to slowly recompose your body.",
-    "Every 6–8 weeks take a lighter deload week (half the sets) to recover.",
+        ? t("Eat in a small surplus and sleep 7–9 hours. Expect about 0.25–0.5% bodyweight gain per week.")
+        : t("Train consistently and keep protein high to slowly recompose your body."),
+    t("Every 6–8 weeks take a lighter deload week (half the sets) to recover."),
   ];
   return { split: resolved, days: planned, principles };
 }
@@ -296,5 +299,6 @@ export function sessionFromPlan(day: PlannedDay): SessionExercise[] {
   });
 }
 
-/** "1 exercise", "3 exercises". */
-export const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+/** "1 exercise", "3 exercises". Malay and Chinese don't pluralise, so only the noun is translated. */
+export const plural = (n: number, word: string) =>
+  (getState().language ?? "en") === "en" ? `${n} ${word}${n === 1 ? "" : "s"}` : `${n} ${t(word)}`;

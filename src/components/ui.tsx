@@ -5,6 +5,7 @@ import type { Grade, HealthReport, Suitability } from "../lib/nutrition";
 import type { Nutrients } from "../lib/types";
 import { round } from "../lib/nutrition";
 import { haptic, pushBackHandler } from "../lib/platform";
+import { t, useLanguage } from "../i18n";
 
 // Apple's defaults translated to Motion springs: critically damped for UI, a touch of
 // bounce only after a gesture that carried momentum.
@@ -31,6 +32,7 @@ interface SheetProps {
 }
 
 export function Sheet({ open, onClose, title, left, right, children }: SheetProps) {
+  useLanguage();
   const reduce = useReducedMotion();
   const controls = useDragControls();
   const titleId = useId();
@@ -98,7 +100,7 @@ export function Sheet({ open, onClose, title, left, right, children }: SheetProp
                 <h3 id={titleId}>{title}</h3>
                 <div className="side">
                   {right ?? (
-                    <button className="icon-btn" onClick={onClose} aria-label="Close">
+                    <button className="icon-btn" onClick={onClose} aria-label={t("Close")}>
                       <X size={18} strokeWidth={2.5} />
                     </button>
                   )}
@@ -196,11 +198,12 @@ export function Bar({ value, max, color }: { value: number; max: number; color: 
   );
 }
 
-export function MacroBars({ n, t }: { n: Nutrients; t?: { protein: number; carbs: number; fat: number } }) {
+export function MacroBars({ n, t: goal }: { n: Nutrients; t?: { protein: number; carbs: number; fat: number } }) {
+  useLanguage();
   const items = [
-    { k: "Protein", v: n.protein, max: t?.protein, color: "var(--protein)" },
-    { k: "Carbs", v: n.carbs, max: t?.carbs, color: "var(--carbs)" },
-    { k: "Fat", v: n.fat, max: t?.fat, color: "var(--fat)" },
+    { k: "Protein", v: n.protein, max: goal?.protein, color: "var(--protein)" },
+    { k: "Carbs", v: n.carbs, max: goal?.carbs, color: "var(--carbs)" },
+    { k: "Fat", v: n.fat, max: goal?.fat, color: "var(--fat)" },
   ];
   return (
     <div className="macro-row">
@@ -208,7 +211,7 @@ export function MacroBars({ n, t }: { n: Nutrients; t?: { protein: number; carbs
         <div key={m.k} className="stat">
           <span className="stat-label">
             <span className="dot" style={{ background: m.color }} />
-            {m.k}
+            {t(m.k)}
           </span>
           <span className="stat-value" style={{ fontSize: "1.0625rem" }}>
             {round(m.v)}
@@ -243,13 +246,14 @@ export function Stepper({
   /** What is being counted, so screen readers hear "More sambal" rather than "Increase". */
   label?: string;
 }) {
+  useLanguage();
   return (
     <div className="stepper">
-      <button aria-label={label ? `Less ${label}` : "Decrease"} onClick={() => onChange(Math.max(min, round(value - decrementStep, 2)))}>
+      <button aria-label={label ? t("Less {x}", { x: label }) : t("Decrease")} onClick={() => onChange(Math.max(min, round(value - decrementStep, 2)))}>
         <Minus size={16} />
       </button>
       <span>{format ? format(value) : value}</span>
-      <button aria-label={label ? `More ${label}` : "Increase"} onClick={() => onChange(Math.min(max, round(value + step, 2)))}>
+      <button aria-label={label ? t("More {x}", { x: label }) : t("Increase")} onClick={() => onChange(Math.min(max, round(value + step, 2)))}>
         <Plus size={16} />
       </button>
     </div>
@@ -269,6 +273,7 @@ export const GRADE_COLORS: Record<Grade, string> = {
 export const GRADE_TEXT: Record<Grade, string> = { A: "#fff", B: "#1d1d1f", C: "#1d1d1f", D: "#1d1d1f", E: "#fff" };
 
 export function HealthCard({ report }: { report: HealthReport }) {
+  useLanguage();
   return (
     <div className="card">
       <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
@@ -276,9 +281,9 @@ export function HealthCard({ report }: { report: HealthReport }) {
           {report.grade}
         </div>
         <div>
-          <div style={{ fontWeight: 600 }}>Health score {report.score}/100</div>
+          <div style={{ fontWeight: 600 }}>{t("Health score {score}/100", { score: report.score })}</div>
           <div className="row-sub" style={{ whiteSpace: "normal" }}>
-            Based on protein, fibre, sugar, saturated fat and sodium per calorie
+            {t("Based on protein, fibre, sugar, saturated fat and sodium per calorie")}
           </div>
         </div>
       </div>
@@ -308,6 +313,7 @@ const VERDICT_STYLE = {
 } as const;
 
 export function SuitabilityCard({ s }: { s: Suitability }) {
+  useLanguage();
   const { color, Icon } = VERDICT_STYLE[s.verdict];
   return (
     <div className="verdict" style={{ background: `color-mix(in srgb, ${color} 12%, var(--bg-elev))` }}>
@@ -326,6 +332,7 @@ export function SuitabilityCard({ s }: { s: Suitability }) {
 }
 
 export function NutritionTable({ n }: { n: Nutrients }) {
+  useLanguage();
   const rows: [string, string][] = [
     ["Calories", `${round(n.kcal)} kcal`],
     ["Protein", `${round(n.protein, 1)} g`],
@@ -341,7 +348,7 @@ export function NutritionTable({ n }: { n: Nutrients }) {
       {rows.map(([k, v]) => (
         <div className="row" key={k} style={{ minHeight: 40, paddingBlock: 8 }}>
           <div className="row-main" style={{ whiteSpace: "pre", color: k.startsWith(" ") ? "var(--label-2)" : undefined }}>
-            {k}
+            {k.startsWith(" ") ? `   ${t(k.trim())}` : t(k)}
           </div>
           <div className="row-value">{v}</div>
         </div>
@@ -372,7 +379,8 @@ export function showToast(message: string, action?: ToastData["action"]) {
 }
 
 export function ToastHost() {
-  const t = useSyncExternalStore(
+  useLanguage();
+  const current = useSyncExternalStore(
     (cb) => {
       toastListeners.add(cb);
       return () => toastListeners.delete(cb);
@@ -382,9 +390,9 @@ export function ToastHost() {
   const reduce = useReducedMotion();
   return (
     <AnimatePresence>
-      {t && (
+      {current && (
         <motion.div
-          key={t.id}
+          key={current.id}
           className="toast"
           role="status"
           initial={reduce ? { opacity: 0, x: "-50%" } : { opacity: 0, y: 20, scale: 0.96, x: "-50%", filter: "blur(6px)" }}
@@ -392,17 +400,17 @@ export function ToastHost() {
           exit={reduce ? { opacity: 0, x: "-50%" } : { opacity: 0, y: 20, scale: 0.96, x: "-50%", filter: "blur(6px)" }}
           transition={SPRING_SNAPPY}
         >
-          <span>{t.message}</span>
-          {t.action && (
+          <span>{current.message}</span>
+          {current.action && (
             <button
               className="link bold"
               onClick={() => {
-                t.action!.run();
+                current.action!.run();
                 toast = null;
                 toastListeners.forEach((l) => l());
               }}
             >
-              {t.action.label}
+              {current.action.label}
             </button>
           )}
         </motion.div>
@@ -453,6 +461,7 @@ export function Switch({ checked, onChange, label }: { checked: boolean; onChang
 
 /** Red warning when a food clashes with the person's allergies, halal or vegetarian diet. */
 export function AvoidCard({ conflicts }: { conflicts: { kind: string; text: string }[] }) {
+  useLanguage();
   if (!conflicts.length) return null;
   return (
     <div className="avoid-card" role="alert">
@@ -463,7 +472,7 @@ export function AvoidCard({ conflicts }: { conflicts: { kind: string; text: stri
             {c.text}
           </div>
         ))}
-        <div className="avoid-note">Based on how it's usually made. Check with the seller.</div>
+        <div className="avoid-note">{t("Based on how it's usually made. Check with the seller.")}</div>
       </div>
     </div>
   );

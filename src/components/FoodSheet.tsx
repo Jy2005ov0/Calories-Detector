@@ -3,6 +3,7 @@ import { Plus, RotateCcw } from "lucide-react";
 import type { RecipePart } from "../data/dishes";
 import { recipeTotals } from "../data/foods";
 import { FoodPicker } from "./MealBuilder";
+import { t, useLanguage } from "../i18n";
 import { foodConflicts } from "../lib/allergens";
 import { defaultMeal, mealLabel, mealOptions } from "../lib/api";
 import {
@@ -41,7 +42,7 @@ const IRREGULAR: Record<string, string> = {
   half: "halves",
 };
 const amount = (p: Part, q = p.qty) => {
-  if (q === 0) return "None";
+  if (q === 0) return t("None");
   const n = q === 0.5 ? "½" : q % 1 ? q.toFixed(1) : String(q);
   if (p.extra) return `${n} × ${p.unit}`;
   const unit =
@@ -62,7 +63,7 @@ function describeChanges(recipe: RecipePart[], parts: Part[]) {
       if (p.qty > 0) out.push(`+ ${p.label}`);
     } else if (p.qty !== base.qty)
       out.push(
-        p.qty === 0 ? `no ${p.label}` : `${p.label}: ${amount(p)}`,
+        p.qty === 0 ? t("no {item}", { item: p.label }) : `${p.label}: ${amount(p)}`,
       );
   }
   return out.join(" · ");
@@ -88,8 +89,9 @@ export function FoodSheet({
   food,
   onClose,
   onPick,
-  pickLabel = "Add to meal",
+  pickLabel,
 }: Props) {
+  useLanguage();
   const profile = useStore((s) => s.profile);
   const eaten = useTodayTotals();
   const [servingIdx, setServingIdx] = useState(0);
@@ -147,7 +149,7 @@ export function FoodSheet({
           grams,
         )
       : scale(food.per100, grams);
-  const t = targets(profile);
+  const tg = targets(profile);
   const isGramMode = serving.grams === 1;
 
   const add = () => {
@@ -161,7 +163,7 @@ export function FoodSheet({
       {
         date: todayKey(),
         meal,
-        name: changes ? `${food.name} (customised)` : food.name,
+        name: changes ? t("{name} (customised)", { name: food.name }) : food.name,
         grams,
         nutrients: n,
         source: food.source,
@@ -171,7 +173,7 @@ export function FoodSheet({
     actions.touchRecent(food.id);
     haptic();
     showToast(
-      `Added ${food.name.length > 22 ? food.name.slice(0, 22) + "…" : food.name} · ${round(n.kcal)} kcal`,
+      t("Added {name} · {kcal} kcal", { name: food.name.length > 22 ? food.name.slice(0, 22) + "…" : food.name, kcal: round(n.kcal) }),
     );
     onClose();
   };
@@ -181,7 +183,7 @@ export function FoodSheet({
       <Sheet
         open={!!food}
         onClose={onClose}
-        title={food?.brand ?? food?.category}
+        title={food?.brand ?? (food?.category ? t(food.category) : undefined)}
       >
         {food && n && (
           <>
@@ -207,7 +209,7 @@ export function FoodSheet({
                         className="dot"
                         style={{ background: c as string }}
                       />
-                      {k}
+                      {t(k as string)}
                     </span>
                     <span
                       className="stat-value"
@@ -224,14 +226,14 @@ export function FoodSheet({
             {isDish ? (
               <>
                 <div className="section-header">
-                  <span>What's in it</span>
+                  <span>{t("What's in it")}</span>
                   {changes && (
                     <button
                       onClick={() =>
                         setParts(food.recipe!.map((p) => ({ ...p })))
                       }
                     >
-                      <RotateCcw size={13} style={{ marginRight: 4 }} /> Reset
+                      <RotateCcw size={13} style={{ marginRight: 4 }} /> {t("Reset")}
                     </button>
                   )}
                 </div>
@@ -250,7 +252,7 @@ export function FoodSheet({
                           <div className="row-title">{p.label}</div>
                           <div className="row-sub">
                             {p.qty === 0
-                              ? "Not included"
+                              ? t("Not included")
                               : `${Math.round(p.unitGrams * p.qty)} g · ${round(kcal)} kcal`}
                           </div>
                         </div>
@@ -277,22 +279,22 @@ export function FoodSheet({
                     onClick={() => setPicking(true)}
                     style={{ color: "var(--blue)" }}
                   >
-                    <Plus size={18} /> Add an ingredient
+                    <Plus size={18} /> {t("Add an ingredient")}
                   </button>
                 </div>
                 <p className="footnote">
-                  Set how much of each part is on your plate.{" "}
-                  {changes ? `Changed: ${changes}.` : ""}
+                  {t("Set how much of each part is on your plate.")}{" "}
+                  {changes ? t("Changed: {changes}.", { changes }) : ""}
                 </p>
                 <div className="group" style={{ marginTop: 12 }}>
                   <div className="row">
-                    <div className="row-main">Servings</div>
+                    <div className="row-main">{t("Servings")}</div>
                     <Stepper
                       value={qty}
                       min={0.5}
                       step={qty < 1 ? 0.5 : 1}
                       decrementStep={qty <= 1 ? 0.5 : 1}
-                      label="servings"
+                      label={t("servings")}
                       onChange={(v) => setQty(v > 1 ? Math.round(v) : v)}
                       format={(v) =>
                         v === 0.5 ? "½" : v % 1 ? v.toFixed(1) : String(v)
@@ -303,7 +305,7 @@ export function FoodSheet({
               </>
             ) : (
               <>
-                <div className="section-header">Portion</div>
+                <div className="section-header">{t("Portion")}</div>
                 <div className="chips" style={{ paddingInline: 16 }}>
                   {servings.map((s, i) => (
                     <button
@@ -319,7 +321,7 @@ export function FoodSheet({
                       }}
                     >
                       {s.grams === 1
-                        ? "Grams"
+                        ? t("Grams")
                         : s.label === "100 g"
                           ? "100 g"
                           : `${s.label} (${s.grams} g)`}
@@ -329,7 +331,7 @@ export function FoodSheet({
                 <div className="group" style={{ marginTop: 10 }}>
                   <div className="row">
                     <div className="row-main">
-                      {isGramMode ? "Weight (g)" : "Quantity"}
+                      {isGramMode ? t("Weight (g)") : t("Quantity")}
                     </div>
                     {isGramMode ? (
                       <input
@@ -346,7 +348,7 @@ export function FoodSheet({
                             ),
                           )
                         }
-                        aria-label="Weight in grams"
+                        aria-label={t("Weight in grams")}
                       />
                     ) : (
                       <Stepper
@@ -368,29 +370,29 @@ export function FoodSheet({
 
             {!onPick && (
               <>
-                <div className="section-header">Meal</div>
+                <div className="section-header">{t("Meal")}</div>
                 <Segmented value={meal} options={mealOptions()} onChange={setMeal} />
               </>
             )}
 
-            <div className="section-header">Is it good for me?</div>
+            <div className="section-header">{t("Is it good for me?")}</div>
             <AvoidCard conflicts={foodConflicts(food, profile)} />
             <SuitabilityCard
-              s={suitability(n, t, eaten, profile.goal, isWholeProduce(food))}
+              s={suitability(n, tg, eaten, profile.goal, isWholeProduce(food))}
             />
             <div className="spacer" />
             <HealthCard
               report={healthReport(n, { intrinsicSugar: isWholeProduce(food) })}
             />
 
-            <div className="section-header">Nutrition for this portion</div>
+            <div className="section-header">{t("Nutrition for this portion")}</div>
             <NutritionTable n={n} />
 
             <div className="sheet-cta">
               <button className="btn" onClick={add} disabled={grams <= 0}>
                 {onPick
-                  ? pickLabel
-                  : `Add to ${mealLabel(meal)}`}
+                  ? (pickLabel ?? t("Add to meal"))
+                  : t("Add to {meal}", { meal: mealLabel(meal) })}
               </button>
             </div>
           </>

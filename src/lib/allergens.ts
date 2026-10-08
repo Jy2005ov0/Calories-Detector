@@ -1,4 +1,5 @@
 import { FOOD_BY_NAME } from "../data/foods";
+import { t } from "../i18n";
 import type { Allergen, Food, Profile } from "./types";
 
 /**
@@ -103,7 +104,7 @@ export const ALLERGENS: { value: Allergen; label: string }[] = [
   { value: "sesame", label: "Sesame" },
 ];
 
-const ALLERGEN_LABEL = Object.fromEntries(ALLERGENS.map((a) => [a.value, a.label.toLowerCase()])) as Record<Allergen, string>;
+const ALLERGEN_LABEL = Object.fromEntries(ALLERGENS.map((a) => [a.value, a.label])) as Record<Allergen, string>;
 
 export interface Conflict {
   kind: "allergy" | "halal" | "diet";
@@ -113,16 +114,16 @@ export interface Conflict {
 /** Why this food doesn't fit the person's allergies, halal or vegetarian/vegan diet. Empty = fine. */
 export function conflicts(tags: Set<Tag>, p: Pick<Profile, "allergies" | "diet">): Conflict[] {
   const out: Conflict[] = [];
-  for (const a of p.allergies ?? []) if (tags.has(a)) out.push({ kind: "allergy", text: `Usually contains ${ALLERGEN_LABEL[a]}` });
+  for (const a of p.allergies ?? []) if (tags.has(a)) out.push({ kind: "allergy", text: t("Usually contains {allergen}", { allergen: t(ALLERGEN_LABEL[a]).toLowerCase() }) });
   if (p.diet === "halal") {
-    if (tags.has("pork")) out.push({ kind: "halal", text: "Not halal · contains pork" });
-    if (tags.has("alcohol")) out.push({ kind: "halal", text: "Not halal · contains alcohol" });
+    if (tags.has("pork")) out.push({ kind: "halal", text: t("Not halal · contains pork") });
+    if (tags.has("alcohol")) out.push({ kind: "halal", text: t("Not halal · contains alcohol") });
   }
   if ((p.diet === "vegetarian" || p.diet === "vegan") && (tags.has("meat") || tags.has("fish") || tags.has("shellfish"))) {
-    out.push({ kind: "diet", text: `Not ${p.diet} · contains meat or seafood` });
+    out.push({ kind: "diet", text: t("Not {diet} · contains meat or seafood", { diet: t(p.diet === "vegan" ? "vegan" : "vegetarian") }) });
   }
   if (p.diet === "vegan" && (tags.has("dairy") || tags.has("egg") || tags.has("honey"))) {
-    out.push({ kind: "diet", text: "Not vegan · contains milk, egg or honey" });
+    out.push({ kind: "diet", text: t("Not vegan · contains milk, egg or honey") });
   }
   return out;
 }

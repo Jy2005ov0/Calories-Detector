@@ -80,7 +80,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
       searchOnline(term, ctrl.signal)
         .then((items) => setOnline({ loading: false, items }))
         .catch((e: Error) => {
-          if (e.name !== "AbortError") setOnline({ loading: false, items: [], error: "Online search unavailable right now." });
+          if (e.name !== "AbortError") setOnline({ loading: false, items: [], error: t("Online search unavailable right now.") });
         });
     }, 450);
     return () => {
@@ -104,21 +104,21 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
   return (
     <div className="screen">
       <h1 className="large-title" style={{ marginTop: 14 }}>
-        Food
+        {t("Food")}
       </h1>
-      <p className="subtitle">{FOODS.length} foods from {FOOD_CATEGORIES.length} cuisines and groups, plus millions of packaged products online.</p>
+      <p className="subtitle">{t("{foods} foods from {groups} cuisines and groups, plus millions of packaged products online.", { foods: FOODS.length, groups: FOOD_CATEGORIES.length })}</p>
 
       <div className="search" data-tour="food-search">
         <Search size={17} />
         <input
-          placeholder="Search nasi lemak, chicken breast, Milo…"
+          placeholder={t("Search nasi lemak, chicken breast, Milo…")}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           enterKeyHint="search"
-          aria-label="Search foods"
+          aria-label={t("Search foods")}
         />
         {q && (
-          <button className="search-clear" onClick={() => setQ("")} aria-label="Clear search">
+          <button className="search-clear" onClick={() => setQ("")} aria-label={t("Clear search")}>
             <X size={17} />
           </button>
         )}
@@ -158,10 +158,10 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
               value={view}
               onChange={setView}
               options={[
-                { value: "recent", label: "Recent" },
-                { value: "meals", label: "My Meals" },
-                { value: "mine", label: "My Foods" },
-                { value: "browse", label: "Browse" },
+                { value: "recent", label: t("Recent") },
+                { value: "meals", label: t("My Meals") },
+                { value: "mine", label: t("My Foods") },
+                { value: "browse", label: t("Browse") },
               ]}
             />
           </div>
@@ -171,7 +171,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
               {recent.length ? (
                 recent.map((f) => <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />)
               ) : (
-                <Empty icon={<Search size={28} />}>Foods you log will show up here for one-tap adding.</Empty>
+                <Empty icon={<Search size={28} />}>{t("Foods you log will show up here for one-tap adding.")}</Empty>
               )}
             </div>
           )}
@@ -191,14 +191,14 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
                           </div>
                         </button>
                         <button className="btn small tinted" onClick={() => logMeal(m)}>
-                          <Plus size={15} /> Log
+                          <Plus size={15} /> {t("Log")}
                         </button>
                         <button
                           className="icon-btn"
-                          aria-label={`Delete ${m.name}`}
+                          aria-label={t("Delete {name}", { name: m.name })}
                           onClick={() => {
                             actions.deleteCustomMeal(m.id);
-                            showToast(`Deleted ${m.name}`, { label: "Undo", run: () => actions.saveCustomMeal(m) });
+                            showToast(t("Deleted {name}", { name: m.name }), { label: t("Undo"), run: () => actions.saveCustomMeal(m) });
                           }}
                         >
                           <Trash2 size={15} />
@@ -207,12 +207,12 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
                     );
                   })
                 ) : (
-                  <Empty icon={<UtensilsCrossed size={28} />}>Build a meal from any foods and quantities, then save it to log it again in one tap.</Empty>
+                  <Empty icon={<UtensilsCrossed size={28} />}>{t("Build a meal from any foods and quantities, then save it to log it again in one tap.")}</Empty>
                 )}
               </div>
               <div className="spacer" />
               <button className="btn tinted" onClick={() => setBuilder({ open: true, meal: null })}>
-                <Plus size={18} /> Build a meal
+                <Plus size={18} /> {t("Build a meal")}
               </button>
             </>
           )}
@@ -223,12 +223,12 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
                 {customFoods.length ? (
                   customFoods.map((f) => <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />)
                 ) : (
-                  <Empty icon={<PencilLine size={28} />}>Add your own foods or recipes with their nutrition label.</Empty>
+                  <Empty icon={<PencilLine size={28} />}>{t("Add your own foods or recipes with their nutrition label.")}</Empty>
                 )}
               </div>
               <div className="spacer" />
               <button className="btn tinted" onClick={() => setNewFood(true)}>
-                <Plus size={18} /> New food
+                <Plus size={18} /> {t("New food")}
               </button>
             </>
           )}
@@ -238,7 +238,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
               <div className="chips" style={{ marginTop: 12 }}>
                 {FOOD_CATEGORIES.map((c) => (
                   <button key={c} className={`chip ${c === category ? "active" : ""}`} onClick={() => setCategory(c)}>
-                    {c}
+                    {t(c)}
                   </button>
                 ))}
               </div>
@@ -269,7 +269,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
               local.map((f) => <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />)
             ) : (
               <div className="row muted" style={{ fontSize: 15 }}>
-                No built-in matches
+                {t("No built-in matches")}
               </div>
             )}
           </div>
@@ -278,7 +278,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
             <>
               <div className="section-header">
                 <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Globe size={13} /> Packaged products · Open Food Facts
+                  <Globe size={13} /> {t("Packaged products · Open Food Facts")}
                 </span>
                 {online.loading && <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
               </div>
@@ -288,20 +288,20 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
                 ))}
                 {!online.loading && online.items.length === 0 && (
                   <div className="row muted" style={{ fontSize: 15 }}>
-                    {online.error ?? "No packaged products found"}
+                    {online.error ?? t("No packaged products found")}
                   </div>
                 )}
               </div>
             </>
           )}
           <p className="footnote">
-            Can't find it?{" "}
+            {t("Can't find it?")}{" "}
             <button className="link" onClick={() => setNewFood(true)}>
-              Create a custom food
+              {t("Create a custom food")}
             </button>{" "}
-            or{" "}
+            {t("or")}{" "}
             <button className="link" onClick={openPhoto}>
-              scan a photo
+              {t("scan a photo")}
             </button>
             .
           </p>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { locale, t } from "../i18n";
+import { locale, t, useLanguage } from "../i18n";
 import type { WeightEntry } from "../lib/types";
 
 const shortDate = (key: string) => {
@@ -9,6 +9,7 @@ const shortDate = (key: string) => {
 
 /** Weight over time: one thin line, recessive grid, last point marked; tap a point to read it. */
 export function WeightChart({ weights, goalKg }: { weights: WeightEntry[]; goalKg?: number }) {
+  useLanguage();
   const [sel, setSel] = useState<number | null>(null);
   const pts = weights.slice(-60);
   if (pts.length < 2) return null;
@@ -76,6 +77,7 @@ export function WeightChart({ weights, goalKg }: { weights: WeightEntry[]; goalK
 
 /** Seven days of one measure as bars, with the goal as a dashed line. Tap a bar to read it. */
 export function DayBars({ days, goal, color, unit, label }: { days: { date: string; value: number }[]; goal: number; color: string; unit: string; label: string }) {
+  useLanguage();
   const [sel, setSel] = useState<number | null>(null);
   const W = 320;
   const H = 120;
