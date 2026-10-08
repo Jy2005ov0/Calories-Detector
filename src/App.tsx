@@ -24,7 +24,7 @@ import { Today } from "./screens/Today";
 import { Train } from "./screens/Train";
 
 export type Tab = "today" | "food" | "train" | "plan" | "profile";
-export type SheetKind = "photo" | "bodyCheck" | "barcode" | "coach" | "progress" | null;
+export type SheetKind = "photo" | "photoLibrary" | "bodyCheck" | "barcode" | "coach" | "progress" | null;
 
 const TABS: { id: Tab; label: string; Icon: typeof Flame }[] = [
   { id: "today", label: "Today", Icon: Flame },
@@ -149,7 +149,7 @@ export default function App() {
       </nav>
 
       <HelpButton onClick={() => setTour(true)} />
-      <PhotoSheet open={sheet === "photo"} onClose={closeSheet} />
+      <PhotoSheet open={sheet === "photo" || sheet === "photoLibrary"} start={sheet === "photoLibrary" ? "library" : undefined} onClose={closeSheet} />
       <BodyCheckSheet open={sheet === "bodyCheck"} onClose={closeSheet} />
       <BarcodeSheet
         open={sheet === "barcode"}

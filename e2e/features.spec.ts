@@ -66,8 +66,8 @@ test("Siti: halal, peanut allergy and Ramadan — warnings, filters, sahur/iftar
   const satay = page.locator(".row", { hasText: "Satay (chicken)" });
   await expect(satay.locator(".avoid-flag")).toHaveAttribute("aria-label", /Usually contains peanuts/);
   await satay.click();
-  await expect(sheet(page, "Satay (chicken)").getByRole("alert")).toContainText("Usually contains peanuts");
-  await sheet(page, "Satay (chicken)").getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Usually contains peanuts");
+  await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
 
   await page.getByLabel("Search foods").fill("char siu");
   await page.locator(".row", { hasText: "Char siu (BBQ pork)" }).click();
@@ -112,7 +112,7 @@ test("Wei: scans a barcode, logs it, tracks water, steps and weight, and builds 
   await expect(scan.getByRole("button", { name: "Add it as a new food" })).toBeVisible();
   await scan.getByLabel("Barcode number").fill("9556 0012 34567");
   await scan.getByRole("button", { name: "Look up" }).click();
-  const milo = sheet(page, "Milo 3in1");
+  const milo = page.getByRole("dialog").filter({ has: page.getByRole("heading", { name: "Milo 3in1" }) });
   await expect(milo).toBeVisible();
   await expect(milo).toContainText("Nestlé");
   await milo.getByRole("button", { name: /^Add to Breakfast/ }).click();
@@ -126,7 +126,7 @@ test("Wei: scans a barcode, logs it, tracks water, steps and weight, and builds 
   await expect(page.getByText(/^3 of 11 glasses$/)).toBeVisible();
 
   // Progress: steps and a few weigh-ins over two weeks draw the chart and the trend.
-  await page.getByRole("button", { name: "Progress", exact: true }).click();
+  await page.getByRole("button", { name: /steps Progress$/ }).click();
   const progress = sheet(page, "Progress");
   await progress.getByLabel("Steps today").fill("6400");
   await progress.locator(".field", { hasText: "Steps today" }).getByRole("button", { name: "Save" }).click();
@@ -137,12 +137,12 @@ test("Wei: scans a barcode, logs it, tracks water, steps and weight, and builds 
 
   for (const kg of ["81.4", "80.9"]) {
     await advance(page, 7 * 86400000);
-    await page.getByRole("button", { name: "Progress", exact: true }).click();
+    await page.getByRole("button", { name: /steps Progress$/ }).click();
     await progress.getByLabel("Weight in kg").fill(kg);
     await progress.locator(".field", { hasText: "kg" }).getByRole("button", { name: "Save" }).click();
     await progress.getByRole("button", { name: "Close", exact: true }).click();
   }
-  await page.getByRole("button", { name: "Progress", exact: true }).click();
+  await page.getByRole("button", { name: /steps Progress$/ }).click();
   await expect(progress.getByRole("img", { name: /Weight from 82.0 kg/ })).toHaveAttribute("aria-label", /to 80.9 kg/);
   await expect(progress).toContainText("Losing 0.5 kg a week");
   await expect(progress).toContainText("That's on track for your goal.");
@@ -217,7 +217,7 @@ test("Arif: asks the coach, trains with a rest timer, beats a record, shares and
   await expect(bench2.getByLabel("Set 1 weight")).toHaveValue("42.5");
   await bench2.getByLabel("Set 1 reps").fill("10");
   await bench2.getByRole("button", { name: "Mark set done" }).first().click();
-  await expect(page.locator(".toast")).toContainText("New personal record · Barbell bench press 42.5 kg × 10");
+  await expect(page.locator(".toast", { hasText: "New personal record" })).toContainText("New personal record · Barbell bench press 42.5 kg × 10");
   await page.getByRole("timer", { name: "Rest timer" }).getByRole("button", { name: "Skip" }).click();
 
   // Export: CSV with every table.
@@ -235,6 +235,46 @@ test("Arif: asks the coach, trains with a rest timer, beats a record, shares and
   const pdf = await pdfDownload;
   expect(pdf.suggestedFilename()).toBe("calories-2026-10-19.pdf");
   expect(fs.readFileSync((await pdf.path())!).subarray(0, 5).toString()).toBe("%PDF-");
+});
+
+test("Lina: picks a meal photo straight from her photo library on Today and Food", async ({ page }) => {
+  await start(page);
+  await onboard(page, "Lina");
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
+  await page.route("**/api/analyze-photo", (r) =>
+    r.fulfill({
+      json: {
+        isFood: true,
+        mealName: "Chicken rice",
+        notes: "",
+        items: [{ name: "Chicken rice", grams: 350, calories: 600, protein: 30, carbs: 70, fat: 20, fiber: 1, sugar: 1, confidence: "high" }],
+      },
+    }),
+  );
+
+  // Today: the Photos shortcut on the Scan meal tile opens the library picker directly.
+  const chooser = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Choose a meal photo from your library" }).click();
+  const fc = await chooser;
+  // The library picker (not the camera) — no capture attribute.
+  expect(await fc.element().getAttribute("capture")).toBeNull();
+  await fc.setFiles({ name: "lunch.png", mimeType: "image/png", buffer: png });
+  const scan = sheet(page, "Scan a meal");
+  await expect(scan.getByRole("img", { name: "Your meal" })).toBeVisible();
+  await scan.getByRole("button", { name: "Analyse" }).click();
+  await expect(scan).toContainText("Chicken rice");
+  await scan.getByRole("button", { name: /^Log/ }).click();
+  await expect(page.locator(".row", { hasText: "Chicken rice" }).first()).toContainText("350 g");
+
+  // Food tab: the Photo library tile does the same.
+  await tab(page, "Food");
+  const chooser2 = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Photo library" }).click();
+  await (await chooser2).setFiles({ name: "dinner.png", mimeType: "image/png", buffer: png });
+  await expect(sheet(page, "Scan a meal").getByRole("img", { name: "Your meal" })).toBeVisible();
+  // Retake goes back to the camera / library choice.
+  await sheet(page, "Scan a meal").getByRole("button", { name: "Retake" }).click();
+  await expect(sheet(page, "Scan a meal").getByRole("button", { name: /Choose photo/ })).toBeVisible();
 });
 
 test("Mei: reminders, step goal and switching language to Malay and Chinese", async ({ page }) => {

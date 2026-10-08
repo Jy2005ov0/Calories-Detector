@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { motion } from "motion/react";
-import { Barcode, Camera, ChevronRight, Dumbbell, Flame, Footprints, MoonStar, Scale, Search, Sparkles, Trash2, Utensils } from "lucide-react";
+import { Barcode, Camera, Images, ChevronRight, Dumbbell, Flame, Footprints, MoonStar, Scale, Search, Sparkles, Trash2, Utensils } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { mealLabel, mealOptions } from "../lib/api";
 import { formatDuration, plural, sessionKcal, sessionMinutes } from "../lib/fitness";
@@ -154,15 +154,20 @@ export function Today({ go, openSheet }: { go: (t: Tab) => void; openSheet: (k: 
       <FastCard now={now} />
 
       <div className="tiles" style={{ marginTop: 12 }}>
-        <button className="tile" onClick={() => openSheet("photo")} data-tour="scan">
-          <div className="icon-tile" style={{ background: "var(--blue)" }}>
-            <Camera size={18} />
-          </div>
-          <div>
-            <div className="tile-title">{t("Scan meal")}</div>
-            <div className="tile-sub">{t("Calories from a photo")}</div>
-          </div>
-        </button>
+        <div className="tile-wrap" data-tour="scan">
+          <button className="tile" onClick={() => openSheet("photo")}>
+            <div className="icon-tile" style={{ background: "var(--blue)" }}>
+              <Camera size={18} />
+            </div>
+            <div>
+              <div className="tile-title">{t("Scan meal")}</div>
+              <div className="tile-sub">{t("Camera or photo library")}</div>
+            </div>
+          </button>
+          <button className="tile-corner" onClick={() => openSheet("photoLibrary")} aria-label={t("Choose a meal photo from your library")}>
+            <Images size={15} /> {t("Photos")}
+          </button>
+        </div>
         <button className="tile" onClick={() => go("food")}>
           <div className="icon-tile" style={{ background: "var(--orange)" }}>
             <Search size={18} />

@@ -12,6 +12,12 @@ import { actions, todayKey, useStore, useTodayKey, weekdayOf } from "../lib/stor
 import type { Food, MealType } from "../lib/types";
 import type { SheetKind, Tab } from "../App";
 
+/** Two-letter badge for a training day: "Chest Day" → CH, "Hari Dada" → DA, "胸部日" → 胸. */
+function dayMark(title: string) {
+  const core = title.replace(/ Day$/, "").replace(/^Hari /, "");
+  return /[\u4e00-\u9fff]/.test(core) ? core.slice(0, 1) : core.slice(0, 2).toUpperCase();
+}
+
 export function Plan({ go, openSheet }: { go: (t: Tab) => void; openSheet: (k: SheetKind) => void }) {
   useLanguage();
   const [view, setView] = useState<"training" | "nutrition">("training");
@@ -85,7 +91,7 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
             return (
               <div key={w} className={`weekday ${i === today ? "today" : ""}`}>
                 {tr(w)}
-                <span className={`mark ${d ? "train" : ""}`}>{d ? d.title.replace(/ Day$/, "").slice(0, 2).toUpperCase() : "—"}</span>
+                <span className={`mark ${d ? "train" : ""}`}>{d ? dayMark(d.title) : "—"}</span>
               </div>
             );
           })}

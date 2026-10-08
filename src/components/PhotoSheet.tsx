@@ -29,7 +29,8 @@ function itemNutrients(i: Editable): Nutrients {
   };
 }
 
-export function PhotoSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+/** `start="library"` opens the phone's photo picker straight away (e.g. from a "Photo library" button). */
+export function PhotoSheet({ open, onClose, start }: { open: boolean; onClose: () => void; start?: "camera" | "library" }) {
   useLanguage();
   const profile = useStore((s) => s.profile);
   const eaten = useTodayTotals();
@@ -56,6 +57,20 @@ export function PhotoSheet({ open, onClose }: { open: boolean; onClose: () => vo
       setMeal(defaultMeal());
     }
   }, [open]);
+
+  // Opened from a "Photo library" or "Camera" button: go straight to the picker, once per opening.
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      autoStarted.current = false;
+      return;
+    }
+    if (start && !autoStarted.current) {
+      autoStarted.current = true;
+      pick(start);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, start]);
 
   const onFile = async (file?: File) => {
     if (!file) return;

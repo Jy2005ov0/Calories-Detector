@@ -1586,6 +1586,52 @@ button.row:active,
 
 /* ── New features ───────────────────────────────────── */
 
+.tiles.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.tiles.three .tile {
+  min-height: 84px;
+  padding: 12px 8px;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+.tiles.three .tile-title {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+/* A tile with a small shortcut button in its corner (Scan meal → Photos). */
+.tile-wrap {
+  position: relative;
+  display: grid;
+}
+.tile-corner {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--bg-fill);
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 600;
+}
+.tile-corner::after {
+  /* 44pt touch target around the pill */
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+.tile-corner:active {
+  transform: scale(0.95);
+}
+
 .tiles.four {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;

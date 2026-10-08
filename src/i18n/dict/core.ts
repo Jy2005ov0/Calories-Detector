@@ -3,6 +3,10 @@ import type { AreaDict } from "./index";
 // Translations for the core area. Keys are the exact English strings passed to t().
 export const CORE: AreaDict = {
   ms: {
+    "Camera or photo library": "Kamera atau galeri foto",
+    "Choose a meal photo from your library": "Pilih foto hidangan daripada galeri anda",
+    "Photos": "Foto",
+    "Photo library": "Galeri foto",
     // ── Tabs (App) ──
     Today: "Hari ini",
     Food: "Makanan",
@@ -269,6 +273,10 @@ export const CORE: AreaDict = {
     "Weight from {from} kg on {d1} to {to} kg on {d2}": "Berat daripada {from} kg pada {d1} kepada {to} kg pada {d2}",
   },
   zh: {
+    "Camera or photo library": "拍照或从相册选择",
+    "Choose a meal photo from your library": "从相册选择餐食照片",
+    "Photos": "相册",
+    "Photo library": "相册",
     // ── Tabs (App) ──
     Today: "今天",
     Food: "饮食",
