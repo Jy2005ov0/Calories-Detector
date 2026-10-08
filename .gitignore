@@ -7,4 +7,4 @@ dist
 *.tsbuildinfo
 test-results
 playwright-report
-data/
+/data/
