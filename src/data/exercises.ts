@@ -1,10 +1,11 @@
 import type { Exercise } from "../lib/types";
+import { MORE_CARDIO, MORE_STRENGTH } from "./moreExercises";
 
 // MET values from the 2024 Adult Compendium of Physical Activities (Herrmann et al.).
 // kcal ≈ MET × body weight (kg) × hours.
 
 // [name, category, MET, aliases]
-type CardioRow = [string, string, number, string?];
+export type CardioRow = [string, string, number, string?];
 
 const cardio: CardioRow[] = [
   // Running & walking
@@ -129,7 +130,7 @@ const cardio: CardioRow[] = [
 ];
 
 // [name, primary muscle group, equipment, MET, muscles, tip]
-type StrengthRow = [string, string, string, number, string, string];
+export type StrengthRow = [string, string, string, number, string, string];
 
 const strength: StrengthRow[] = [
   // Chest
@@ -287,9 +288,28 @@ export const EXERCISES: Exercise[] = [
     muscles: muscles.split(", "),
     tip,
   })),
+  // Extra rows live in moreExercises.ts with their own id prefixes so the ids above never shift.
+  ...MORE_CARDIO.map(([name, category, met, aliases], i): Exercise => ({
+    id: `c2-${i}`,
+    name,
+    kind: "cardio",
+    category,
+    met,
+    aliases,
+  })),
+  ...MORE_STRENGTH.map(([name, category, equipment, met, muscles, tip], i): Exercise => ({
+    id: `s2-${i}`,
+    name,
+    kind: "strength",
+    category,
+    met,
+    equipment,
+    muscles: muscles.split(", "),
+    tip,
+  })),
 ];
 
 export const EXERCISE_BY_NAME = new Map(EXERCISES.map((e) => [e.name, e]));
 
 export const STRENGTH_GROUPS = ["Chest", "Back", "Shoulders", "Arms", "Legs", "Core", "Full Body"];
-export const CARDIO_GROUPS = Array.from(new Set(cardio.map((c) => c[1])));
+export const CARDIO_GROUPS = Array.from(new Set([...cardio, ...MORE_CARDIO].map((c) => c[1])));
