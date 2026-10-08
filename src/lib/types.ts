@@ -24,6 +24,8 @@ export interface Food {
   aliases?: string;
   brand?: string;
   source: "db" | "custom" | "online" | "photo";
+  /** Parts of a mixed dish (rice, sambal, egg…) the user can adjust. */
+  recipe?: import("../data/dishes").RecipePart[];
 }
 
 export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
@@ -37,6 +39,8 @@ export interface LogEntry {
   nutrients: Nutrients; // for this portion
   source: Food["source"];
   createdAt: number;
+  /** For customised dishes: what changed, e.g. "2 × Fried egg · no Peanuts". */
+  note?: string;
 }
 
 export type Sex = "male" | "female";

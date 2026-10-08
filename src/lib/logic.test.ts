@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EXERCISES, EXERCISE_BY_NAME } from "../data/exercises";
-import { FOODS } from "../data/foods";
+import { FOODS, FOOD_BY_NAME, recipeTotals } from "../data/foods";
+import { RECIPES } from "../data/dishes";
 import { recommendedFoods, sampleDay } from "./diet";
 import { SPLITS, buildPlan, kcalFor, sessionKcal } from "./fitness";
 import { bmr, healthReport, scale, searchFoods, suitability, sum, targets, ZERO } from "./nutrition";
@@ -87,8 +88,8 @@ describe("nutrition", () => {
 
   it("never calls a low-grade dish a great choice", () => {
     const t = targets({ ...profile, goal: "gain" });
-    const nasi = FOODS.find((f) => f.name === "Nasi lemak ayam goreng")!;
-    const n = scale(nasi.per100, 400);
+    const puff = FOODS.find((f) => f.name === "Curry puff")!;
+    const n = scale(puff.per100, 140);
     expect(["C", "D", "E"]).toContain(healthReport(n).grade);
     expect(healthReport(n).negatives).toContain("High in saturated fat");
     expect(suitability(n, t, ZERO, "gain").verdict).not.toBe("great");
@@ -138,5 +139,26 @@ describe("fitness", () => {
       kcal: 0,
     };
     expect(sessionKcal(s, 70)).toBeCloseTo(350);
+  });
+});
+
+describe("dishes with parts", () => {
+  it("every recipe uses real foods and adds up to the dish", () => {
+    for (const [name, parts] of Object.entries(RECIPES)) {
+      const dish = FOOD_BY_NAME.get(name);
+      expect(dish, name).toBeDefined();
+      expect(dish!.recipe).toBe(parts);
+      const { total, grams } = recipeTotals(parts.map((p) => ({ food: p.food, grams: p.unitGrams * p.qty })));
+      expect(dish!.servings[0].grams).toBe(Math.round(grams));
+      expect((dish!.per100.kcal * grams) / 100).toBeCloseTo(total.kcal, 5);
+      // A plate of food, not a typo: 250–1,100 kcal per serving.
+      expect(total.kcal, name).toBeGreaterThan(250);
+      expect(total.kcal, name).toBeLessThan(1100);
+    }
+  });
+
+  it("nasi lemak is rice, sambal, egg, ikan bilis, peanuts and cucumber", () => {
+    const parts = FOOD_BY_NAME.get("Nasi lemak (with sambal, egg, anchovies, peanuts)")!.recipe!.map((p) => p.label);
+    expect(parts).toEqual(["Coconut rice", "Sambal", "Boiled egg", "Ikan bilis", "Peanuts", "Cucumber"]);
   });
 });

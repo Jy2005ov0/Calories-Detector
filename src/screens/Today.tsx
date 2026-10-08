@@ -182,6 +182,7 @@ export function Today({ go, openPhoto, openBodyCheck }: { go: (t: Tab) => void; 
                     <div className="row-main">
                       <div className="row-title">{e.name}</div>
                       <div className="row-sub">
+                        {e.note ? `${e.note} · ` : ""}
                         {round(e.grams)} g · P {round(e.nutrients.protein)} · C {round(e.nutrients.carbs)} · F {round(e.nutrients.fat)}
                       </div>
                     </div>

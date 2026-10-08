@@ -16,6 +16,8 @@ export interface AppState {
   tourDone: boolean;
   /** The first-launch intro guide has been finished or skipped. */
   introDone: boolean;
+  /** Appearance: follow the phone, or always light / dark. */
+  theme: "system" | "light" | "dark";
   /** IDs of deleted entries, so a delete on one device isn't undone by another during sync. */
   deleted: string[];
   /** When each field last changed on this device; sync keeps the newer side field by field. */
@@ -49,6 +51,7 @@ const initial: AppState = {
   recentFoodIds: [],
   tourDone: false,
   introDone: false,
+  theme: "system",
   deleted: [],
   stamps: {},
 };
@@ -227,6 +230,9 @@ export const actions = {
       activeSessionId: st.activeSessionId === id ? null : st.activeSessionId,
       deleted: tombstone(st.deleted, id),
     }));
+  },
+  setTheme(theme: AppState["theme"]) {
+    setState({ theme });
   },
   finishIntro() {
     setState({ introDone: true });

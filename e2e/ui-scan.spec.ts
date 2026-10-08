@@ -124,7 +124,7 @@ async function audit(page: Page, screen: string, issues: Issue[]) {
         const a = interactive[i], b = interactive[j];
         if (a.contains(b) || b.contains(a)) continue;
         // Content scrolling under the floating tab bar or ? button is by design.
-        const chrome = (el: Element) => !!el.closest(".tabbar, .help-btn");
+        const chrome = (el: Element) => !!el.closest(".tabbar, .help-btn, .sheet-cta");
         if (chrome(a) !== chrome(b)) continue;
         const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
         const ox = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left);
@@ -153,7 +153,27 @@ async function audit(page: Page, screen: string, issues: Issue[]) {
 
   // Toasts come and go on timers; their steady-state colours are the main text on a solid surface.
   const axe = await new AxeBuilder({ page }).exclude(".toast").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+  // Controls that scroll under a floating bar (tab bar, sheet action bar) are reachable by scrolling;
+  // anything else that's obscured or too small still counts.
+  const underFloatingBar = async (selector: string) =>
+    page
+      .locator(selector)
+      .first()
+      .evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return Array.from(document.querySelectorAll(".sheet-cta, .tabbar")).some((bar) => {
+          const b = bar.getBoundingClientRect();
+          return r.bottom > b.top && r.top < b.bottom;
+        });
+      })
+      .catch(() => false);
   for (const v of axe.violations) {
+    if (v.id === "target-size") {
+      const real = [];
+      for (const n of v.nodes) if (!(await underFloatingBar(n.target.join(" ")))) real.push(n);
+      if (!real.length) continue;
+      v.nodes = real;
+    }
     issues.push({ screen, kind: `a11y:${v.id}`, detail: `${v.impact} · ${v.nodes.length} element(s) · e.g. ${v.nodes[0]?.target.join(" ")} · ${v.nodes[0]?.failureSummary?.split("\n")[1]?.trim() ?? ""}` });
   }
 }
@@ -262,6 +282,15 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await audit(page, "Food detail", issues);
   await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, el.scrollHeight));
   await audit(page, "Food detail · nutrition", issues);
+  await close();
+  await page.getByLabel("Search foods").fill("nasi lemak");
+  await page.locator(".row", { hasText: "Nasi lemak ayam goreng" }).first().click();
+  await audit(page, "Dish editor (What's in it)", issues);
+  await page.getByTestId("dish-parts").getByRole("button", { name: "More Fried egg" }).click();
+  await page.getByTestId("dish-parts").getByRole("button", { name: "Add an ingredient" }).click();
+  await audit(page, "Dish editor · add ingredient", issues);
+  await page.getByRole("dialog", { name: "Add food" }).locator(".row").first().click();
+  await audit(page, "Dish editor · customised", issues);
   await close();
   await page.getByLabel("Clear search").click();
   await page.getByRole("button", { name: "Build meal" }).click();

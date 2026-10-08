@@ -1,4 +1,4 @@
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, SystemBars, SystemBarsStyle } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { Camera, MediaTypeSelection } from "@capacitor/camera";
 import { Dialog } from "@capacitor/dialog";
@@ -17,6 +17,22 @@ export const platform = Capacitor.getPlatform() as "ios" | "android" | "web";
 const API_BASE = (import.meta.env?.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "";
 export const apiUrl = (path: string) => `${API_BASE}${path}`;
 export const apiConfigured = !isNative || API_BASE !== "";
+
+// ── Appearance ──────────────────────────────────────────
+
+/** Apply System / Light / Dark: page colours, browser chrome colour, and the phone's status bar. */
+export function applyTheme(theme: "system" | "light" | "dark") {
+  const root = document.documentElement;
+  if (theme === "system") delete root.dataset.theme;
+  else root.dataset.theme = theme;
+  const dark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  root.style.colorScheme = dark ? "dark" : "light";
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", dark ? "#000000" : "#f2f2f7"));
+  if (isNative) {
+    // DARK = light icons for a dark background.
+    SystemBars.setStyle({ style: theme === "system" ? SystemBarsStyle.Default : dark ? SystemBarsStyle.Dark : SystemBarsStyle.Light }).catch(() => {});
+  }
+}
 
 // ── Haptics ─────────────────────────────────────────────
 // Native Taptic Engine / vibration motor in the apps. The web Vibration API works on

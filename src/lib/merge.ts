@@ -2,7 +2,7 @@ import type { AppState } from "./store";
 
 type Collection = "log" | "customFoods" | "customMeals" | "sessions";
 const COLLECTIONS: Collection[] = ["log", "customFoods", "customMeals", "sessions"];
-const SCALARS = ["profile", "split", "tourDone", "activeSessionId", "recentFoodIds"] as const;
+const SCALARS = ["profile", "split", "tourDone", "activeSessionId", "recentFoodIds", "theme", "introDone"] as const;
 
 const stamp = (s: AppState, k: keyof AppState) => s.stamps?.[k] ?? 0;
 

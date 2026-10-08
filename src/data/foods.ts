@@ -1,4 +1,5 @@
 import type { Food } from "../lib/types";
+import { COMPONENT_ROWS, RECIPES } from "./dishes";
 import { WORLD_ROWS } from "./worldFoods";
 
 // Values are per 100 g (or 100 ml for drinks), compiled from USDA FoodData Central
@@ -448,7 +449,7 @@ const rows: Row[] = [
   ["BCAA drink", "Supplements", 0, 0, 0, 0, 0, 0, 0, 30, "1 scoop", 10],
 ];
 
-export const FOODS: Food[] = [...rows, ...WORLD_ROWS].map((r, i) => ({
+const BASE: Food[] = [...rows, ...WORLD_ROWS, ...COMPONENT_ROWS].map((r, i) => ({
   id: `db-${i}`,
   name: r[0],
   category: r[1],
@@ -466,5 +467,33 @@ export const FOODS: Food[] = [...rows, ...WORLD_ROWS].map((r, i) => ({
   aliases: r[12],
   source: "db",
 }));
+
+const BY_NAME = new Map(BASE.map((f) => [f.name, f]));
+
+/** Nutrition of a dish built from parts: per-part amounts in grams → totals. */
+export function recipeTotals(parts: { food: string; grams: number; per100?: Food["per100"] }[]) {
+  const total = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, satFat: 0, sodium: 0 };
+  let grams = 0;
+  for (const part of parts) {
+    // Extras added by the user (custom or online foods) carry their own nutrition.
+    const per100 = part.per100 ?? BY_NAME.get(part.food)?.per100;
+    if (!per100) throw new Error(`Recipe uses unknown food: ${part.food}`);
+    for (const k of Object.keys(total) as (keyof typeof total)[]) total[k] += (per100[k] * part.grams) / 100;
+    grams += part.grams;
+  }
+  return { total, grams };
+}
+
+// Dishes with a recipe take their nutrition from their parts, so the dish and its
+// customised versions always agree.
+export const FOODS: Food[] = BASE.map((f) => {
+  const recipe = RECIPES[f.name];
+  if (!recipe) return f;
+  const { total, grams } = recipeTotals(recipe.map((r) => ({ food: r.food, grams: r.unitGrams * r.qty })));
+  const per100 = Object.fromEntries(Object.entries(total).map(([k, v]) => [k, (v / grams) * 100])) as unknown as Food["per100"];
+  return { ...f, per100, servings: [{ label: f.servings[0].label, grams: Math.round(grams) }], recipe };
+});
+
+export const FOOD_BY_NAME = new Map(FOODS.map((f) => [f.name, f]));
 
 export const FOOD_CATEGORIES = Array.from(new Set(FOODS.map((f) => f.category)));

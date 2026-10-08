@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AccountCard } from "../components/Account";
 import { AnimatePresence, motion } from "motion/react";
-import { Activity, ChevronRight, Dumbbell, Flame, Leaf, Scale, Target, TrendingDown, TrendingUp, User } from "lucide-react";
+import { Activity, ChevronRight, Dumbbell, Flame, Leaf, Moon, Scale, Sun, SunMoon, Target, TrendingDown, TrendingUp, User } from "lucide-react";
 import { Segmented, SPRING, Stepper, showToast } from "../components/ui";
 import { bmi, bmiLabel, bmr, round, targets, tdee } from "../lib/nutrition";
 import { getAccount, syncNow, useAccount } from "../lib/account";
@@ -113,11 +113,23 @@ export function ProfileScreen({ openBodyCheck }: { openBodyCheck: () => void }) 
   const t = targets(p);
   const b = bmi(p);
   const signedIn = !!useAccount().token;
+  const theme = useStore((s) => s.theme);
   return (
     <div className="screen">
-      <h1 className="large-title" style={{ marginTop: 14 }}>
-        Profile
-      </h1>
+      <div className="title-row" style={{ marginTop: 14, alignItems: "center" }}>
+        <h1 className="large-title">Profile</h1>
+        <Segmented
+          className="icon-seg"
+          ariaLabel="Appearance"
+          value={theme}
+          onChange={actions.setTheme}
+          options={[
+            { value: "system", label: <SunMoon size={18} />, ariaLabel: "Match phone setting" },
+            { value: "light", label: <Sun size={18} />, ariaLabel: "Light" },
+            { value: "dark", label: <Moon size={18} />, ariaLabel: "Dark" },
+          ]}
+        />
+      </div>
       <p className="subtitle">Your numbers drive every target and plan in the app.</p>
 
       <AccountCard />

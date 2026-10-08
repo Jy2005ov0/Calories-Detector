@@ -119,16 +119,21 @@ export function Segmented<T extends string>({
   value,
   options,
   onChange,
+  ariaLabel,
+  className,
 }: {
   value: T;
-  options: { value: T; label: string }[];
+  /** label can be an icon; then give it an ariaLabel. */
+  options: { value: T; label: ReactNode; ariaLabel?: string }[];
   onChange: (v: T) => void;
+  ariaLabel?: string;
+  className?: string;
 }) {
   const id = useId();
   return (
-    <div className="segmented" role="tablist">
+    <div className={`segmented ${className ?? ""}`} role="tablist" aria-label={ariaLabel}>
       {options.map((o) => (
-        <button key={o.value} role="tab" aria-selected={o.value === value} onClick={() => onChange(o.value)}>
+        <button key={o.value} role="tab" aria-selected={o.value === value} aria-label={o.ariaLabel} title={o.ariaLabel} onClick={() => onChange(o.value)}>
           {o.value === value && <motion.div layoutId={`seg-${id}`} className="thumb" transition={SPRING_SNAPPY} />}
           {o.label}
         </button>
@@ -226,6 +231,7 @@ export function Stepper({
   min = 0,
   max = 9999,
   format,
+  label,
 }: {
   value: number;
   onChange: (v: number) => void;
@@ -234,14 +240,16 @@ export function Stepper({
   min?: number;
   max?: number;
   format?: (v: number) => string;
+  /** What is being counted, so screen readers hear "More sambal" rather than "Increase". */
+  label?: string;
 }) {
   return (
     <div className="stepper">
-      <button aria-label="Decrease" onClick={() => onChange(Math.max(min, round(value - decrementStep, 2)))}>
+      <button aria-label={label ? `Less ${label}` : "Decrease"} onClick={() => onChange(Math.max(min, round(value - decrementStep, 2)))}>
         <Minus size={16} />
       </button>
       <span>{format ? format(value) : value}</span>
-      <button aria-label="Increase" onClick={() => onChange(Math.min(max, round(value + step, 2)))}>
+      <button aria-label={label ? `More ${label}` : "Increase"} onClick={() => onChange(Math.min(max, round(value + step, 2)))}>
         <Plus size={16} />
       </button>
     </div>

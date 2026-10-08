@@ -1,5 +1,6 @@
 /* Apple HIG–inspired system. Colours follow iOS system colours; materials use backdrop-filter. */
-:root {
+:root,
+:root[data-theme="light"] {
   --bg: #f2f2f7;
   --bg-elev: #ffffff;
   --bg-fill: rgba(118, 118, 128, 0.12);
@@ -50,8 +51,9 @@
   color-scheme: light;
 }
 
+/* Dark: follows the phone unless the user picked Light or Dark in Profile. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #000000;
     --bg-elev: #1c1c1e;
     --bg-fill: rgba(118, 118, 128, 0.24);
@@ -83,6 +85,38 @@
     color-scheme: dark;
   }
 }
+
+:root[data-theme="dark"] {
+    --bg: #000000;
+    --bg-elev: #1c1c1e;
+    --bg-fill: rgba(118, 118, 128, 0.24);
+    --bg-fill-2: rgba(118, 118, 128, 0.16);
+    --label: #ffffff;
+    --label-2: rgba(235, 235, 245, 0.6);
+    --label-3: rgba(235, 235, 245, 0.3);
+    --separator: rgba(84, 84, 88, 0.6);
+    --material: rgba(30, 30, 30, 0.72);
+    --material-thick: rgba(44, 44, 46, 0.92);
+    --material-edge: rgba(255, 255, 255, 0.08);
+    --scrim: rgba(0, 0, 0, 0.5);
+    --blue: #409cff;
+    --green: #30d158;
+    --orange: #ff9f0a;
+    --red: #ff6961;
+    --green-ink: #30d158;
+    --orange-ink: #ff9f0a;
+    --accent-fill: #0a6cdc;
+    --green-fill: #1e7e34;
+    --orange-fill: #c45200;
+    --red-fill: #e0241c;
+    --pink: #ff375f;
+    --purple: #bf5af2;
+    --indigo: #5e5ce6;
+    --teal: #40c8e0;
+    --yellow: #ffd60a;
+    --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
 
 * {
   box-sizing: border-box;
@@ -488,11 +522,16 @@ button.row:active,
   z-index: -1;
 }
 
+/* Dark: follows the phone unless the user picked Light or Dark in Profile. */
 @media (prefers-color-scheme: dark) {
-  .segmented .thumb {
+  :root:not([data-theme="light"]) .segmented .thumb {
     background: #636366;
   }
 }
+
+:root[data-theme="dark"] .segmented .thumb {
+    background: #636366;
+  }
 
 /* ── Inputs ─────────────────────────────────────────── */
 .search {
@@ -1303,17 +1342,30 @@ button.row:active,
   box-shadow: inset 0 0 0 1px #747775;
 }
 
+/* Dark: follows the phone unless the user picked Light or Dark in Profile. */
 @media (prefers-color-scheme: dark) {
-  .auth-apple {
+  :root:not([data-theme="light"]) .auth-apple {
     background: #fff;
     color: #000;
   }
-  .auth-google {
+
+  :root:not([data-theme="light"]) .auth-google {
     background: #131314;
     color: #e3e3e3;
     box-shadow: inset 0 0 0 1px #8e918f;
   }
 }
+
+:root[data-theme="dark"] .auth-apple {
+    background: #fff;
+    color: #000;
+  }
+
+:root[data-theme="dark"] .auth-google {
+    background: #131314;
+    color: #e3e3e3;
+    box-shadow: inset 0 0 0 1px #8e918f;
+  }
 
 .auth-divider {
   display: flex;
@@ -1489,4 +1541,36 @@ button.row:active,
   height: 32px;
   margin: -6px -8px -6px 0;
   color: var(--label-3);
+}
+
+/* Icon-only segmented control (appearance). */
+.icon-seg {
+  width: 138px;
+  flex: none;
+}
+
+.icon-seg button {
+  height: 32px;
+  display: grid;
+  place-items: center;
+}
+
+/* Floating action bar at the bottom of a sheet: content scrolls underneath. */
+.sheet-cta {
+  position: sticky;
+  bottom: calc(-1 * (var(--safe-bottom) + 24px));
+  margin: 16px -16px calc(-1 * (var(--safe-bottom) + 24px));
+  padding: 12px 16px calc(var(--safe-bottom) + 16px);
+  background: var(--material);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-top: 0.5px solid var(--separator);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .sheet-cta {
+    background: var(--bg);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }

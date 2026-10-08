@@ -8,7 +8,7 @@ import { PhotoSheet } from "./components/PhotoSheet";
 import { HelpButton, Tour } from "./components/Tour";
 import { ToastHost } from "./components/ui";
 import { resumeSync, useAccount } from "./lib/account";
-import { onBackButton } from "./lib/platform";
+import { applyTheme, onBackButton } from "./lib/platform";
 import { actions, useStore } from "./lib/store";
 import { FoodScreen } from "./screens/FoodScreen";
 import { Plan } from "./screens/Plan";
@@ -31,6 +31,17 @@ export default function App() {
   const account = useAccount();
   const chosen = !!account.token || account.guest;
   const introDone = useStore((s) => s.introDone);
+  const theme = useStore((s) => s.theme);
+
+  // Apply the appearance setting, and keep "System" in step if the phone switches mode.
+  useEffect(() => {
+    applyTheme(theme);
+    if (theme !== "system") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => applyTheme("system");
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [theme]);
 
   useEffect(() => resumeSync(), []);
   const live = useStore((s) => !!s.activeSessionId);

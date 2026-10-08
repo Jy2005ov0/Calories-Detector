@@ -117,13 +117,13 @@ test("Aiman: cutting, logs a hawker breakfast, scans lunch, trains, comes back t
   expect(await statValue(page, "Eaten")).toBe(0);
   await expectNoHorizontalScroll(page);
 
-  // 2. Breakfast: 2 roti canai (2 × 95 g × 301 kcal/100 g = 572) and a teh tarik (250 ml × 74 = 185).
+  // 2. Breakfast: 2 roti canai with dhal (2 × [95 g roti + 60 g dhal] = 698 kcal) and a teh tarik (250 ml × 74 = 185).
   await searchAndOpen(page, "roti prata", "Roti canai");
-  await page.getByRole("dialog").getByRole("button", { name: "Increase" }).click();
-  await expect(page.getByRole("dialog").locator(".big-number")).toHaveText("572");
+  await page.getByRole("dialog").getByRole("button", { name: "More servings" }).click();
+  await expect(page.getByRole("dialog").locator(".big-number")).toHaveText("698");
   await page.getByRole("dialog").getByRole("tab", { name: "Breakfast" }).click();
   await page.getByRole("button", { name: "Add to Breakfast" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "572 kcal" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "698 kcal" })).toBeVisible();
 
   await searchAndOpen(page, "teh tarik", "Teh tarik");
   await expect(page.getByRole("dialog")).toContainText(/High in sugar/);
@@ -131,13 +131,13 @@ test("Aiman: cutting, logs a hawker breakfast, scans lunch, trains, comes back t
   await page.getByRole("button", { name: "Add to Breakfast" }).click();
 
   await tab(page, "Today");
-  await expect(mealHeader(page, "Breakfast")).toContainText("757 kcal");
+  await expect(mealHeader(page, "Breakfast")).toContainText("883 kcal");
 
   // 3. Slip and undo: delete the teh tarik, then undo.
   await page.getByRole("button", { name: "Remove Teh tarik" }).click();
-  await expect(mealHeader(page, "Breakfast")).toContainText("572 kcal");
+  await expect(mealHeader(page, "Breakfast")).toContainText("698 kcal");
   await page.getByRole("status").getByRole("button", { name: "Undo" }).click();
-  await expect(mealHeader(page, "Breakfast")).toContainText("757 kcal");
+  await expect(mealHeader(page, "Breakfast")).toContainText("883 kcal");
 
   // 4. Lunch from a photo, correcting the rice portion from 200 g to 100 g.
   await page.route("**/api/analyze-photo", (r) => r.fulfill({ json: NASI_LEMAK_ANALYSIS }));
@@ -151,7 +151,7 @@ test("Aiman: cutting, logs a hawker breakfast, scans lunch, trains, comes back t
   await page.getByRole("dialog").getByRole("tab", { name: "Lunch" }).click();
   await page.getByRole("button", { name: "Log 3 items" }).click();
   await expect(mealHeader(page, "Lunch")).toContainText("575 kcal");
-  expect(await statValue(page, "Eaten")).toBe(1332);
+  expect(await statValue(page, "Eaten")).toBe(1458);
 
   // 5. Monday is Full Body A for a 3-day beginner. Clock in from the plan, do 3 sets, train 45 min.
   await tab(page, "Train");
@@ -187,12 +187,12 @@ test("Aiman: cutting, logs a hawker breakfast, scans lunch, trains, comes back t
   // 6. Today adds the workout back to the budget: left = target − eaten + burned.
   await tab(page, "Today");
   expect(await statValue(page, "Burned")).toBe(burned);
-  await expect(page.locator(".card").first()).toContainText(String(2270 - 1332 + burned));
+  await expect(page.locator(".card").first()).toContainText(String(2270 - 1458 + burned));
   await expectNoHorizontalScroll(page);
 
   // 7. Close and reopen the app: everything is still there.
   await page.reload();
-  expect(await statValue(page, "Eaten")).toBe(1332);
+  expect(await statValue(page, "Eaten")).toBe(1458);
   expect(await statValue(page, "Burned")).toBe(burned);
 
   // 8. Leave the app open overnight. When it comes back to the foreground, it shows the new day.
@@ -556,7 +556,7 @@ test("Nadia: creates an account, switches phones, and her data follows her", asy
   await login.getByRole("button", { name: "Log in" }).last().click();
   await expect(page2.getByRole("heading", { name: /Good \w+, Nadia/ })).toBeVisible();
   await expect(page2.getByRole("dialog")).toHaveCount(0); // tour already done on phone 1
-  await expect(mealHeader(page2, "Breakfast")).toContainText("471 kcal"); // teh tarik 185 + roti canai 286
+  await expect(mealHeader(page2, "Breakfast")).toContainText("534 kcal"); // teh tarik 185 + roti canai with dhal 349
 
   // 6. Delete the teh tarik on phone 2; phone 1 picks that up when it comes back to the foreground.
   await page2.getByRole("button", { name: "Remove Teh tarik" }).click();
@@ -565,14 +565,14 @@ test("Nadia: creates an account, switches phones, and her data follows her", asy
   await page2.waitForTimeout(2000); // let the debounced upload finish
   await tab(page, "Today");
   await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
-  await expect(mealHeader(page, "Breakfast")).toContainText("286 kcal");
+  await expect(mealHeader(page, "Breakfast")).toContainText("349 kcal");
   await expect(page.getByText("Teh tarik", { exact: true })).toHaveCount(0);
 
   // 7. Sign out on phone 2: the data stays on that phone.
   await page2.getByRole("button", { name: "Sign out" }).click();
   await expect(page2.getByText("Back up & sync")).toBeVisible();
   await tab(page2, "Today");
-  await expect(mealHeader(page2, "Breakfast")).toContainText("286 kcal");
+  await expect(mealHeader(page2, "Breakfast")).toContainText("349 kcal");
 
   // 8. Delete the account on phone 1 (required by the App Store): it's gone from the server.
   await tab(page, "Profile");
@@ -632,4 +632,112 @@ test("First launch: Skip goes straight to sign-in", async ({ page }) => {
   await start(page, { fakeClock: false, skipIntro: false });
   await page.getByRole("region", { name: "Welcome guide" }).getByRole("button", { name: "Skip" }).click();
   await expect(page.getByRole("button", { name: "Sign up with email" })).toBeVisible();
+});
+
+// ── Journey 6 ────────────────────────────────────────────
+
+test("Hafiz: customises his nasi lemak — extra egg, no peanuts, add rendang", async ({ page }) => {
+  await start(page);
+  await onboard(page, { name: "Hafiz", sex: "Male", age: "31", height: "175", weight: "80", goal: /Build muscle/, activity: /Moderately active/, experience: /Intermediate/, days: 4, diet: "Halal" });
+
+  await searchAndOpen(page, "nasi lemak", "Nasi lemak (with sambal, egg, anchovies, peanuts)");
+  const sheet = page.getByRole("dialog").first();
+  const parts = sheet.getByTestId("dish-parts");
+  // The standard plate and what's in it.
+  await expect(sheet.locator(".big-number")).toHaveText("506");
+  for (const part of ["Coconut rice", "Sambal", "Boiled egg", "Ikan bilis", "Peanuts", "Cucumber"]) await expect(parts).toContainText(part);
+  await expect(parts.locator(".row", { hasText: "Sambal" })).toContainText("2 tbsp");
+  await expect(parts.locator(".row", { hasText: "Boiled egg" })).toContainText("½ egg");
+
+  // Whole egg instead of half, no peanuts, plus a portion of beef rendang.
+  await parts.getByRole("button", { name: "More Boiled egg" }).click();
+  await expect(parts.locator(".row", { hasText: "Boiled egg" })).toContainText("1 egg");
+  await parts.getByRole("button", { name: "Less Peanuts" }).click();
+  await parts.getByRole("button", { name: "Less Peanuts" }).click();
+  await expect(parts.locator(".row", { hasText: "Peanuts" })).toContainText("Not included");
+  await parts.getByRole("button", { name: "Add an ingredient" }).click();
+  const picker = page.getByRole("dialog", { name: "Add food" });
+  await picker.getByPlaceholder("Search foods").fill("rendang");
+  await picker.locator(".row", { hasText: "Beef rendang" }).click();
+  await expect(parts).toContainText("Beef rendang");
+  await expect(sheet.locator(".big-number")).toHaveText("715");
+  await expect(sheet).toContainText("Changed: Boiled egg: 1 egg · no Peanuts · + Beef rendang");
+
+  // Two plates for a big day; Reset puts the standard recipe back.
+  await sheet.getByRole("button", { name: "More servings" }).click();
+  await expect(sheet.locator(".big-number")).toHaveText("1430");
+  await sheet.getByRole("button", { name: "Less servings" }).click();
+  await sheet.getByRole("tab", { name: "Lunch" }).click();
+  await sheet.getByRole("button", { name: "Add to Lunch" }).click();
+
+  // Today shows the customised dish and what changed.
+  await tab(page, "Today");
+  const row = page.locator(".row", { hasText: "Nasi lemak (with sambal, egg, anchovies, peanuts) (customised)" });
+  await expect(row).toContainText("Boiled egg: 1 egg · no Peanuts · + Beef rendang");
+  await expect(row).toContainText("715");
+  await expect(mealHeader(page, "Lunch")).toContainText("715 kcal");
+
+  // Reset restores the standard plate.
+  await searchAndOpen(page, "nasi lemak", "Nasi lemak (with sambal, egg, anchovies, peanuts)");
+  await page.getByTestId("dish-parts").getByRole("button", { name: "Less Sambal" }).click();
+  await expect(page.getByRole("dialog").first().locator(".big-number")).not.toHaveText("506");
+  await page.getByRole("dialog").first().getByRole("button", { name: /Reset/ }).click();
+  await expect(page.getByRole("dialog").first().locator(".big-number")).toHaveText("506");
+  await expectNoHorizontalScroll(page);
+});
+
+// ── Journey 7 ────────────────────────────────────────────
+
+test("Appearance: phone setting, light or dark, chosen with symbols only", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await start(page, { fakeClock: false });
+  await onboard(page, { name: "Wei", sex: "Female", age: "26", height: "158", weight: "50", goal: /Maintain/, activity: /Lightly active/, experience: /New to the gym/, days: 3, diet: "Anything" });
+  const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+  // Follows the phone by default (dark here).
+  expect(await bg()).toBe("rgb(0, 0, 0)");
+  await tab(page, "Profile");
+  const control = page.getByRole("tablist", { name: "Appearance" });
+  await expect(control.getByRole("tab", { name: "Match phone setting" })).toHaveAttribute("aria-selected", "true");
+  // Symbols only: no words on the buttons.
+  expect((await control.innerText()).trim()).toBe("");
+
+  await control.getByRole("tab", { name: "Light" }).click();
+  await expect.poll(bg).toBe("rgb(242, 242, 247)");
+  await page.reload();
+  await expect.poll(bg).toBe("rgb(242, 242, 247)"); // remembered
+
+  await page.emulateMedia({ colorScheme: "light" });
+  await tab(page, "Profile");
+  await page.getByRole("tablist", { name: "Appearance" }).getByRole("tab", { name: "Dark" }).click();
+  await expect.poll(bg).toBe("rgb(0, 0, 0)");
+  await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute("content", "#000000");
+
+  await page.getByRole("tablist", { name: "Appearance" }).getByRole("tab", { name: "Match phone setting" }).click();
+  await expect.poll(bg).toBe("rgb(242, 242, 247)");
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect.poll(bg).toBe("rgb(0, 0, 0)"); // switches live with the phone
+  await expectNoHorizontalScroll(page);
+});
+
+test("A dish can take your own custom food as an extra (regression: used to crash)", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await start(page, { fakeClock: false });
+  await onboard(page, { name: "Siti", sex: "Female", age: "30", height: "160", weight: "55", goal: /Maintain/, activity: /Lightly active/, experience: /New to the gym/, days: 3, diet: "Halal" });
+  await tab(page, "Food");
+  await page.getByRole("button", { name: "New food" }).first().click();
+  await page.getByPlaceholder("Food name").fill("Mak's sambal sotong");
+  await page.getByLabel("Serving size", { exact: true }).fill("100");
+  await page.getByLabel("Calories", { exact: true }).fill("180");
+  await page.getByRole("button", { name: "Save" }).click();
+
+  await searchAndOpen(page, "nasi lemak", "Nasi lemak (with sambal, egg, anchovies, peanuts)");
+  await page.getByTestId("dish-parts").getByRole("button", { name: "Add an ingredient" }).click();
+  const picker = page.getByRole("dialog", { name: "Add food" });
+  await picker.getByPlaceholder("Search foods").fill("sotong");
+  await picker.locator(".row", { hasText: "Mak's sambal sotong" }).click();
+  await expect(page.getByTestId("dish-parts")).toContainText("Mak's sambal sotong");
+  await expect(page.getByRole("dialog").first().locator(".big-number")).toHaveText("686"); // 506 + 180
+  expect(errors).toEqual([]);
 });
