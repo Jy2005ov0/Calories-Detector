@@ -58,7 +58,50 @@ export interface Profile {
   experience: Experience;
   trainingDays: number;
   diet: "anything" | "halal" | "vegetarian" | "vegan";
+  /** Foods to warn about and leave out of plans. */
+  allergies: Allergen[];
+  /** Ramadan (sahur / iftar) or 16:8 intermittent fasting. */
+  fasting: "off" | "ramadan" | "16:8";
+  /** Ramadan sahur end and iftar ("HH:MM", they change with location), and the 16:8 window start. */
+  fastTimes: { sahur: string; iftar: string; windowStart: string };
+  /** Daily step goal. */
+  stepGoal: number;
   onboarded: boolean;
+}
+
+export type Allergen = "peanuts" | "treeNuts" | "shellfish" | "fish" | "dairy" | "egg" | "gluten" | "soy" | "sesame";
+
+export interface WeightEntry {
+  id: string;
+  date: string;
+  kg: number;
+  createdAt: number;
+}
+
+/** Per-day extras. The id is the date (YYYY-MM-DD). */
+export interface DayStats {
+  id: string;
+  waterMl: number;
+  steps: number;
+  /** Steps came from Apple Health / Health Connect rather than typed in. */
+  stepsFromHealth?: boolean;
+}
+
+export interface Reminders {
+  meals: boolean;
+  water: boolean;
+  gym: boolean;
+  breakfast: string; // "HH:MM"
+  lunch: string;
+  dinner: string;
+  gymTime: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  at: number;
 }
 
 export type ExerciseKind = "cardio" | "strength";
@@ -92,6 +135,8 @@ export interface SessionExercise {
   sets?: SetEntry[];
   /** plan target, e.g. "8–12" */
   targetReps?: string;
+  /** Rest between sets, from the plan. */
+  restSec?: number;
 }
 
 export interface WorkoutSession {

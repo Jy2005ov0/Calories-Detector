@@ -4,7 +4,7 @@ import { CircleAlert, CircleCheck, Minus, Plus, ThumbsUp, TriangleAlert, X } fro
 import type { Grade, HealthReport, Suitability } from "../lib/nutrition";
 import type { Nutrients } from "../lib/types";
 import { round } from "../lib/nutrition";
-import { pushBackHandler } from "../lib/platform";
+import { haptic, pushBackHandler } from "../lib/platform";
 
 // Apple's defaults translated to Motion springs: critically damped for UI, a touch of
 // bounce only after a gesture that carried momentum.
@@ -17,7 +17,7 @@ export function project(velocity: number, decelerationRate = 0.998) {
   return ((velocity / 1000) * decelerationRate) / (1 - decelerationRate);
 }
 
-export { haptic } from "../lib/platform";
+export { haptic };
 
 // ── Sheet ───────────────────────────────────────────────
 
@@ -428,6 +428,43 @@ export function Empty({ icon, children }: { icon: ReactNode; children: ReactNode
     <div className="empty">
       {icon}
       {children}
+    </div>
+  );
+}
+
+/** iOS-style on/off switch. */
+export function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      className={`switch ${checked ? "on" : ""}`}
+      onClick={() => {
+        haptic("light");
+        onChange(!checked);
+      }}
+    >
+      <span className="knob" />
+    </button>
+  );
+}
+
+/** Red warning when a food clashes with the person's allergies, halal or vegetarian diet. */
+export function AvoidCard({ conflicts }: { conflicts: { kind: string; text: string }[] }) {
+  if (!conflicts.length) return null;
+  return (
+    <div className="avoid-card" role="alert">
+      <TriangleAlert size={18} style={{ flex: "none", marginTop: 1 }} />
+      <div>
+        {conflicts.map((c) => (
+          <div key={c.text} style={{ fontWeight: 600 }}>
+            {c.text}
+          </div>
+        ))}
+        <div className="avoid-note">Based on how it's usually made. Check with the seller.</div>
+      </div>
     </div>
   );
 }

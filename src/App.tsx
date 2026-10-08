@@ -5,6 +5,13 @@ import { Welcome } from "./components/Auth";
 import { IntroGuide } from "./components/IntroGuide";
 import { BodyCheckSheet } from "./components/BodyCheckSheet";
 import { PhotoSheet } from "./components/PhotoSheet";
+import { BarcodeSheet } from "./components/BarcodeSheet";
+import { CoachSheet } from "./components/CoachSheet";
+import { FoodSheet } from "./components/FoodSheet";
+import { CustomFoodSheet } from "./components/MealBuilder";
+import { ProgressSheet } from "./components/ProgressSheet";
+import { t, useLanguage } from "./i18n";
+import type { Food } from "./lib/types";
 import { HelpButton, Tour } from "./components/Tour";
 import { ToastHost } from "./components/ui";
 import { resumeSync, useAccount } from "./lib/account";
@@ -17,6 +24,7 @@ import { Today } from "./screens/Today";
 import { Train } from "./screens/Train";
 
 export type Tab = "today" | "food" | "train" | "plan" | "profile";
+export type SheetKind = "photo" | "bodyCheck" | "barcode" | "coach" | "progress" | null;
 
 const TABS: { id: Tab; label: string; Icon: typeof Flame }[] = [
   { id: "today", label: "Today", Icon: Flame },
@@ -46,8 +54,14 @@ export default function App() {
   useEffect(() => resumeSync(), []);
   const live = useStore((s) => !!s.activeSessionId);
   const [tab, setTab] = useState<Tab>("today");
-  const [photo, setPhoto] = useState(false);
-  const [bodyCheck, setBodyCheck] = useState(false);
+  const [sheet, setSheet] = useState<SheetKind>(null);
+  const [found, setFound] = useState<Food | null>(null);
+  const [newFood, setNewFood] = useState(false);
+  const lang = useLanguage();
+  const closeSheet = () => setSheet(null);
+  useEffect(() => {
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : lang === "ms" ? "ms-MY" : "en";
+  }, [lang]);
   const tourDone = useStore((s) => s.tourDone);
   const [tour, setTour] = useState(false);
 
@@ -97,27 +111,25 @@ export default function App() {
       </>
     );
 
-  const openPhoto = () => setPhoto(true);
-
   return (
     <div className="app">
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
-          key={tab}
+          key={`${tab}-${lang}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: reduce ? 0.1 : 0.15 }}
         >
-          {tab === "today" && <Today go={setTab} openPhoto={openPhoto} openBodyCheck={() => setBodyCheck(true)} />}
-          {tab === "food" && <FoodScreen openPhoto={openPhoto} />}
+          {tab === "today" && <Today go={setTab} openSheet={setSheet} />}
+          {tab === "food" && <FoodScreen openSheet={setSheet} />}
           {tab === "train" && <Train />}
-          {tab === "plan" && <Plan go={setTab} />}
-          {tab === "profile" && <ProfileScreen openBodyCheck={() => setBodyCheck(true)} />}
+          {tab === "plan" && <Plan go={setTab} openSheet={setSheet} />}
+          {tab === "profile" && <ProfileScreen openSheet={setSheet} />}
         </motion.main>
       </AnimatePresence>
 
-      <nav className="tabbar" aria-label="Main">
+      <nav className="tabbar" aria-label={t("Main")}>
         <div className="tabbar-inner">
           {TABS.map(({ id, label, Icon }) => (
             <button
@@ -129,16 +141,32 @@ export default function App() {
               aria-current={tab === id ? "page" : undefined}
             >
               <Icon size={24} strokeWidth={tab === id ? 2.3 : 1.8} />
-              {label}
-              {id === "train" && live && <span className="live-dot" aria-label="Workout in progress" />}
+              {t(label)}
+              {id === "train" && live && <span className="live-dot" aria-label={t("Workout in progress")} />}
             </button>
           ))}
         </div>
       </nav>
 
       <HelpButton onClick={() => setTour(true)} />
-      <PhotoSheet open={photo} onClose={() => setPhoto(false)} />
-      <BodyCheckSheet open={bodyCheck} onClose={() => setBodyCheck(false)} />
+      <PhotoSheet open={sheet === "photo"} onClose={closeSheet} />
+      <BodyCheckSheet open={sheet === "bodyCheck"} onClose={closeSheet} />
+      <BarcodeSheet
+        open={sheet === "barcode"}
+        onClose={closeSheet}
+        onFound={(f) => {
+          setSheet(null);
+          setFound(f);
+        }}
+        onNewFood={() => {
+          setSheet(null);
+          setNewFood(true);
+        }}
+      />
+      <FoodSheet food={found} onClose={() => setFound(null)} />
+      <CustomFoodSheet open={newFood} onClose={() => setNewFood(false)} />
+      <CoachSheet open={sheet === "coach"} onClose={closeSheet} />
+      <ProgressSheet open={sheet === "progress"} onClose={closeSheet} />
       <Tour open={tour} onClose={closeTour} setTab={setTab} />
       <ToastHost />
     </div>

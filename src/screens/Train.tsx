@@ -1,12 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Check, Clock, Dumbbell, Flame, History, LogIn, LogOut, Plus, Trash2, Weight } from "lucide-react";
+import { Check, Clock, Dumbbell, Flame, History, LogIn, LogOut, Plus, Share, Timer, Trash2, Trophy, Weight } from "lucide-react";
+import { t, useLanguage } from "../i18n";
+import { workoutCard } from "../lib/export";
+import { scheduleRestEnd, shareFile } from "../lib/native";
+import { isNewRecord, lastPerformance, personalRecords, suggestNext } from "../lib/records";
 import { ExerciseLibrary } from "../components/ExerciseLibrary";
 import { Empty, SPRING, Sheet, Stepper, haptic, showToast, useNow } from "../components/ui";
 import { buildPlan, exerciseKcal, formatDuration, kcalFor, plural, sessionFromPlan, sessionKcal, sessionMinutes, sessionVolume } from "../lib/fitness";
 import { round } from "../lib/nutrition";
 import { confirmDialog } from "../lib/platform";
-import { actions, todayKey, uid, useStore, useTodayKey, weekdayOf } from "../lib/store";
+import { actions, getState, todayKey, uid, useStore, useTodayKey, weekdayOf } from "../lib/store";
 import type { Exercise, SessionExercise, WorkoutSession } from "../lib/types";
 
 function toSessionExercise(ex: Exercise, minutes?: number): SessionExercise {
@@ -21,7 +25,53 @@ function toSessionExercise(ex: Exercise, minutes?: number): SessionExercise {
   };
 }
 
+/** Share a finished workout as an image card. */
+async function shareWorkout(w: WorkoutSession) {
+  try {
+    const dark = document.documentElement.dataset.theme === "dark" || (document.documentElement.dataset.theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+    const blob = await workoutCard(w, dark);
+    await shareFile(`workout-${w.date}.png`, blob, w.title);
+  } catch (e) {
+    if ((e as Error).name !== "AbortError") showToast(t("Couldn't share: {msg}", { msg: (e as Error).message }));
+  }
+}
+
+const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.max(0, sec) % 60).padStart(2, "0")}`;
+
+/** Countdown between sets. Buzzes when it's over (also from the lock screen and watch in the apps). */
+function RestBar({ rest, onChange }: { rest: { endsAt: number; total: number }; onChange: (r: { endsAt: number; total: number } | null) => void }) {
+  const now = useNow(250);
+  const left = Math.ceil((rest.endsAt - now) / 1000);
+  useEffect(() => {
+    if (left <= 0) {
+      haptic("success");
+      showToast(t("Rest over — time for your next set"));
+      onChange(null);
+    }
+  }, [left, onChange]);
+  return (
+    <motion.div className="rest-bar" role="timer" aria-live="off" aria-label={t("Rest timer")} initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} transition={SPRING}>
+      <Timer size={18} />
+      <div className="row-main">
+        <div className="tabular" style={{ fontWeight: 700, fontSize: 20 }}>
+          {mmss(Math.max(0, left))}
+        </div>
+        <div className="rest-track">
+          <div style={{ transform: `scaleX(${Math.max(0, Math.min(1, left / rest.total))})` }} />
+        </div>
+      </div>
+      <button className="btn small secondary" onClick={() => onChange({ endsAt: rest.endsAt + 15000, total: rest.total + 15 })}>
+        +15s
+      </button>
+      <button className="btn small" onClick={() => onChange(null)}>
+        {t("Skip")}
+      </button>
+    </motion.div>
+  );
+}
+
 export function Train() {
+  useLanguage();
   const profile = useStore((s) => s.profile);
   const sessions = useStore((s) => s.sessions);
   const activeId = useStore((s) => s.activeSessionId);
@@ -30,6 +80,16 @@ export function Train() {
   const now = useNow(1000, !!active);
   const [library, setLibrary] = useState<"add" | "log" | "browse" | null>(null);
   const [finishing, setFinishing] = useState(false);
+  const [rest, setRestState] = useState<{ endsAt: number; total: number } | null>(null);
+  const [justFinished, setJustFinished] = useState<WorkoutSession | null>(null);
+  const setRest = useMemo(
+    () => (r: { endsAt: number; total: number } | null) => {
+      setRestState(r);
+      scheduleRestEnd(r?.endsAt ?? null);
+    },
+    [],
+  );
+  const records = useMemo(() => personalRecords(sessions), [sessions]);
 
   const plan = useMemo(() => buildPlan(profile, split), [profile, split]);
   const weekday = weekdayOf(useTodayKey());
@@ -132,9 +192,10 @@ export function Train() {
                 <div className="row-main">
                   <div style={{ fontWeight: 600 }}>{ex.name}</div>
                   <div className="row-sub">
-                    {ex.targetReps ? `Target ${ex.sets?.length} × ${ex.targetReps} · ` : ""}
+                    {ex.targetReps ? `${t("Target")} ${ex.sets?.length} × ${ex.targetReps} · ` : ""}
                     {round(exerciseKcal(ex, profile.weightKg))} kcal
                   </div>
+                  {ex.kind === "strength" && <LiftHistory exerciseId={ex.exerciseId} targetReps={ex.targetReps} sessionId={active.id} />}
                 </div>
                 <button
                   className="icon-btn"
@@ -162,7 +223,17 @@ export function Train() {
                         key={i}
                         index={i}
                         set={set}
-                        onChange={(next) => updateEx(ex.id, (e) => ({ ...e, sets: e.sets!.map((s, j) => (j === i ? next : s)) }))}
+                        onChange={(next) => {
+                          updateEx(ex.id, (e) => ({ ...e, sets: e.sets!.map((s, j) => (j === i ? next : s)) }));
+                          if (next.done && !set.done) {
+                            if (isNewRecord(getState().sessions, ex.exerciseId, next, active.id)) {
+                              haptic("success");
+                              showToast(t("New personal record · {name} {kg} kg × {reps}", { name: ex.name, kg: next.weightKg, reps: next.reps }));
+                            }
+                            const secs = ex.restSec ?? 90;
+                            setRest({ endsAt: Date.now() + secs * 1000, total: secs });
+                          }
+                        }}
                       />
                     ))}
                   </div>
@@ -241,7 +312,10 @@ export function Train() {
               actions.clockOut(active.id, kcal);
               haptic("success");
               setFinishing(false);
-              showToast(`Workout saved · ${round(kcal)} kcal`);
+              setRest(null);
+              const saved = getState().sessions.find((x) => x.id === active.id);
+              if (saved) setJustFinished(saved);
+              showToast(t("Workout saved · {kcal} kcal", { kcal: round(kcal) }));
             }}
           >
             <Check size={18} /> Finish workout
@@ -266,6 +340,7 @@ export function Train() {
         </Sheet>
 
         <ExerciseLibrary open={library !== null} onClose={() => setLibrary(null)} onPick={onPick} />
+        <AnimatePresence>{rest && <RestBar rest={rest} onChange={setRest} />}</AnimatePresence>
       </div>
     );
   }
@@ -299,7 +374,19 @@ export function Train() {
             {todaysPlan.focus} · {plural(todaysPlan.exercises.length, "exercise")} · ~{todaysPlan.estMinutes} min
           </div>
           <div className="spacer" />
-          <button className="btn" onClick={() => clockIn(todaysPlan.title, sessionFromPlan(todaysPlan))}>
+          <button
+            className="btn"
+            onClick={() =>
+              clockIn(
+                todaysPlan.title,
+                // Start each lift at the weight progressive overload suggests from last time.
+                sessionFromPlan(todaysPlan).map((e) => {
+                  const next = suggestNext(lastPerformance(sessions, e.exerciseId), e.targetReps, e.exerciseId);
+                  return next ? { ...e, sets: e.sets?.map((x) => ({ ...x, weightKg: next.weightKg })) } : e;
+                }),
+              )
+            }
+          >
             <LogIn size={18} /> Clock in &amp; start {todaysPlan.title}
           </button>
         </div>
@@ -357,6 +444,39 @@ export function Train() {
         </div>
       </div>
 
+      {justFinished && (
+        <div className="card done-card" style={{ marginTop: 12 }}>
+          <div className="row-main">
+            <div className="tile-title">{t("Nice work! {title} saved", { title: justFinished.title })}</div>
+            <div className="tile-sub">{t("{kcal} kcal burned. Share it with friends?", { kcal: justFinished.kcal })}</div>
+          </div>
+          <button className="btn small tinted" onClick={() => shareWorkout(justFinished)}>
+            <Share size={15} /> {t("Share")}
+          </button>
+        </div>
+      )}
+
+      {records.length > 0 && (
+        <>
+          <div className="section-header">{t("Personal records")}</div>
+          <div className="group" data-testid="records">
+            {records.slice(0, 6).map((r) => (
+              <div className="row with-icon" key={r.exerciseId}>
+                <div className="icon-tile" style={{ background: "var(--yellow)", color: "#1d1d1f" }}>
+                  <Trophy size={16} />
+                </div>
+                <div className="row-main">
+                  <div className="row-title">{r.name}</div>
+                  <div className="row-sub">
+                    {r.weightKg} kg × {r.reps} · {t("est. 1-rep max {kg} kg", { kg: round(r.e1rm) })}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       <div className="section-header">History</div>
       <div className="group">
         {history.length === 0 ? (
@@ -375,6 +495,9 @@ export function Train() {
                 </div>
               </div>
               <span className="row-value">{s.kcal} kcal</span>
+              <button className="icon-btn" aria-label={t("Share {title}", { title: s.title })} onClick={() => shareWorkout(s)}>
+                <Share size={15} />
+              </button>
               <button
                 className="icon-btn"
                 aria-label={`Delete ${s.title}`}
@@ -396,6 +519,21 @@ export function Train() {
         onPick={library === "browse" ? undefined : onPick}
         pickLabel={library === "log" ? "Log activity" : "Clock in with this"}
       />
+    </div>
+  );
+}
+
+/** Last time's sets and what to do today (progressive overload). */
+function LiftHistory({ exerciseId, targetReps, sessionId }: { exerciseId: string; targetReps?: string; sessionId: string }) {
+  const sessions = useStore((s) => s.sessions);
+  const last = lastPerformance(sessions, exerciseId, sessionId);
+  if (!last) return null;
+  const next = suggestNext(last, targetReps, exerciseId);
+  const top = Math.max(...last.sets.map((x) => x.weightKg));
+  return (
+    <div className="lift-history">
+      {t("Last time")}: {top} kg × {last.sets.filter((x) => x.weightKg === top).map((x) => x.reps).join(", ")}
+      {next && <div className="lift-next">↗ {next.text}</div>}
     </div>
   );
 }

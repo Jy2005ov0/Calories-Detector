@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Camera, ChevronRight, Globe, PencilLine, Plus, Search, Trash2, UtensilsCrossed, X } from "lucide-react";
+import { AlertTriangle, Barcode, Camera, ChevronRight, Globe, PencilLine, Plus, Search, Trash2, UtensilsCrossed, X } from "lucide-react";
+import { t, useLanguage } from "../i18n";
+import { foodConflicts, hasRestrictions } from "../lib/allergens";
+import type { SheetKind } from "../App";
 import { FOODS, FOOD_CATEGORIES } from "../data/foods";
-import { MEALS, defaultMeal, searchOnline } from "../lib/api";
+import { defaultMeal, mealLabel, searchOnline } from "../lib/api";
 import { plural } from "../lib/fitness";
 import { healthReport, isWholeProduce, round, scale, searchFoods, sum } from "../lib/nutrition";
 import { actions, todayKey, useStore } from "../lib/store";
@@ -13,6 +16,8 @@ import { Empty, GRADE_COLORS, GRADE_TEXT, Segmented, haptic, showToast } from ".
 type View = "recent" | "meals" | "mine" | "browse";
 
 function FoodRow({ f, onClick }: { f: Food; onClick: () => void }) {
+  const profile = useStore((st) => st.profile);
+  const avoid = foodConflicts(f, profile);
   const s = f.servings[0];
   const kcal = round((f.per100.kcal * s.grams) / 100);
   const grade = healthReport(scale(f.per100, s.grams), { intrinsicSugar: isWholeProduce(f) }).grade;
@@ -25,6 +30,11 @@ function FoodRow({ f, onClick }: { f: Food; onClick: () => void }) {
           {s.label} · {kcal} kcal
         </div>
       </div>
+      {avoid.length > 0 && (
+        <span className="avoid-flag" role="img" aria-label={avoid.map((c) => c.text).join(". ")} title={avoid.map((c) => c.text).join(" · ")}>
+          <AlertTriangle size={15} />
+        </span>
+      )}
       <span className="badge" style={{ background: GRADE_COLORS[grade], color: GRADE_TEXT[grade], minWidth: 22, justifyContent: "center" }}>
         {grade}
       </span>
@@ -33,7 +43,14 @@ function FoodRow({ f, onClick }: { f: Food; onClick: () => void }) {
   );
 }
 
-export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
+export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void }) {
+  useLanguage();
+  const openPhoto = () => openSheet("photo");
+  const profile = useStore((s) => s.profile);
+  const [hideAvoid, setHideAvoid] = useState(true);
+  const restricted = hasRestrictions(profile);
+  /** Leave out foods the person can't or won't eat, unless they choose to see them. */
+  const fits = (list: Food[]) => (restricted && hideAvoid ? list.filter((f) => foodConflicts(f, profile).length === 0) : list);
   const customFoods = useStore((s) => s.customFoods);
   const customMeals = useStore((s) => s.customMeals);
   const recentIds = useStore((s) => s.recentFoodIds);
@@ -47,7 +64,9 @@ export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
 
   const all = useMemo(() => [...customFoods, ...FOODS], [customFoods]);
   const byId = useMemo(() => new Map(all.map((f) => [f.id, f])), [all]);
-  const local = useMemo(() => (q.trim() ? searchFoods(all, q) : []), [all, q]);
+  const allLocal = useMemo(() => (q.trim() ? searchFoods(all, q) : []), [all, q]);
+  const local = fits(allLocal);
+  const hiddenCount = allLocal.length - local.length;
 
   useEffect(() => {
     const term = q.trim();
@@ -79,7 +98,7 @@ export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
     );
     const kcal = sum(m.items.map((i) => scale(i.per100, i.grams))).kcal;
     haptic();
-    showToast(`${m.name} → ${MEALS.find((x) => x.value === meal)!.label} · ${round(kcal)} kcal`);
+    showToast(`${m.name} → ${mealLabel(meal)} · ${round(kcal)} kcal`);
   };
 
   return (
@@ -107,30 +126,30 @@ export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
 
       {!q && (
         <>
-          <div className="tiles" data-tour="food-tools" style={{ marginTop: 14, gridTemplateColumns: "1fr 1fr 1fr" }}>
-            <button className="tile" onClick={openPhoto} style={{ minHeight: 96 }}>
+          <div className="tiles four" data-tour="food-tools" style={{ marginTop: 14 }}>
+            <button className="tile" onClick={openPhoto}>
               <div className="icon-tile" style={{ background: "var(--blue)" }}>
                 <Camera size={17} />
               </div>
-              <div className="tile-title" style={{ fontSize: 15 }}>
-                Scan photo
-              </div>
+              <div className="tile-title">{t("Scan photo")}</div>
             </button>
-            <button className="tile" onClick={() => setBuilder({ open: true, meal: null })} style={{ minHeight: 96 }}>
+            <button className="tile" onClick={() => openSheet("barcode")}>
+              <div className="icon-tile" style={{ background: "var(--purple)" }}>
+                <Barcode size={17} />
+              </div>
+              <div className="tile-title">{t("Barcode")}</div>
+            </button>
+            <button className="tile" onClick={() => setBuilder({ open: true, meal: null })}>
               <div className="icon-tile" style={{ background: "var(--green)" }}>
                 <UtensilsCrossed size={17} />
               </div>
-              <div className="tile-title" style={{ fontSize: 15 }}>
-                Build meal
-              </div>
+              <div className="tile-title">{t("Build meal")}</div>
             </button>
-            <button className="tile" onClick={() => setNewFood(true)} style={{ minHeight: 96 }}>
-              <div className="icon-tile" style={{ background: "var(--purple)" }}>
+            <button className="tile" onClick={() => setNewFood(true)}>
+              <div className="icon-tile" style={{ background: "var(--pink)" }}>
                 <PencilLine size={17} />
               </div>
-              <div className="tile-title" style={{ fontSize: 15 }}>
-                New food
-              </div>
+              <div className="tile-title">{t("New food")}</div>
             </button>
           </div>
 
@@ -224,7 +243,7 @@ export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
                 ))}
               </div>
               <div className="group" style={{ marginTop: 10 }}>
-                {FOODS.filter((f) => f.category === category).map((f) => (
+                {fits(FOODS.filter((f) => f.category === category)).map((f) => (
                   <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />
                 ))}
               </div>
@@ -233,9 +252,18 @@ export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
         </>
       )}
 
+      {restricted && (
+        <button className={`chip avoid-toggle ${hideAvoid ? "active" : ""}`} aria-pressed={hideAvoid} onClick={() => setHideAvoid((v) => !v)}>
+          <AlertTriangle size={14} /> {hideAvoid ? t("Hiding foods you avoid") : t("Showing all foods")}
+          {hideAvoid && q && hiddenCount > 0 ? ` · ${hiddenCount}` : ""}
+        </button>
+      )}
+
       {q && (
         <>
-          <div className="section-header">Foods · {local.length}</div>
+          <div className="section-header">
+            {t("Foods")} · {local.length}
+          </div>
           <div className="group">
             {local.length ? (
               local.map((f) => <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />)
@@ -255,7 +283,7 @@ export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
                 {online.loading && <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
               </div>
               <div className="group">
-                {online.items.map((f) => (
+                {fits(online.items).map((f) => (
                   <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />
                 ))}
                 {!online.loading && online.items.length === 0 && (

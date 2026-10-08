@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, ImagePlus, Info, Sparkles, Trash2 } from "lucide-react";
-import { MEALS, analyzePhoto, defaultMeal, prepareImage, type PhotoAnalysis, type PhotoItem } from "../lib/api";
+import { mealOptions, analyzePhoto, defaultMeal, prepareImage, type PhotoAnalysis, type PhotoItem } from "../lib/api";
 import { isNative, pickNativePhoto } from "../lib/platform";
 import { healthReport, round, suitability, sum, targets } from "../lib/nutrition";
 import { actions, todayKey, useStore } from "../lib/store";
 import type { MealType, Nutrients } from "../lib/types";
 import { useTodayTotals } from "./FoodSheet";
-import { HealthCard, Segmented, Sheet, SuitabilityCard, haptic, showToast } from "./ui";
+import { AvoidCard, HealthCard, Segmented, Sheet, SuitabilityCard, haptic, showToast } from "./ui";
+import { conflicts, nameTags } from "../lib/allergens";
 
 interface Editable extends PhotoItem {
   baseGrams: number;
@@ -236,12 +237,13 @@ export function PhotoSheet({ open, onClose }: { open: boolean; onClose: () => vo
           {result.notes && <p className="footnote">{result.notes}</p>}
 
           <div className="section-header">Is it good for me?</div>
+          <AvoidCard conflicts={conflicts(new Set(items.flatMap((i) => [...nameTags(`${i.name} ${result.mealName}`)])), profile)} />
           <SuitabilityCard s={suitability(total, t, eaten, profile.goal)} />
           <div className="spacer" />
           <HealthCard report={healthReport(total)} />
 
           <div className="section-header">Meal</div>
-          <Segmented value={meal} options={MEALS} onChange={setMeal} />
+          <Segmented value={meal} options={mealOptions()} onChange={setMeal} />
           <div className="spacer" />
           <button className="btn" onClick={addAll} disabled={!items.length}>
             Log {items.length} item{items.length === 1 ? "" : "s"}

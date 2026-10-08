@@ -3,7 +3,8 @@ import { Plus, RotateCcw } from "lucide-react";
 import type { RecipePart } from "../data/dishes";
 import { recipeTotals } from "../data/foods";
 import { FoodPicker } from "./MealBuilder";
-import { MEALS, defaultMeal } from "../lib/api";
+import { foodConflicts } from "../lib/allergens";
+import { defaultMeal, mealLabel, mealOptions } from "../lib/api";
 import {
   healthReport,
   isWholeProduce,
@@ -22,6 +23,7 @@ import {
   Sheet,
   Stepper,
   SuitabilityCard,
+  AvoidCard,
   haptic,
   showToast,
 } from "./ui";
@@ -367,11 +369,12 @@ export function FoodSheet({
             {!onPick && (
               <>
                 <div className="section-header">Meal</div>
-                <Segmented value={meal} options={MEALS} onChange={setMeal} />
+                <Segmented value={meal} options={mealOptions()} onChange={setMeal} />
               </>
             )}
 
             <div className="section-header">Is it good for me?</div>
+            <AvoidCard conflicts={foodConflicts(food, profile)} />
             <SuitabilityCard
               s={suitability(n, t, eaten, profile.goal, isWholeProduce(food))}
             />
@@ -387,7 +390,7 @@ export function FoodSheet({
               <button className="btn" onClick={add} disabled={grams <= 0}>
                 {onPick
                   ? pickLabel
-                  : `Add to ${MEALS.find((m) => m.value === meal)!.label}`}
+                  : `Add to ${mealLabel(meal)}`}
               </button>
             </div>
           </>

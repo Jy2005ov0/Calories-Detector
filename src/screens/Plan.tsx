@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronDown, Lightbulb, LogIn, Plus } from "lucide-react";
+import { ChevronDown, Lightbulb, LogIn, Plus, Sparkles } from "lucide-react";
+import { t as tr, useLanguage } from "../i18n";
 import { FOODS } from "../data/foods";
 import { FoodSheet } from "../components/FoodSheet";
 import { SPRING, Segmented, Stepper, haptic, showToast } from "../components/ui";
@@ -9,9 +10,10 @@ import { SPLITS, WEEKDAYS, buildPlan, sessionFromPlan, type PlannedDay } from ".
 import { bmr, round, targets, tdee } from "../lib/nutrition";
 import { actions, todayKey, useStore, useTodayKey, weekdayOf } from "../lib/store";
 import type { Food, MealType } from "../lib/types";
-import type { Tab } from "../App";
+import type { SheetKind, Tab } from "../App";
 
-export function Plan({ go }: { go: (t: Tab) => void }) {
+export function Plan({ go, openSheet }: { go: (t: Tab) => void; openSheet: (k: SheetKind) => void }) {
+  useLanguage();
   const [view, setView] = useState<"training" | "nutrition">("training");
   return (
     <div className="screen">
@@ -29,7 +31,7 @@ export function Plan({ go }: { go: (t: Tab) => void }) {
           ]}
         />
       </div>
-      {view === "training" ? <TrainingPlan go={go} /> : <NutritionPlan />}
+      {view === "training" ? <TrainingPlan go={go} /> : <NutritionPlan openSheet={openSheet} />}
     </div>
   );
 }
@@ -170,20 +172,35 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
   );
 }
 
-function NutritionPlan() {
+function NutritionPlan({ openSheet }: { openSheet: (k: SheetKind) => void }) {
   const profile = useStore((s) => s.profile);
   const t = targets(profile);
   const [food, setFood] = useState<Food | null>(null);
-  const groups = recommendedFoods(profile.goal, profile.diet);
-  const day = useMemo(() => sampleDay(t, profile.diet), [t, profile.diet]);
+  const groups = recommendedFoods(profile.goal, profile.diet, profile.allergies);
+  const day = useMemo(
+    () => sampleDay(t, profile.diet, { allergies: profile.allergies, fasting: profile.fasting }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t.kcal, t.protein, profile.diet, profile.allergies, profile.fasting],
+  );
   const byName = useMemo(() => new Map(FOODS.map((f) => [f.name, f])), []);
   const pct = (g: number, k: number) => Math.round(((g * k) / t.kcal) * 100);
 
-  const goalText = { lose: "a 20% deficit to lose ~0.5 kg/week", maintain: "maintenance", gain: "a 10% surplus for lean gains" }[profile.goal];
+  const goalText = {
+    lose: profile.fasting === "ramadan" ? tr("a 15% deficit (gentler during Ramadan)") : tr("a 20% deficit to lose ~0.5 kg/week"),
+    maintain: tr("maintenance"),
+    gain: tr("a 10% surplus for lean gains"),
+  }[profile.goal];
 
   const logMeal = (m: (typeof day.meals)[number]) => {
     const name = m.name.toLowerCase();
-    const meal: MealType = name.includes("breakfast") ? "breakfast" : name.includes("lunch") ? "lunch" : name.includes("dinner") ? "dinner" : "snack";
+    const meal: MealType =
+      name.includes("breakfast") || name.includes("sahur")
+        ? "breakfast"
+        : name.includes("lunch") || name.includes("first meal")
+          ? "lunch"
+          : name.includes("dinner") || name.includes("iftar") || name.includes("last meal")
+            ? "dinner"
+            : "snack";
     actions.addLog(m.items.map((i) => ({ date: todayKey(), meal, name: i.food.name, grams: i.grams, nutrients: i.nutrients, source: "db" as const })));
     haptic();
     showToast(`Logged ${m.name} · ${round(m.total.kcal)} kcal`);
@@ -274,7 +291,7 @@ function NutritionPlan() {
 
       <div className="section-header">Timing &amp; tips</div>
       <div className="group">
-        {mealTiming(profile.goal).map((x) => (
+        {mealTiming(profile.goal, profile.fasting).map((x) => (
           <div className="row" key={x.title} style={{ alignItems: "flex-start" }}>
             <div className="row-main">
               <div style={{ fontWeight: 600 }}>{x.title}</div>
@@ -285,6 +302,15 @@ function NutritionPlan() {
           </div>
         ))}
       </div>
+      <button className="card pressable coach-cta" onClick={() => openSheet("coach")}>
+        <div className="icon-tile" style={{ background: "linear-gradient(135deg, var(--indigo), var(--purple))" }}>
+          <Sparkles size={18} />
+        </div>
+        <div className="row-main">
+          <div className="tile-title">{tr("Ask the coach")}</div>
+          <div className="tile-sub">{tr("Swap a meal, plan tomorrow, or ask about a hawker dish")}</div>
+        </div>
+      </button>
       <p className="footnote">General guidance, not medical advice. If you have a medical condition, are pregnant, or under 18, check with a doctor or dietitian.</p>
 
       <FoodSheet food={food} onClose={() => setFood(null)} />

@@ -6,6 +6,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { getState, hydrate } from "./lib/store";
 import { hydrateAccount } from "./lib/account";
 import { applyTheme, platform } from "./lib/platform";
+import { startNativeServices } from "./lib/native";
 import "./styles.css";
 
 document.documentElement.dataset.platform = platform;
@@ -18,6 +19,8 @@ if (platform === "web" && import.meta.env.PROD && "serviceWorker" in navigator) 
 Promise.all([hydrate(), hydrateAccount()]).finally(() => {
   // Before the first frame, so a "Dark" choice never flashes light.
   applyTheme(getState().theme);
+  document.documentElement.lang = getState().language === "zh" ? "zh-CN" : getState().language === "ms" ? "ms-MY" : "en";
+  startNativeServices();
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <MotionConfig reducedMotion="user">

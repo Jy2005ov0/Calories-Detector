@@ -1,8 +1,8 @@
 import type { AppState } from "./store";
 
-type Collection = "log" | "customFoods" | "customMeals" | "sessions";
-const COLLECTIONS: Collection[] = ["log", "customFoods", "customMeals", "sessions"];
-const SCALARS = ["profile", "split", "tourDone", "activeSessionId", "recentFoodIds", "theme", "introDone"] as const;
+type Collection = "log" | "customFoods" | "customMeals" | "sessions" | "weights" | "days";
+const COLLECTIONS: Collection[] = ["log", "customFoods", "customMeals", "sessions", "weights", "days"];
+const SCALARS = ["profile", "split", "tourDone", "activeSessionId", "recentFoodIds", "theme", "introDone", "language", "reminders", "coach"] as const;
 
 const stamp = (s: AppState, k: keyof AppState) => s.stamps?.[k] ?? 0;
 
@@ -29,6 +29,11 @@ export function mergeStates(local: AppState, remote: AppState): AppState {
   }
   out.log.sort((a, b) => a.createdAt - b.createdAt);
   out.sessions.sort((a, b) => b.startedAt - a.startedAt);
+  // One weigh-in per day: if two phones logged the same day, keep the later one.
+  const byDate = new Map<string, AppState["weights"][number]>();
+  for (const w of out.weights) if ((byDate.get(w.date)?.createdAt ?? -1) < w.createdAt) byDate.set(w.date, w);
+  out.weights = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+  out.days.sort((a, b) => a.id.localeCompare(b.id));
 
   for (const key of SCALARS) {
     const src = stamp(remote, key) > stamp(local, key) ? remote : local;

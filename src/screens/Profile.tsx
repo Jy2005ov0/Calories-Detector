@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { AccountCard } from "../components/Account";
 import { AnimatePresence, motion } from "motion/react";
-import { Activity, ChevronRight, Dumbbell, Flame, Leaf, Moon, Scale, Sun, SunMoon, Target, TrendingDown, TrendingUp, User } from "lucide-react";
-import { Segmented, SPRING, Stepper, showToast } from "../components/ui";
+import { Activity, Bell, ChevronRight, Dumbbell, FileDown, FileText, Flame, Languages, Leaf, LineChart, Moon, MoonStar, Scale, Sun, SunMoon, Target, TrendingDown, TrendingUp, User } from "lucide-react";
+import { Segmented, SPRING, Stepper, Switch, showToast } from "../components/ui";
+import { LANGUAGES, t, useLanguage } from "../i18n";
+import { ALLERGENS } from "../lib/allergens";
+import { toCsv, toPdf } from "../lib/export";
+import { shareFile } from "../lib/native";
+import { isNative } from "../lib/platform";
+import { getState, todayKey } from "../lib/store";
+import type { SheetKind } from "../App";
 import { bmi, bmiLabel, bmr, round, targets, tdee } from "../lib/nutrition";
 import { getAccount, syncNow, useAccount } from "../lib/account";
 import { confirmDialog } from "../lib/platform";
@@ -108,9 +115,39 @@ function OptionList<T extends string | number>({
   );
 }
 
-export function ProfileScreen({ openBodyCheck }: { openBodyCheck: () => void }) {
+function TimeField({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      <input id={id} type="time" value={value} onChange={(e) => e.target.value && onChange(e.target.value)} style={{ width: 110 }} />
+    </div>
+  );
+}
+
+function exportName(ext: string) {
+  return `calories-${todayKey()}.${ext}`;
+}
+
+export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void }) {
+  useLanguage();
+  const openBodyCheck = () => openSheet("bodyCheck");
   const p = useStore((s) => s.profile);
-  const t = targets(p);
+  const reminders = useStore((s) => s.reminders);
+  const language = useStore((s) => s.language);
+  const [exporting, setExporting] = useState<null | "csv" | "pdf">(null);
+  const doExport = async (kind: "csv" | "pdf") => {
+    setExporting(kind);
+    try {
+      const s = getState();
+      const blob = kind === "csv" ? new Blob(["\uFEFF" + toCsv(s)], { type: "text/csv;charset=utf-8" }) : await toPdf(s, todayKey());
+      await shareFile(exportName(kind), blob, kind === "csv" ? t("Calories data (CSV)") : t("Calories 30-day report"));
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") showToast(t("Couldn't export: {msg}", { msg: (e as Error).message }));
+    } finally {
+      setExporting(null);
+    }
+  };
+  const tg = targets(p);
   const b = bmi(p);
   const signedIn = !!useAccount().token;
   const theme = useStore((s) => s.theme);
@@ -162,7 +199,7 @@ export function ProfileScreen({ openBodyCheck }: { openBodyCheck: () => void }) 
               {round(tdee(p))}
               <small>kcal</small>
             </span>
-            <span className="row-sub">Target {t.kcal}</span>
+            <span className="row-sub">Target {tg.kcal}</span>
           </div>
         </div>
       </div>
@@ -176,8 +213,18 @@ export function ProfileScreen({ openBodyCheck }: { openBodyCheck: () => void }) 
             <Scale size={17} />
           </div>
           <div className="row-main">
-            <div className="row-title">Body check</div>
-            <div className="row-sub">BMI calculator with training and diet advice</div>
+            <div className="row-title">{t("Body check")}</div>
+            <div className="row-sub">{t("BMI calculator with training and diet advice")}</div>
+          </div>
+          <ChevronRight size={16} className="chev" />
+        </button>
+        <button className="row with-icon" onClick={() => openSheet("progress")}>
+          <div className="icon-tile" style={{ background: "var(--blue)" }}>
+            <LineChart size={17} />
+          </div>
+          <div className="row-main">
+            <div className="row-title">{t("Progress")}</div>
+            <div className="row-sub">{t("Weight chart, steps, water and streaks")}</div>
           </div>
           <ChevronRight size={16} className="chev" />
         </button>
@@ -211,17 +258,153 @@ export function ProfileScreen({ openBodyCheck }: { openBodyCheck: () => void }) 
         </div>
       </div>
 
-      <div className="section-header">Diet</div>
+      <div className="section-header">{t("Diet")}</div>
       <div className="chips">
         {DIETS.map((d) => (
-          <button key={d.value} className={`chip ${p.diet === d.value ? "active" : ""}`} onClick={() => actions.updateProfile({ diet: d.value })}>
-            {d.label}
+          <button key={d.value} className={`chip ${p.diet === d.value ? "active" : ""}`} aria-pressed={p.diet === d.value} onClick={() => actions.updateProfile({ diet: d.value })}>
+            {t(d.label)}
           </button>
         ))}
       </div>
 
-      <div className="section-header">Data</div>
+      <div className="section-header">{t("Allergies & foods to avoid")}</div>
+      <div className="chips" role="group" aria-label={t("Allergies")}>
+        {ALLERGENS.map((a) => {
+          const on = p.allergies.includes(a.value);
+          return (
+            <button
+              key={a.value}
+              className={`chip ${on ? "active" : ""}`}
+              aria-pressed={on}
+              onClick={() => actions.updateProfile({ allergies: on ? p.allergies.filter((x) => x !== a.value) : [...p.allergies, a.value] })}
+            >
+              {t(a.label)}
+            </button>
+          );
+        })}
+      </div>
+      <p className="footnote">
+        {t("Foods that usually contain these{halal} are marked and left out of your meal plan. Recipes vary, so always check with the seller.", {
+          halal: p.diet === "halal" ? t(", pork or alcohol") : "",
+        })}
+      </p>
+
+      <div className="section-header">
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <MoonStar size={14} /> {t("Fasting")}
+        </span>
+      </div>
       <div className="group">
+        <div className="field">
+          <label>{t("Mode")}</label>
+          <div style={{ width: 230 }}>
+            <Segmented
+              ariaLabel={t("Fasting")}
+              value={p.fasting}
+              onChange={(fasting) => actions.updateProfile({ fasting })}
+              options={[
+                { value: "off", label: t("Off") },
+                { value: "ramadan", label: t("Ramadan") },
+                { value: "16:8", label: "16:8" },
+              ]}
+            />
+          </div>
+        </div>
+        {p.fasting === "ramadan" && (
+          <>
+            <TimeField id="pf-sahur" label={t("Sahur ends (imsak)")} value={p.fastTimes.sahur} onChange={(sahur) => actions.updateProfile({ fastTimes: { ...p.fastTimes, sahur } })} />
+            <TimeField id="pf-iftar" label={t("Iftar (maghrib)")} value={p.fastTimes.iftar} onChange={(iftar) => actions.updateProfile({ fastTimes: { ...p.fastTimes, iftar } })} />
+          </>
+        )}
+        {p.fasting === "16:8" && (
+          <TimeField id="pf-window" label={t("Eating window starts")} value={p.fastTimes.windowStart} onChange={(windowStart) => actions.updateProfile({ fastTimes: { ...p.fastTimes, windowStart } })} />
+        )}
+      </div>
+      {p.fasting !== "off" && (
+        <p className="footnote">
+          {p.fasting === "ramadan"
+            ? t("Meals become Sahur, Iftar and Moreh. Set the times for your area — they change through the month.")
+            : t("You eat for 8 hours and fast for 16. Today shows when your window opens and closes.")}
+        </p>
+      )}
+
+      <div className="section-header">
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <Bell size={14} /> {t("Reminders")}
+        </span>
+      </div>
+      <div className="group">
+        <div className="field">
+          <label>{p.fasting === "ramadan" ? t("Sahur and iftar") : t("Meals")}</label>
+          <Switch checked={reminders.meals} onChange={(meals) => actions.setReminders({ meals })} label={t("Meal reminders")} />
+        </div>
+        {reminders.meals && p.fasting !== "ramadan" && (
+          <>
+            <TimeField id="rm-b" label={t("Breakfast")} value={reminders.breakfast} onChange={(breakfast) => actions.setReminders({ breakfast })} />
+            <TimeField id="rm-l" label={t("Lunch")} value={reminders.lunch} onChange={(lunch) => actions.setReminders({ lunch })} />
+            <TimeField id="rm-d" label={t("Dinner")} value={reminders.dinner} onChange={(dinner) => actions.setReminders({ dinner })} />
+          </>
+        )}
+        <div className="field">
+          <label>{t("Drink water")}</label>
+          <Switch checked={reminders.water} onChange={(water) => actions.setReminders({ water })} label={t("Water reminders")} />
+        </div>
+        <div className="field">
+          <label>{t("Gym days")}</label>
+          <Switch checked={reminders.gym} onChange={(gym) => actions.setReminders({ gym })} label={t("Gym reminders")} />
+        </div>
+        {reminders.gym && <TimeField id="rm-g" label={t("Gym time")} value={reminders.gymTime} onChange={(gymTime) => actions.setReminders({ gymTime })} />}
+      </div>
+      <p className="footnote">
+        {isNative
+          ? t("Gym reminders and a running workout show Clock in / Clock out buttons — on your Apple Watch or Wear OS watch too.")
+          : t("Reminders work in the iPhone and Android apps. In a browser they can't be scheduled.")}
+      </p>
+
+      <div className="section-header">{t("Daily goals")}</div>
+      <div className="group">
+        <div className="field">
+          <label>{t("Steps")}</label>
+          <Stepper value={p.stepGoal} step={1000} min={2000} max={30000} format={(v) => v.toLocaleString()} label={t("step goal")} onChange={(stepGoal) => actions.updateProfile({ stepGoal })} />
+        </div>
+      </div>
+
+      <div className="section-header">
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <Languages size={14} /> {t("Language")}
+        </span>
+      </div>
+      <div className="group">
+        {LANGUAGES.map((l) => (
+          <button key={l.value} className="row" onClick={() => actions.setLanguage(l.value)} aria-pressed={language === l.value} lang={l.locale}>
+            <span className="row-main row-title">{l.label}</span>
+            {language === l.value && <span className="check-mark" aria-hidden>✓</span>}
+          </button>
+        ))}
+      </div>
+
+      <div className="section-header">{t("Data")}</div>
+      <div className="group">
+        <button className="row with-icon" onClick={() => doExport("csv")} disabled={!!exporting}>
+          <div className="icon-tile" style={{ background: "var(--green)" }}>
+            {exporting === "csv" ? <div className="spinner" style={{ borderTopColor: "#fff" }} /> : <FileDown size={17} />}
+          </div>
+          <div className="row-main">
+            <div className="row-title">{t("Export data (CSV)")}</div>
+            <div className="row-sub">{t("Food log, workouts, weight, water and steps")}</div>
+          </div>
+        </button>
+        <button className="row with-icon" onClick={() => doExport("pdf")} disabled={!!exporting}>
+          <div className="icon-tile" style={{ background: "var(--red)" }}>
+            {exporting === "pdf" ? <div className="spinner" style={{ borderTopColor: "#fff" }} /> : <FileText size={17} />}
+          </div>
+          <div className="row-main">
+            <div className="row-title">{t("30-day report (PDF)")}</div>
+            <div className="row-sub">{t("To share with a coach, trainer or doctor")}</div>
+          </div>
+        </button>
+      </div>
+      <div className="group" style={{ marginTop: 12 }}>
         <button
           className="row"
           style={{ color: "var(--red)" }}

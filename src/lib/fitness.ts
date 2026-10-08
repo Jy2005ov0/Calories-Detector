@@ -290,6 +290,7 @@ export function sessionFromPlan(day: PlannedDay): SessionExercise[] {
       kind: "strength",
       met: ex?.met ?? 5,
       targetReps: e.reps,
+      restSec: e.restSec,
       sets: Array.from({ length: e.sets }, () => ({ reps: parseInt(e.reps, 10) || 10, weightKg: 0, done: false })),
     };
   });

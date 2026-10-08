@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { SplitId } from "./fitness";
 import { readDurable, writeDurable } from "./platform";
-import type { CustomMeal, Food, LogEntry, Profile, WorkoutSession } from "./types";
+import type { ChatMessage, CustomMeal, DayStats, Food, LogEntry, Profile, Reminders, WeightEntry, WorkoutSession } from "./types";
 
 export interface AppState {
   profile: Profile;
@@ -18,6 +18,15 @@ export interface AppState {
   introDone: boolean;
   /** Appearance: follow the phone, or always light / dark. */
   theme: "system" | "light" | "dark";
+  /** App language. */
+  language: "en" | "ms" | "zh";
+  /** Weigh-ins, oldest first. */
+  weights: WeightEntry[];
+  /** Water and steps per day. */
+  days: DayStats[];
+  reminders: Reminders;
+  /** Conversation with the AI coach. */
+  coach: ChatMessage[];
   /** IDs of deleted entries, so a delete on one device isn't undone by another during sync. */
   deleted: string[];
   /** When each field last changed on this device; sync keeps the newer side field by field. */
@@ -37,7 +46,21 @@ export const DEFAULT_PROFILE: Profile = {
   experience: "beginner",
   trainingDays: 4,
   diet: "anything",
+  allergies: [],
+  fasting: "off",
+  fastTimes: { sahur: "05:45", iftar: "19:20", windowStart: "12:00" },
+  stepGoal: 8000,
   onboarded: false,
+};
+
+export const DEFAULT_REMINDERS: Reminders = {
+  meals: false,
+  water: false,
+  gym: false,
+  breakfast: "08:00",
+  lunch: "12:30",
+  dinner: "19:00",
+  gymTime: "18:00",
 };
 
 const initial: AppState = {
@@ -52,6 +75,11 @@ const initial: AppState = {
   tourDone: false,
   introDone: false,
   theme: "system",
+  language: "en",
+  weights: [],
+  days: [],
+  reminders: DEFAULT_REMINDERS,
+  coach: [],
   deleted: [],
   stamps: {},
 };
@@ -62,7 +90,7 @@ export function parseState(raw: string | null): AppState | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Partial<AppState>;
-    return { ...initial, ...parsed, profile: { ...DEFAULT_PROFILE, ...parsed.profile } };
+    return { ...initial, ...parsed, profile: { ...DEFAULT_PROFILE, ...parsed.profile }, reminders: { ...DEFAULT_REMINDERS, ...parsed.reminders } };
   } catch {
     return null;
   }
@@ -230,6 +258,35 @@ export const actions = {
       activeSessionId: st.activeSessionId === id ? null : st.activeSessionId,
       deleted: tombstone(st.deleted, id),
     }));
+  },
+  /** Record today's weight (one entry per day) and update the profile so targets follow. */
+  logWeight(kg: number, date = todayKey()) {
+    setState((s) => {
+      const existing = s.weights.find((w) => w.date === date);
+      const entry: WeightEntry = { id: existing?.id ?? uid(), date, kg, createdAt: Date.now() };
+      const weights = [...s.weights.filter((w) => w.date !== date), entry].sort((a, b) => a.date.localeCompare(b.date));
+      const latest = weights[weights.length - 1];
+      return { weights, profile: latest.id === entry.id ? { ...s.profile, weightKg: kg } : s.profile };
+    });
+  },
+  removeWeight(id: string) {
+    setState((s) => ({ weights: s.weights.filter((w) => w.id !== id), deleted: tombstone(s.deleted, id) }));
+  },
+  updateDay(date: string, fn: (d: DayStats) => DayStats) {
+    setState((s) => {
+      const current = s.days.find((d) => d.id === date) ?? { id: date, waterMl: 0, steps: 0 };
+      // Keep about a year of daily stats.
+      return { days: [...s.days.filter((d) => d.id !== date), fn(current)].sort((a, b) => a.id.localeCompare(b.id)).slice(-400) };
+    });
+  },
+  setReminders(r: Partial<Reminders>) {
+    setState((s) => ({ reminders: { ...s.reminders, ...r } }));
+  },
+  setLanguage(language: AppState["language"]) {
+    setState({ language });
+  },
+  setCoach(coach: ChatMessage[]) {
+    setState({ coach: coach.slice(-60) });
   },
   setTheme(theme: AppState["theme"]) {
     setState({ theme });

@@ -1,5 +1,7 @@
 import { apiConfigured, apiUrl } from "./platform";
-import type { Food, MealType } from "./types";
+import { t } from "../i18n";
+import { getState } from "./store";
+import type { Food, MealType, Profile } from "./types";
 
 // ── Open Food Facts (free, no key, millions of packaged products) ──
 
@@ -28,30 +30,45 @@ export async function searchOnline(query: string, signal?: AbortSignal): Promise
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`Search failed (${res.status})`);
   const data = (await res.json()) as { products?: OffProduct[] };
-  return (data.products ?? [])
-    .filter((p) => p.product_name && p.nutriments && p.nutriments["energy-kcal_100g"] !== undefined)
-    .map((p): Food => {
-      const n = p.nutriments!;
-      const servingG = num(p.serving_quantity);
-      return {
-        id: `off-${p.code}`,
-        name: p.product_name!.trim(),
-        brand: p.brands?.split(",")[0]?.trim(),
-        category: "Packaged",
-        per100: {
-          kcal: num(n["energy-kcal_100g"]),
-          protein: num(n.proteins_100g),
-          carbs: num(n.carbohydrates_100g),
-          fat: num(n.fat_100g),
-          fiber: num(n.fiber_100g),
-          sugar: num(n.sugars_100g),
-          satFat: num(n["saturated-fat_100g"]),
-          sodium: num(n.sodium_100g) * 1000,
-        },
-        servings: servingG > 0 ? [{ label: p.serving_size || "1 serving", grams: servingG }] : [{ label: "100 g", grams: 100 }],
-        source: "online",
-      };
-    });
+  return (data.products ?? []).filter(hasNutrition).map(offToFood);
+}
+
+const hasNutrition = (p: OffProduct) => !!p.product_name && !!p.nutriments && p.nutriments["energy-kcal_100g"] !== undefined;
+
+function offToFood(p: OffProduct): Food {
+  const n = p.nutriments!;
+  const servingG = num(p.serving_quantity);
+  return {
+    id: `off-${p.code}`,
+    name: p.product_name!.trim(),
+    brand: p.brands?.split(",")[0]?.trim(),
+    category: "Packaged",
+    per100: {
+      kcal: num(n["energy-kcal_100g"]),
+      protein: num(n.proteins_100g),
+      carbs: num(n.carbohydrates_100g),
+      fat: num(n.fat_100g),
+      fiber: num(n.fiber_100g),
+      sugar: num(n.sugars_100g),
+      satFat: num(n["saturated-fat_100g"]),
+      sodium: num(n.sodium_100g) * 1000,
+    },
+    servings: servingG > 0 ? [{ label: p.serving_size || "1 serving", grams: servingG }] : [{ label: "100 g", grams: 100 }],
+    source: "online",
+  };
+}
+
+/** Look up a packaged product by its barcode. Null when it isn't in Open Food Facts or has no nutrition. */
+export async function lookupBarcode(code: string, signal?: AbortSignal): Promise<Food | null> {
+  const clean = code.replace(/\D/g, "");
+  const url = `https://world.openfoodfacts.org/api/v2/product/${clean}.json?fields=code,product_name,brands,serving_quantity,serving_size,nutriments`;
+  const res = await fetch(url, { signal });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Lookup failed (${res.status})`);
+  const data = (await res.json()) as { status?: number; product?: OffProduct };
+  if (data.status !== 1 || !data.product) return null;
+  const p = { ...data.product, code: data.product.code ?? clean };
+  return hasNutrition(p) ? offToFood(p) : null;
 }
 
 // ── Photo analysis (server → Claude vision) ──
@@ -102,8 +119,9 @@ export async function prepareImage(file: File): Promise<{ base64: string; mediaT
   return { base64: preview.split(",")[1], mediaType: "image/jpeg", preview };
 }
 
-export function defaultMeal(d = new Date()): MealType {
-  const h = d.getHours();
+export function defaultMeal(d = new Date(), fasting: Profile["fasting"] = getState().profile.fasting): MealType {
+  const h = d.getHours() + d.getMinutes() / 60;
+  if (fasting === "ramadan") return h < 6.5 ? "breakfast" : h >= 18.5 && h < 21.5 ? "dinner" : h >= 21.5 ? "snack" : "dinner";
   if (h < 10.5) return "breakfast";
   if (h < 15) return "lunch";
   if (h >= 17 && h < 21.5) return "dinner";
@@ -116,3 +134,17 @@ export const MEALS: { value: MealType; label: string }[] = [
   { value: "dinner", label: "Dinner" },
   { value: "snack", label: "Snack" },
 ];
+
+const RAMADAN_LABEL: Partial<Record<MealType, string>> = { breakfast: "Sahur", dinner: "Iftar", snack: "Moreh" };
+
+/** The name of a meal slot. During Ramadan breakfast is sahur, dinner is iftar and the snack is moreh. */
+export function mealLabel(m: MealType, fasting: Profile["fasting"] = getState().profile.fasting): string {
+  const label = (fasting === "ramadan" && RAMADAN_LABEL[m]) || MEALS.find((x) => x.value === m)!.label;
+  return t(label);
+}
+
+/** Meal slots to offer, in the order of the day. */
+export function mealOptions(fasting: Profile["fasting"] = getState().profile.fasting): { value: MealType; label: string }[] {
+  const order: MealType[] = fasting === "ramadan" ? ["breakfast", "dinner", "snack"] : ["breakfast", "lunch", "dinner", "snack"];
+  return order.map((value) => ({ value, label: mealLabel(value, fasting) }));
+}

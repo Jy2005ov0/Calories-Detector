@@ -8,6 +8,7 @@ import { z } from "zod";
 import { authConfigFromEnv, authRouter, type AuthConfig } from "./auth";
 import { openDb, type DB } from "./db";
 import { syncRouter } from "./sync";
+import { coachRouter } from "./coach";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 8787);
@@ -56,8 +57,10 @@ export function createApp(db: DB = openDb(), authConfig: AuthConfig = authConfig
   app.use("/api/auth", authRouter(db, authConfig));
   app.use("/api/data", syncRouter(db));
 
+  app.use("/api/coach", coachRouter(getClient));
+
   app.get("/api/health", (_req, res) => {
-    res.json({ ok: true, photoAnalysis: getClient() !== null });
+    res.json({ ok: true, photoAnalysis: getClient() !== null, coach: getClient() !== null });
   });
 
   const ALLOWED_MEDIA = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;

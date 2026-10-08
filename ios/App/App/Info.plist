@@ -64,6 +64,10 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Calories reads your steps and weight from Apple Health to show your progress.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Calories saves the weigh-ins you log to Apple Health.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Take a photo of your meal so Calories can estimate what's on your plate.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

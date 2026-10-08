@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Trash2, UtensilsCrossed } from "lucide-react";
 import { FOODS } from "../data/foods";
-import { MEALS, defaultMeal } from "../lib/api";
+import { defaultMeal, mealOptions } from "../lib/api";
 import { healthReport, round, scale, searchFoods, suitability, sum, targets } from "../lib/nutrition";
 import { actions, todayKey, uid, useStore } from "../lib/store";
 import type { CustomMeal, Food, MealType } from "../lib/types";
@@ -116,7 +116,7 @@ export function MealBuilder({ open, onClose, initial }: { open: boolean; onClose
             <HealthCard report={healthReport(total)} />
 
             <div className="section-header">Log to</div>
-            <Segmented value={meal} options={MEALS} onChange={setMeal} />
+            <Segmented value={meal} options={mealOptions()} onChange={setMeal} />
             <div className="spacer" />
             <div className="btn-row">
               <button className="btn secondary" onClick={save}>

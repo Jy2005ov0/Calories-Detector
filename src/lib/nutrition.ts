@@ -56,7 +56,9 @@ export interface Targets {
 
 export function targets(p: Profile): Targets {
   const floor = p.sex === "male" ? 1500 : 1200;
-  const kcal = Math.max(floor, Math.round((tdee(p) * (1 + GOAL_ADJUST[p.goal])) / 10) * 10);
+  // During Ramadan a 20% deficit on top of fasting is hard to sustain; use 15%.
+  const adjust = p.goal === "lose" && p.fasting === "ramadan" ? -0.15 : GOAL_ADJUST[p.goal];
+  const kcal = Math.max(floor, Math.round((tdee(p) * (1 + adjust)) / 10) * 10);
   // Protein: 2.0 g/kg while cutting (preserve muscle), 1.8 g/kg otherwise (ISSN position stand).
   const protein = Math.round(p.weightKg * (p.goal === "lose" ? 2.0 : 1.8));
   const fat = Math.round((kcal * (p.goal === "lose" ? 0.27 : 0.28)) / 9);

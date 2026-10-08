@@ -62,7 +62,7 @@ export function requireAuth(db: DB) {
 
 // ── Brute-force protection ───────────────────────────────
 
-function rateLimiter(max: number, windowMs: number) {
+export function rateLimiter(max: number, windowMs: number) {
   const hits = new Map<string, number[]>();
   return (key: string) => {
     const now = Date.now();
