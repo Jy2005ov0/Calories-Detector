@@ -3,6 +3,7 @@ import type { AreaDict } from "./index";
 // Translations for the core area. Keys are the exact English strings passed to t().
 export const CORE: AreaDict = {
   ms: {
+    "Calories · Training · Fitness": "Kalori · Latihan · Kecergasan",
     "Camera or photo library": "Kamera atau galeri foto",
     "Choose a meal photo from your library": "Pilih foto hidangan daripada galeri anda",
     "Photos": "Foto",
@@ -125,7 +126,7 @@ export const CORE: AreaDict = {
     Burned: "Dibakar",
     Volume: "Volum",
     "+ {n} more": "+ {n} lagi",
-    "Tracked with Calories": "Dijejak dengan Calories",
+    "Tracked with W": "Dijejak dengan W",
 
     // ── Guided tour ──
     "Step {n} of {total}": "Langkah {n} daripada {total}",
@@ -135,7 +136,7 @@ export const CORE: AreaDict = {
     Done: "Selesai",
     "Show me": "Tunjukkan",
     "How to use the app": "Cara menggunakan aplikasi",
-    "Welcome to Calories 👋": "Selamat datang ke Calories 👋",
+    "Welcome to W 👋": "Selamat datang ke W 👋",
     "This short guide shows you how to count calories, track workouts and follow your plan. It takes about a minute.":
       "Panduan ringkas ini menunjukkan cara mengira kalori, menjejak latihan dan mengikut pelan anda. Ia mengambil kira-kira seminit.",
     "Your day at a glance": "Hari anda sepintas lalu",
@@ -273,6 +274,7 @@ export const CORE: AreaDict = {
     "Weight from {from} kg on {d1} to {to} kg on {d2}": "Berat daripada {from} kg pada {d1} kepada {to} kg pada {d2}",
   },
   zh: {
+    "Calories · Training · Fitness": "卡路里 · 训练 · 健身",
     "Camera or photo library": "拍照或从相册选择",
     "Choose a meal photo from your library": "从相册选择餐食照片",
     "Photos": "相册",
@@ -395,7 +397,7 @@ export const CORE: AreaDict = {
     Burned: "消耗",
     Volume: "训练量",
     "+ {n} more": "+ 另外 {n} 项",
-    "Tracked with Calories": "由 Calories 记录",
+    "Tracked with W": "由 W 记录",
 
     // ── Guided tour ──
     "Step {n} of {total}": "第 {n} 步，共 {total} 步",
@@ -405,7 +407,7 @@ export const CORE: AreaDict = {
     Done: "完成",
     "Show me": "开始了解",
     "How to use the app": "使用指南",
-    "Welcome to Calories 👋": "欢迎使用 Calories 👋",
+    "Welcome to W 👋": "欢迎使用 W 👋",
     "This short guide shows you how to count calories, track workouts and follow your plan. It takes about a minute.":
       "这份简短指南将教你如何计算热量、记录训练并跟随计划，大约需要一分钟。",
     "Your day at a glance": "一览今日概况",

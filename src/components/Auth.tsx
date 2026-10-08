@@ -179,14 +179,15 @@ export function Welcome() {
             alt=""
             width={96}
             height={96}
-            style={{ borderRadius: 22, margin: "0 auto", boxShadow: "0 10px 30px rgba(255, 90, 60, 0.35)" }}
+            style={{ borderRadius: 22, margin: "0 auto", boxShadow: "0 12px 30px rgba(0, 0, 0, 0.25)" }}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={SPRING}
           />
-          <h1 className="large-title" style={{ marginTop: 22 }}>
-            Calories
+          <h1 className="wordmark" style={{ marginTop: 18 }}>
+            W
           </h1>
+          <p className="tagline">{t("Calories · Training · Fitness")}</p>
           <p className="subtitle" style={{ maxWidth: 300, margin: "6px auto 0" }}>
             {t("Count calories from a photo, clock in at the gym and follow a plan made for your body.")}
           </p>

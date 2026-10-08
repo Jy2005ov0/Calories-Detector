@@ -1,4 +1,8 @@
-# Calories — Food & Training
+<p align="center"><img src="assets/icon.svg" width="128" height="128" alt="W app icon: a W lifting a barbell, with a flame"></p>
+
+# W — Calories & Training
+
+**W** is a calorie, training and fitness app. The logo is a **W** pressing a barbell overhead (training) with a flame at its heart (calories burned).
 
 A mobile-first calorie and gym app with an Apple-style interface. It counts calories from a **photo** or a **search**, tracks gym sessions with **clock in / clock out**, builds a **training split** (chest, back, arms, legs…) and a matching **meal plan**, and tells you whether a meal is **healthy and right for your goal**.
 
@@ -17,7 +21,7 @@ Runs on **iOS and Android** three ways:
 1. Open the app's web address in **Safari**.
 2. Tap the **Share** button (the square with an arrow pointing up).
 3. Scroll down and tap **Add to Home Screen**, then **Add**.
-4. Open **Calories** from your Home Screen. It runs full screen and works offline.
+4. Open **W** from your Home Screen. It runs full screen and works offline.
 
 **Native app from source (needs a Mac)**
 

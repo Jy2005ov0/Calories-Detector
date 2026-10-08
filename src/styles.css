@@ -1986,3 +1986,24 @@ button.row:active,
   gap: 12px;
   margin-top: 16px;
 }
+
+/* Brand wordmark: the W in the logo's flame gradient. */
+.wordmark {
+  font-size: 64px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  margin: 0;
+  background: linear-gradient(180deg, #ffb300 0%, #ff8a00 45%, #ff2d55 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.tagline {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--label-2);
+}

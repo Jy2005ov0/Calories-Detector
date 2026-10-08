@@ -1,6 +1,6 @@
 {
-  "name": "Calories — Food & Training",
-  "short_name": "Calories",
+  "name": "W — Calories & Training",
+  "short_name": "W",
   "description": "Count calories from a photo or search, clock in at the gym, and follow a training and meal plan.",
   "id": "/",
   "start_url": "/",

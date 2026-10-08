@@ -6,7 +6,7 @@ const devServer = process.env.CAP_SERVER_URL;
 
 const config: CapacitorConfig = {
   appId: "com.caloriesdetector.app",
-  appName: "Calories",
+  appName: "W",
   webDir: "dist",
   ...(devServer ? { server: { url: devServer, cleartext: true } } : {}),
   ios: {

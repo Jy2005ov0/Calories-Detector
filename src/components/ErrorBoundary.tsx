@@ -10,7 +10,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
   }
 
   componentDidCatch(error: Error) {
-    console.error("Calories crashed:", error);
+    console.error("W crashed:", error);
   }
 
   render() {

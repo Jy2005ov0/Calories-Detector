@@ -18,7 +18,7 @@ interface Step {
 export const TOUR_STEPS: Step[] = [
   {
     tab: "today",
-    title: "Welcome to Calories 👋",
+    title: "Welcome to W 👋",
     body: "This short guide shows you how to count calories, track workouts and follow your plan. It takes about a minute.",
   },
   {

@@ -77,7 +77,7 @@ async function onboard(
   await page.locator(".chip", { hasText: p.diet }).click();
   await page.getByRole("button", { name: "Build my plan" }).click();
   // The guide opens once after onboarding; these journeys skip it.
-  await expect(page.getByRole("dialog", { name: "Welcome to Calories 👋" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Welcome to W 👋" })).toBeVisible();
   await page.getByRole("button", { name: "Skip" }).click();
   await expect(page.getByRole("heading", { name: new RegExp(`Good \\w+, ${p.name}`) })).toBeVisible();
 }
@@ -383,7 +383,7 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
 
   // 1. The guide opens by itself and walks through every part of the app.
   const guide = (title: string | RegExp) => page.getByRole("dialog", { name: title });
-  await expect(guide("Welcome to Calories 👋")).toBeVisible();
+  await expect(guide("Welcome to W 👋")).toBeVisible();
   await page.getByRole("button", { name: "Show me" }).click();
 
   const expected: [string, string, string][] = [
@@ -428,7 +428,7 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
 
   // …but the ? button replays it any time.
   await page.getByRole("button", { name: "How to use the app" }).click();
-  await expect(guide("Welcome to Calories 👋")).toBeVisible();
+  await expect(guide("Welcome to W 👋")).toBeVisible();
   await page.getByRole("button", { name: "Skip" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 

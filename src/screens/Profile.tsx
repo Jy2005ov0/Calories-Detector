@@ -140,7 +140,7 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
     try {
       const s = getState();
       const blob = kind === "csv" ? new Blob(["\uFEFF" + toCsv(s)], { type: "text/csv;charset=utf-8" }) : await toPdf(s, todayKey());
-      await shareFile(exportName(kind), blob, kind === "csv" ? t("Calories data (CSV)") : t("Calories 30-day report"));
+      await shareFile(exportName(kind), blob, kind === "csv" ? t("W data (CSV)") : t("W 30-day report"));
     } catch (e) {
       if ((e as Error).name !== "AbortError") showToast(t("Couldn't export: {msg}", { msg: (e as Error).message }));
     } finally {
@@ -445,7 +445,7 @@ export function Onboarding() {
 
   const steps = [
     {
-      title: "Calories",
+      title: "W",
       sub: t("Snap or search your food, track your training, and get a plan that fits your body."),
       body: (
         <div style={{ display: "grid", gap: 10 }}>

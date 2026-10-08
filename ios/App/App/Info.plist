@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>Calories</string>
+        <string>W</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -65,14 +65,14 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Calories reads your steps and weight from Apple Health to show your progress.</string>
+	<string>W reads your steps and weight from Apple Health to show your progress.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Calories saves the weigh-ins you log to Apple Health.</string>
+	<string>W saves the weigh-ins you log to Apple Health.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Take a photo of your meal so Calories can estimate what's on your plate.</string>
+	<string>Take a photo of your meal so W can estimate what's on your plate.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Choose a meal photo from your library so Calories can estimate its nutrition.</string>
+	<string>Choose a meal photo from your library so W can estimate its nutrition.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Calories only saves photos to your library if you ask it to.</string>
+	<string>W only saves photos to your library if you ask it to.</string>
 </dict>
 </plist>
