@@ -93,7 +93,7 @@ export function IntroGuide({ onDone }: { onDone: () => void }) {
         <span className="muted" style={{ fontSize: 13, fontWeight: 600 }} aria-live="polite">
           {index + 1} of {INTRO_SLIDES.length}
         </span>
-        <button className="link bold" onClick={onDone}>
+        <button className="link bold tap" onClick={onDone}>
           Skip
         </button>
       </div>

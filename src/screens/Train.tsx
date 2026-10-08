@@ -81,7 +81,7 @@ export function Train() {
       <div className="screen">
         <div className="title-row" style={{ marginTop: 14 }}>
           <h1 className="large-title">{active.title}</h1>
-          <span className="badge" style={{ background: "var(--green)", color: "#fff", marginBottom: 8 }}>
+          <span className="badge" style={{ background: "var(--green-fill)", color: "#fff", marginBottom: 8 }}>
             <span className="pulse" style={{ width: 7, height: 7 }} /> LIVE
           </span>
         </div>

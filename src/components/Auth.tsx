@@ -193,14 +193,14 @@ export function Welcome() {
       <button className="btn secondary" onClick={() => setSheet("signup")}>
         <Mail size={18} /> Sign up with email
       </button>
-      <p style={{ textAlign: "center", margin: "16px 0 0", fontSize: 15 }}>
+      <p style={{ textAlign: "center", margin: "22px 0 0", fontSize: 15 }}>
         <span className="muted">Already have an account? </span>
-        <button className="link bold" onClick={() => setSheet("login")}>
+        <button className="link bold tap" onClick={() => setSheet("login")}>
           Log in
         </button>
       </p>
-      <p style={{ textAlign: "center", margin: "10px 0 0" }}>
-        <button className="link" onClick={continueAsGuest} style={{ fontSize: 15 }}>
+      <p style={{ textAlign: "center", margin: "26px 0 0" }}>
+        <button className="link tap" onClick={continueAsGuest} style={{ fontSize: 15 }}>
           Continue without an account
         </button>
       </p>

@@ -5,7 +5,8 @@
   --bg-fill: rgba(118, 118, 128, 0.12);
   --bg-fill-2: rgba(118, 118, 128, 0.08);
   --label: #000000;
-  --label-2: rgba(60, 60, 67, 0.6);
+  /* Secondary text at 0.75 (not iOS's 0.6) to reach 4.5:1 contrast on the grouped background. */
+  --label-2: rgba(60, 60, 67, 0.75);
   --label-3: rgba(60, 60, 67, 0.3);
   --separator: rgba(60, 60, 67, 0.18);
   --material: rgba(249, 249, 249, 0.78);
@@ -13,15 +14,24 @@
   --material-edge: rgba(255, 255, 255, 0.5);
   --scrim: rgba(0, 0, 0, 0.32);
 
-  --blue: #007aff;
+  /* Blue and red double as text colours, so they use Apple's accessible variants. */
+  --blue: #0058b0;
   --green: #34c759;
   --orange: #ff9500;
-  --red: #ff3b30;
+  --red: #c4000f;
   --pink: #ff2d55;
   --purple: #af52de;
   --indigo: #5856d6;
   --teal: #30b0c7;
   --yellow: #ffcc00;
+
+  /* Text in status colours, and fills that carry white text: all ≥ 4.5:1. */
+  --green-ink: #1f7a35;
+  --orange-ink: #9c4500;
+  --accent-fill: var(--blue);
+  --green-fill: #1e7e34;
+  --orange-fill: #c45200;
+  --red-fill: #c4000f;
 
   --protein: var(--pink);
   --carbs: var(--blue);
@@ -54,10 +64,16 @@
     --material-thick: rgba(44, 44, 46, 0.92);
     --material-edge: rgba(255, 255, 255, 0.08);
     --scrim: rgba(0, 0, 0, 0.5);
-    --blue: #0a84ff;
+    --blue: #409cff;
     --green: #30d158;
     --orange: #ff9f0a;
-    --red: #ff453a;
+    --red: #ff6961;
+    --green-ink: #30d158;
+    --orange-ink: #ff9f0a;
+    --accent-fill: #0a6cdc;
+    --green-fill: #1e7e34;
+    --orange-fill: #c45200;
+    --red-fill: #e0241c;
     --pink: #ff375f;
     --purple: #bf5af2;
     --indigo: #5e5ce6;
@@ -337,7 +353,7 @@ button.row:active,
   padding: 0 20px;
   border-radius: 14px;
   font-weight: 600;
-  background: var(--blue);
+  background: var(--accent-fill);
   color: #fff;
   width: 100%;
   transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 160ms;
@@ -369,11 +385,11 @@ button.row:active,
 }
 
 .btn.green {
-  background: var(--green);
+  background: var(--green-fill);
 }
 
 .btn.red {
-  background: var(--red);
+  background: var(--red-fill);
 }
 
 .btn.small {
@@ -528,6 +544,8 @@ button.row:active,
 
 .field input,
 .field select {
+  /* Fill the row's height so the whole 44pt row is the tap target. */
+  align-self: stretch;
   border: 0;
   background: none;
   outline: none;
@@ -909,7 +927,10 @@ button.row:active,
   border: 0.5px solid var(--material-edge);
   font-weight: 500;
   font-size: 0.9375rem;
-  white-space: nowrap;
+  /* Wrap long messages instead of running off small screens. */
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  line-height: 1.3;
 }
 
 /* ── Misc ───────────────────────────────────────────── */
@@ -1007,7 +1028,7 @@ button.row:active,
 }
 
 .weekday .mark.train {
-  background: var(--blue);
+  background: var(--accent-fill);
   color: #fff;
 }
 
@@ -1038,7 +1059,7 @@ button.row:active,
 }
 
 .check.on {
-  background: var(--green);
+  background: var(--green-fill);
   color: #fff;
 }
 
@@ -1048,7 +1069,7 @@ button.row:active,
   gap: 12px;
   padding: 12px 14px;
   border-radius: var(--radius-lg);
-  background: var(--green);
+  background: var(--green-fill);
   color: #fff;
   width: 100%;
   text-align: left;
@@ -1088,6 +1109,8 @@ button.row:active,
 }
 
 .onboard {
+  /* Steps slide in from the side; don't let that widen the page. */
+  overflow-x: clip;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -1165,7 +1188,7 @@ button.row:active,
 @media (prefers-contrast: more) {
   :root {
     --separator: rgba(60, 60, 67, 0.5);
-    --label-2: rgba(60, 60, 67, 0.85);
+    --label-2: rgba(60, 60, 67, 0.9);
   }
   .tabbar {
     border-top: 1px solid var(--label);
@@ -1408,8 +1431,8 @@ button.row:active,
 
 /* 8px dots with a 32px hit area */
 .intro-dots button {
-  width: 24px;
-  height: 32px;
+  width: 32px;
+  height: 44px;
   display: grid;
   place-items: center;
 }
@@ -1445,4 +1468,25 @@ button.row:active,
   .intro-points li {
     padding: 8px 12px;
   }
+}
+
+/* ── Touch targets ──────────────────────────────────── */
+/* Text-style buttons keep their look but get a 44pt-tall hit area (Apple HIG). */
+.tap,
+.section-header button,
+.sheet-header .side > .link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 8px;
+  margin: -10px -8px;
+}
+
+.search-clear {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: -6px -8px -6px 0;
+  color: var(--label-3);
 }

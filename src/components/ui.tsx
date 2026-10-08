@@ -251,18 +251,20 @@ export function Stepper({
 // ── Health & suitability ────────────────────────────────
 
 export const GRADE_COLORS: Record<Grade, string> = {
-  A: "#1f9d55",
+  A: "#13803f",
   B: "#7cb342",
   C: "#f5b400",
   D: "#f57c00",
-  E: "#e53935",
+  E: "#c62828",
 };
+/** Letter colour per grade, chosen for ≥ 4.5:1 contrast on its background. */
+export const GRADE_TEXT: Record<Grade, string> = { A: "#fff", B: "#1d1d1f", C: "#1d1d1f", D: "#1d1d1f", E: "#fff" };
 
 export function HealthCard({ report }: { report: HealthReport }) {
   return (
     <div className="card">
       <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-        <div className="grade" style={{ background: GRADE_COLORS[report.grade] }}>
+        <div className="grade" style={{ background: GRADE_COLORS[report.grade], color: GRADE_TEXT[report.grade] }}>
           {report.grade}
         </div>
         <div>
@@ -275,7 +277,7 @@ export function HealthCard({ report }: { report: HealthReport }) {
       {(report.positives.length > 0 || report.negatives.length > 0) && (
         <div className="pill-list">
           {report.positives.map((p) => (
-            <span key={p} className="badge" style={{ color: "var(--green)" }}>
+            <span key={p} className="badge" style={{ color: "var(--green-ink)" }}>
               <CircleCheck size={12} /> {p}
             </span>
           ))}
@@ -291,9 +293,9 @@ export function HealthCard({ report }: { report: HealthReport }) {
 }
 
 const VERDICT_STYLE = {
-  great: { color: "var(--green)", Icon: ThumbsUp },
+  great: { color: "var(--green-ink)", Icon: ThumbsUp },
   ok: { color: "var(--blue)", Icon: CircleCheck },
-  caution: { color: "var(--orange)", Icon: TriangleAlert },
+  caution: { color: "var(--orange-ink)", Icon: TriangleAlert },
   avoid: { color: "var(--red)", Icon: CircleAlert },
 } as const;
 

@@ -8,7 +8,7 @@ import { actions, todayKey, useStore } from "../lib/store";
 import type { CustomMeal, Food } from "../lib/types";
 import { FoodSheet } from "../components/FoodSheet";
 import { CustomFoodSheet, MealBuilder } from "../components/MealBuilder";
-import { Empty, GRADE_COLORS, Segmented, haptic, showToast } from "../components/ui";
+import { Empty, GRADE_COLORS, GRADE_TEXT, Segmented, haptic, showToast } from "../components/ui";
 
 type View = "recent" | "meals" | "mine" | "browse";
 
@@ -25,7 +25,7 @@ function FoodRow({ f, onClick }: { f: Food; onClick: () => void }) {
           {s.label} · {kcal} kcal
         </div>
       </div>
-      <span className="badge" style={{ background: GRADE_COLORS[grade], color: "#fff", minWidth: 22, justifyContent: "center" }}>
+      <span className="badge" style={{ background: GRADE_COLORS[grade], color: GRADE_TEXT[grade], minWidth: 22, justifyContent: "center" }}>
         {grade}
       </span>
       <ChevronRight size={16} className="chev" />
@@ -99,7 +99,7 @@ export function FoodScreen({ openPhoto }: { openPhoto: () => void }) {
           aria-label="Search foods"
         />
         {q && (
-          <button onClick={() => setQ("")} aria-label="Clear search" style={{ display: "grid", color: "var(--label-3)" }}>
+          <button className="search-clear" onClick={() => setQ("")} aria-label="Clear search">
             <X size={17} />
           </button>
         )}

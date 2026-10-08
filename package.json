@@ -40,6 +40,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@capacitor/cli": "^8.5.3",
     "@playwright/test": "^1.56.1",
     "@types/cors": "^2.8.19",

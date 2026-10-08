@@ -119,7 +119,7 @@ export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () =
               <span className="big-number" data-testid="bmi-value">
                 {round(result.bmi, 1).toFixed(1)}
               </span>
-              <span className="badge" style={{ background: result.band.color, color: "#fff", fontSize: 13 }}>
+              <span className="badge" style={{ background: result.band.fill, color: "#fff", fontSize: 13 }}>
                 {result.band.label}
               </span>
             </div>
@@ -190,7 +190,7 @@ export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () =
                 </div>
                 <div className="pill-list">
                   {result.nutrition.eat.map((f) => (
-                    <span key={f} className="badge" style={{ color: "var(--green)" }}>
+                    <span key={f} className="badge" style={{ color: "var(--green-ink)" }}>
                       {f}
                     </span>
                   ))}

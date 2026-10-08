@@ -6,10 +6,10 @@ import type { Goal, Profile } from "./types";
 // BMI bands use the WHO Asia-Pacific cut-offs (2004), which the Malaysian
 // Clinical Practice Guidelines on obesity also use.
 export const BMI_BANDS = [
-  { key: "under", label: "Underweight", from: 0, to: 18.5, color: "var(--blue)" },
-  { key: "healthy", label: "Healthy", from: 18.5, to: 23, color: "var(--green)" },
-  { key: "over", label: "Overweight", from: 23, to: 27.5, color: "var(--orange)" },
-  { key: "obese", label: "Obese", from: 27.5, to: Infinity, color: "var(--red)" },
+  { key: "under", label: "Underweight", from: 0, to: 18.5, color: "var(--blue)", fill: "var(--accent-fill)" },
+  { key: "healthy", label: "Healthy", from: 18.5, to: 23, color: "var(--green)", fill: "var(--green-fill)" },
+  { key: "over", label: "Overweight", from: 23, to: 27.5, color: "var(--orange)", fill: "var(--orange-fill)" },
+  { key: "obese", label: "Obese", from: 27.5, to: Infinity, color: "var(--red)", fill: "var(--red-fill)" },
 ] as const;
 
 export type BmiBand = (typeof BMI_BANDS)[number];

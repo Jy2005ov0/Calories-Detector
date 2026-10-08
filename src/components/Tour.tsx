@@ -259,7 +259,7 @@ export function Tour({ open, onClose, setTab }: { open: boolean; onClose: () => 
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16 }}>
                   {!last && (
-                    <button className="link" onClick={onClose} style={{ marginRight: "auto", fontSize: 15 }}>
+                    <button className="link tap" onClick={onClose} style={{ marginRight: "auto", fontSize: 15 }}>
                       Skip
                     </button>
                   )}
