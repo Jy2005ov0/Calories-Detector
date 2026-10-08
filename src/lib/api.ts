@@ -1,0 +1,115 @@
+import type { Food, MealType } from "./types";
+
+// ── Open Food Facts (free, no key, millions of packaged products) ──
+
+interface OffProduct {
+  code?: string;
+  product_name?: string;
+  brands?: string;
+  serving_quantity?: number | string;
+  serving_size?: string;
+  nutriments?: Record<string, number | string | undefined>;
+}
+
+const num = (v: unknown) => {
+  const n = typeof v === "string" ? parseFloat(v) : typeof v === "number" ? v : NaN;
+  return Number.isFinite(n) ? n : 0;
+};
+
+export async function searchOnline(query: string, signal?: AbortSignal): Promise<Food[]> {
+  const url = new URL("https://world.openfoodfacts.org/cgi/search.pl");
+  url.searchParams.set("search_terms", query);
+  url.searchParams.set("search_simple", "1");
+  url.searchParams.set("action", "process");
+  url.searchParams.set("json", "1");
+  url.searchParams.set("page_size", "30");
+  url.searchParams.set("fields", "code,product_name,brands,serving_quantity,serving_size,nutriments");
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`Search failed (${res.status})`);
+  const data = (await res.json()) as { products?: OffProduct[] };
+  return (data.products ?? [])
+    .filter((p) => p.product_name && p.nutriments && p.nutriments["energy-kcal_100g"] !== undefined)
+    .map((p): Food => {
+      const n = p.nutriments!;
+      const servingG = num(p.serving_quantity);
+      return {
+        id: `off-${p.code}`,
+        name: p.product_name!.trim(),
+        brand: p.brands?.split(",")[0]?.trim(),
+        category: "Packaged",
+        per100: {
+          kcal: num(n["energy-kcal_100g"]),
+          protein: num(n.proteins_100g),
+          carbs: num(n.carbohydrates_100g),
+          fat: num(n.fat_100g),
+          fiber: num(n.fiber_100g),
+          sugar: num(n.sugars_100g),
+          satFat: num(n["saturated-fat_100g"]),
+          sodium: num(n.sodium_100g) * 1000,
+        },
+        servings: servingG > 0 ? [{ label: p.serving_size || "1 serving", grams: servingG }] : [{ label: "100 g", grams: 100 }],
+        source: "online",
+      };
+    });
+}
+
+// ── Photo analysis (server → Claude vision) ──
+
+export interface PhotoItem {
+  name: string;
+  grams: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  sugar: number;
+  confidence: "high" | "medium" | "low";
+}
+
+export interface PhotoAnalysis {
+  isFood: boolean;
+  mealName: string;
+  items: PhotoItem[];
+  notes: string;
+}
+
+export async function analyzePhoto(base64: string, mediaType: string, hint: string, signal?: AbortSignal): Promise<PhotoAnalysis> {
+  const res = await fetch("/api/analyze-photo", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ image: base64, mediaType, hint }),
+    signal,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
+  return data as PhotoAnalysis;
+}
+
+/** Downscale to ≤1280px JPEG so uploads are fast and well under API limits. */
+export async function prepareImage(file: File): Promise<{ base64: string; mediaType: string; preview: string }> {
+  const bitmap = await createImageBitmap(file);
+  const maxSide = 1280;
+  const ratio = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * ratio);
+  canvas.height = Math.round(bitmap.height * ratio);
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const preview = canvas.toDataURL("image/jpeg", 0.85);
+  return { base64: preview.split(",")[1], mediaType: "image/jpeg", preview };
+}
+
+export function defaultMeal(d = new Date()): MealType {
+  const h = d.getHours();
+  if (h < 10.5) return "breakfast";
+  if (h < 15) return "lunch";
+  if (h >= 17 && h < 21.5) return "dinner";
+  return "snack";
+}
+
+export const MEALS: { value: MealType; label: string }[] = [
+  { value: "breakfast", label: "Breakfast" },
+  { value: "lunch", label: "Lunch" },
+  { value: "dinner", label: "Dinner" },
+  { value: "snack", label: "Snack" },
+];
