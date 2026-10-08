@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { SplitId } from "./fitness";
+import { readDurable, writeDurable } from "./platform";
 import type { CustomMeal, Food, LogEntry, Profile, WorkoutSession } from "./types";
 
 export interface AppState {
@@ -40,12 +41,19 @@ const initial: AppState = {
   recentFoodIds: [],
 };
 
-function load(): AppState {
+function parse(raw: string | null): AppState | null {
+  if (!raw) return null;
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return initial;
     const parsed = JSON.parse(raw) as Partial<AppState>;
     return { ...initial, ...parsed, profile: { ...DEFAULT_PROFILE, ...parsed.profile } };
+  } catch {
+    return null;
+  }
+}
+
+function load(): AppState {
+  try {
+    return parse(localStorage.getItem(KEY)) ?? initial;
   } catch {
     return initial;
   }
@@ -61,12 +69,30 @@ export function getState() {
 export function setState(update: Partial<AppState> | ((s: AppState) => Partial<AppState>)) {
   const patch = typeof update === "function" ? update(state) : update;
   state = { ...state, ...patch };
+  const json = JSON.stringify(state);
   try {
-    localStorage.setItem(KEY, JSON.stringify(state));
+    localStorage.setItem(KEY, json);
   } catch {
     // Storage full or blocked (private mode) — keep working in memory.
   }
+  writeDurable(KEY, json);
   listeners.forEach((l) => l());
+}
+
+/** In the native apps, restore from OS-backed storage in case the WebView's storage was evicted. */
+export async function hydrate() {
+  const durable = parse(await readDurable(KEY).catch(() => null));
+  if (durable) {
+    state = durable;
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch {
+      /* ignore */
+    }
+  } else if (state !== initial) {
+    // First launch after this update: copy existing data into durable storage.
+    writeDurable(KEY, JSON.stringify(state));
+  }
 }
 
 export function useStore<T>(selector: (s: AppState) => T): T {

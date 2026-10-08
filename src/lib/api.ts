@@ -1,3 +1,4 @@
+import { apiConfigured, apiUrl } from "./platform";
 import type { Food, MealType } from "./types";
 
 // ── Open Food Facts (free, no key, millions of packaged products) ──
@@ -75,7 +76,8 @@ export interface PhotoAnalysis {
 }
 
 export async function analyzePhoto(base64: string, mediaType: string, hint: string, signal?: AbortSignal): Promise<PhotoAnalysis> {
-  const res = await fetch("/api/analyze-photo", {
+  if (!apiConfigured) throw new Error("Photo analysis needs a server. Rebuild the app with VITE_API_URL set to your deployed server.");
+  const res = await fetch(apiUrl("/api/analyze-photo"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ image: base64, mediaType, hint }),
@@ -88,7 +90,8 @@ export async function analyzePhoto(base64: string, mediaType: string, hint: stri
 
 /** Downscale to ≤1280px JPEG so uploads are fast and well under API limits. */
 export async function prepareImage(file: File): Promise<{ base64: string; mediaType: string; preview: string }> {
-  const bitmap = await createImageBitmap(file);
+  // Honour EXIF rotation so portrait phone photos aren't sent sideways.
+  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
   const maxSide = 1280;
   const ratio = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");

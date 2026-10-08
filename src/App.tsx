@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CalendarCheck, Dumbbell, Flame, Search, UserRound } from "lucide-react";
 import { PhotoSheet } from "./components/PhotoSheet";
 import { ToastHost } from "./components/ui";
+import { onBackButton } from "./lib/platform";
 import { useStore } from "./lib/store";
 import { FoodScreen } from "./screens/FoodScreen";
 import { Plan } from "./screens/Plan";
@@ -28,6 +29,19 @@ export default function App() {
   const reduce = useReducedMotion();
 
   useEffect(() => window.scrollTo(0, 0), [tab]);
+
+  // Android back: close the top sheet, else return to Today, else leave the app.
+  const tabRef = useRef(tab);
+  tabRef.current = tab;
+  useEffect(
+    () =>
+      onBackButton(() => {
+        if (tabRef.current === "today") return false;
+        setTab("today");
+        return true;
+      }),
+    [],
+  );
 
   if (!onboarded) return <Onboarding />;
 

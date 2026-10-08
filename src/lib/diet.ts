@@ -105,15 +105,22 @@ export function sampleDay(t: Targets, diet: Diet): { meals: PlannedMeal[]; total
   const template = diet === "vegan" ? VEGAN : diet === "vegetarian" ? VEGETARIAN : OMNI;
   const isProteinFood = (f: Food) => (f.per100.protein * 4) / Math.max(1, f.per100.kcal) > 0.35;
   const flat = template.flatMap((m) => m.items.map(([n, g]) => ({ f: food(n), g })));
-  const kcalOf = (list: typeof flat) => sum(list.map((x) => scale(x.f.per100, x.g))).kcal;
   const proteinItems = flat.filter((x) => isProteinFood(x.f));
   const otherItems = flat.filter((x) => !isProteinFood(x.f));
 
-  // 1) Scale protein foods towards the protein target.
-  const baseProtein = sum(proteinItems.map((x) => scale(x.f.per100, x.g))).protein + sum(otherItems.map((x) => scale(x.f.per100, x.g))).protein;
-  const proteinRatio = Math.min(1.6, Math.max(0.7, t.protein / baseProtein));
-  // 2) Flex the carb and fat foods to close the remaining calorie gap.
-  const otherRatio = Math.min(2.5, Math.max(0.4, (t.kcal - kcalOf(proteinItems) * proteinRatio) / kcalOf(otherItems)));
+  // Solve for two portion multipliers — one for protein foods, one for everything else — so the
+  // day hits both the calorie and the protein target (carb foods carry protein too, so iterate).
+  const totals = (list: typeof flat) => sum(list.map((x) => scale(x.f.per100, x.g)));
+  const P = totals(proteinItems);
+  const O = totals(otherItems);
+  let proteinRatio = 1;
+  let otherRatio = 1;
+  for (let i = 0; i < 12; i++) {
+    otherRatio = Math.min(2.5, Math.max(0.3, (t.kcal - P.kcal * proteinRatio) / O.kcal));
+    const protein = P.protein * proteinRatio + O.protein * otherRatio;
+    proteinRatio = Math.min(2, Math.max(0.3, proteinRatio * (t.protein / protein)));
+  }
+  otherRatio = Math.min(2.5, Math.max(0.3, (t.kcal - P.kcal * proteinRatio) / O.kcal));
 
   const portion = (f: Food, g: number) => {
     const grams = g * (isProteinFood(f) ? proteinRatio : otherRatio);

@@ -4,6 +4,7 @@ import { CircleAlert, CircleCheck, Minus, Plus, ThumbsUp, TriangleAlert, X } fro
 import type { Grade, HealthReport, Suitability } from "../lib/nutrition";
 import type { Nutrients } from "../lib/types";
 import { round } from "../lib/nutrition";
+import { pushBackHandler } from "../lib/platform";
 
 // Apple's defaults translated to Motion springs: critically damped for UI, a touch of
 // bounce only after a gesture that carried momentum.
@@ -16,13 +17,7 @@ export function project(velocity: number, decelerationRate = 0.998) {
   return ((velocity / 1000) * decelerationRate) / (1 - decelerationRate);
 }
 
-export function haptic(pattern: number | number[] = 10) {
-  try {
-    navigator.vibrate?.(pattern);
-  } catch {
-    /* not supported */
-  }
-}
+export { haptic } from "../lib/platform";
 
 // ── Sheet ───────────────────────────────────────────────
 
@@ -39,6 +34,14 @@ export function Sheet({ open, onClose, title, left, right, children }: SheetProp
   const reduce = useReducedMotion();
   const controls = useDragControls();
   const ref = useRef<HTMLDivElement>(null);
+
+  // Register once per opening (not per render) so nested sheets keep their stacking order.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    if (!open) return;
+    return pushBackHandler(() => closeRef.current());
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;

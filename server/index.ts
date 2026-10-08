@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Anthropic from "@anthropic-ai/sdk";
@@ -10,6 +11,10 @@ const PORT = Number(process.env.PORT ?? 8787);
 const MODEL = "claude-opus-5-5";
 
 const app = express();
+// The iOS and Android apps load from these local origins and call this server cross-origin.
+const NATIVE_ORIGINS = ["capacitor://localhost", "ionic://localhost", "https://localhost", "http://localhost"];
+const extraOrigins = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean);
+app.use("/api", cors({ origin: [...NATIVE_ORIGINS, ...extraOrigins] }));
 app.use(express.json({ limit: "12mb" }));
 
 const DetectedFood = z.object({

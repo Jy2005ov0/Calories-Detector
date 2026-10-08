@@ -5,6 +5,7 @@ import { ExerciseLibrary } from "../components/ExerciseLibrary";
 import { Empty, SPRING, Sheet, Stepper, haptic, showToast, useNow } from "../components/ui";
 import { buildPlan, exerciseKcal, formatDuration, kcalFor, sessionFromPlan, sessionKcal, sessionMinutes, sessionVolume } from "../lib/fitness";
 import { round } from "../lib/nutrition";
+import { confirmDialog } from "../lib/platform";
 import { actions, todayKey, uid, useStore } from "../lib/store";
 import type { Exercise, SessionExercise, WorkoutSession } from "../lib/types";
 
@@ -39,7 +40,7 @@ export function Train() {
 
   const clockIn = (title: string, exercises: SessionExercise[] = []) => {
     actions.clockIn(title, exercises);
-    haptic([12, 60, 12]);
+    haptic("success");
     showToast(`Clocked in at ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`);
   };
 
@@ -238,7 +239,7 @@ export function Train() {
             className="btn green"
             onClick={() => {
               actions.clockOut(active.id, kcal);
-              haptic([12, 60, 12]);
+              haptic("success");
               setFinishing(false);
               showToast(`Workout saved · ${round(kcal)} kcal`);
             }}
@@ -253,8 +254,8 @@ export function Train() {
           <button
             className="btn secondary"
             style={{ color: "var(--red)" }}
-            onClick={() => {
-              if (confirm("Discard this workout? It won't be saved.")) {
+            onClick={async () => {
+              if (await confirmDialog("Discard workout?", "This workout won't be saved.", "Discard")) {
                 actions.discardSession(active.id);
                 setFinishing(false);
               }
@@ -421,7 +422,7 @@ function SetRow({
         aria-label={set.done ? "Mark set not done" : "Mark set done"}
         aria-pressed={set.done}
         onClick={() => {
-          if (!set.done) haptic(8);
+          if (!set.done) haptic("light");
           onChange({ ...set, done: !set.done });
         }}
       >

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, ImagePlus, Info, Sparkles, Trash2 } from "lucide-react";
 import { MEALS, analyzePhoto, defaultMeal, prepareImage, type PhotoAnalysis, type PhotoItem } from "../lib/api";
+import { isNative, pickNativePhoto } from "../lib/platform";
 import { healthReport, round, suitability, sum, targets } from "../lib/nutrition";
 import { actions, todayKey, useStore } from "../lib/store";
 import type { MealType, Nutrients } from "../lib/types";
@@ -64,6 +65,19 @@ export function PhotoSheet({ open, onClose }: { open: boolean; onClose: () => vo
     }
   };
 
+  const pick = async (source: "camera" | "library") => {
+    if (!isNative) {
+      (source === "camera" ? cameraRef : fileRef).current?.click();
+      return;
+    }
+    try {
+      const file = await pickNativePhoto(source);
+      if (file) await onFile(file);
+    } catch {
+      setError(source === "camera" ? "Couldn't open the camera. Check camera access in Settings." : "Couldn't open your photos. Check photo access in Settings.");
+    }
+  };
+
   const run = async () => {
     if (!img) return;
     setBusy(true);
@@ -73,7 +87,7 @@ export function PhotoSheet({ open, onClose }: { open: boolean; onClose: () => vo
       const r = await analyzePhoto(img.base64, img.mediaType, hint, abortRef.current.signal);
       setResult(r);
       setItems(r.items.map((i) => ({ ...i, grams: Math.round(i.grams), baseGrams: i.grams })));
-      haptic([8, 40, 8]);
+      haptic("success");
     } catch (e) {
       if ((e as Error).name !== "AbortError") setError((e as Error).message);
     } finally {
@@ -106,7 +120,7 @@ export function PhotoSheet({ open, onClose }: { open: boolean; onClose: () => vo
             Take a photo of your plate. AI identifies each food, estimates the portion and works out the calories.
           </p>
           <div className="tiles">
-            <button className="tile" onClick={() => cameraRef.current?.click()}>
+            <button className="tile" onClick={() => pick("camera")}>
               <div className="icon-tile" style={{ background: "var(--blue)" }}>
                 <Camera size={18} />
               </div>
@@ -115,7 +129,7 @@ export function PhotoSheet({ open, onClose }: { open: boolean; onClose: () => vo
                 <div className="tile-sub">Use the camera</div>
               </div>
             </button>
-            <button className="tile" onClick={() => fileRef.current?.click()}>
+            <button className="tile" onClick={() => pick("library")}>
               <div className="icon-tile" style={{ background: "var(--purple)" }}>
                 <ImagePlus size={18} />
               </div>

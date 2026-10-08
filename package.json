@@ -10,10 +10,25 @@
     "build": "tsc -b && vite build",
     "start": "NODE_ENV=production tsx server/index.ts",
     "typecheck": "tsc -b",
-    "test": "vitest run"
+    "test": "vitest run",
+    "cap:sync": "npm run build && cap sync",
+    "android": "npm run build && cap sync android && cap open android",
+    "ios": "npm run build && cap sync ios && cap open ios",
+    "android:apk": "npm run build && cap sync android && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/camera": "^8.2.5",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/dialog": "^8.0.1",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.5.3",
+    "@capacitor/keyboard": "^8.0.6",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.2",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "lucide-react": "^1.53.0",
     "motion": "^14.0.0",
@@ -22,6 +37,8 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.4",
     "@types/react": "^19.3.0",

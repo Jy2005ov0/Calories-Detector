@@ -31,8 +31,11 @@
   --radius-lg: 22px;
   --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.12);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-top: env(safe-area-inset-top, 0px);
+  /* Capacitor injects --safe-area-inset-* on Android (edge-to-edge); iOS and browsers use env(). */
+  --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
   --tabbar-h: calc(56px + var(--safe-bottom));
   color-scheme: light;
 }
@@ -121,10 +124,43 @@ img {
   margin: 0 auto;
   min-height: 100dvh;
   position: relative;
+  /* Never let one wide element widen the page: on phones that zooms out and hides the tab bar. */
+  overflow-x: clip;
 }
 
 .screen {
-  padding: calc(var(--safe-top) + 8px) 16px calc(var(--tabbar-h) + 32px);
+  padding: calc(var(--safe-top) + 8px) calc(var(--safe-right) + 16px) calc(var(--tabbar-h) + 32px) calc(var(--safe-left) + 16px);
+}
+
+/* Feel like an app, not a web page: no text selection or long-press callouts on controls. */
+button,
+.tab,
+.chip,
+.tile {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+html[data-platform="ios"],
+html[data-platform="android"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html[data-platform="ios"] input,
+html[data-platform="android"] input,
+html[data-platform="ios"] textarea,
+html[data-platform="android"] textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* iOS zooms into inputs smaller than 16px; keep every field at least that size. */
+input,
+select,
+textarea {
+  font-size: max(16px, 1em);
 }
 
 .nav-bar {
@@ -567,7 +603,7 @@ button.row:active,
 /* ── Stats ──────────────────────────────────────────── */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -575,6 +611,11 @@ button.row:active,
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+}
+
+.stat .row-sub {
+  white-space: normal;
 }
 
 .stat-label {
@@ -624,7 +665,7 @@ button.row:active,
 
 .macro-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 

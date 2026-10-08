@@ -109,7 +109,8 @@ describe("nutrition", () => {
       const t = targets({ ...profile, goal });
       for (const diet of ["anything", "vegetarian", "vegan"] as const) {
         const day = sampleDay(t, diet);
-        expect(Math.abs(day.total.kcal - t.kcal) / t.kcal, `${goal}/${diet}`).toBeLessThan(0.15);
+        expect(Math.abs(day.total.kcal - t.kcal) / t.kcal, `${goal}/${diet}`).toBeLessThan(0.05);
+        expect(Math.abs(day.total.protein - t.protein) / t.protein, `${goal}/${diet} protein`).toBeLessThan(0.15);
         expect(sum(day.meals.map((m) => m.total)).kcal).toBeCloseTo(day.total.kcal);
       }
     }

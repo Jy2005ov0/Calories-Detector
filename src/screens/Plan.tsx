@@ -47,7 +47,7 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
       return;
     }
     actions.clockIn(d.title, sessionFromPlan(d));
-    haptic([12, 60, 12]);
+    haptic("success");
     go("train");
   };
 

@@ -1,0 +1,70 @@
+name: Mobile apps
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  web:
+    name: Web · typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  android:
+    name: Android · debug APK
+    runs-on: ubuntu-latest
+    needs: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      # Set the repository variable API_URL to your deployed server so photo analysis works in the app.
+      - run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.API_URL }}
+      - run: npx cap sync android
+      - run: ./gradlew assembleDebug --no-daemon
+        working-directory: android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: calories-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+  ios:
+    name: iOS · simulator build
+    runs-on: macos-15
+    needs: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.API_URL }}
+      - run: npx cap sync ios
+      # Unsigned simulator build proves the project compiles. Signing for devices / the App Store happens in Xcode.
+      - run: >
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO build

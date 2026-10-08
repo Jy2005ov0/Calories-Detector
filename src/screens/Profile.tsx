@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Activity, Dumbbell, Flame, Leaf, Scale, Target, TrendingDown, TrendingUp, User } from "lucide-react";
 import { Segmented, SPRING, Stepper, showToast } from "../components/ui";
 import { bmi, bmiLabel, bmr, round, targets, tdee } from "../lib/nutrition";
+import { confirmDialog } from "../lib/platform";
 import { actions, useStore } from "../lib/store";
 import type { Profile as P } from "../lib/types";
 
@@ -193,8 +194,8 @@ export function ProfileScreen() {
         <button
           className="row"
           style={{ color: "var(--red)" }}
-          onClick={() => {
-            if (confirm("Delete all your logs, workouts, custom foods and profile? This can't be undone.")) {
+          onClick={async () => {
+            if (await confirmDialog("Delete all data?", "Your logs, workouts, custom foods and profile will be erased. This can't be undone.")) {
               actions.resetAll();
               showToast("All data deleted");
             }
