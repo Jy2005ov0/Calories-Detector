@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, Lightbulb, LogIn, Plus } from "lucide-react";
 import { t as tr, useLanguage } from "../i18n";
 import { exName, exTip, useExerciseNames } from "../i18n/exercises";
+import { ExerciseThumb } from "../components/ExercisePicture";
 import { FOODS } from "../data/foods";
 import { FoodSheet } from "../components/FoodSheet";
 import { SPRING, Segmented, Stepper, haptic, showToast } from "../components/ui";
@@ -135,11 +136,9 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
                   style={{ overflow: "hidden" }}
                 >
                   <div style={{ padding: "0 16px 16px" }}>
-                    {d.exercises.map((e, i) => (
+                    {d.exercises.map((e) => (
                       <div key={e.name} style={{ display: "flex", gap: 12, padding: "10px 0", borderTop: "0.5px solid var(--separator)" }}>
-                        <span className="muted tabular" style={{ width: 18, fontWeight: 600 }}>
-                          {i + 1}
-                        </span>
+                        <ExerciseThumb name={e.name} size={48} />
                         <div className="row-main">
                           <div style={{ fontWeight: 600 }}>{exName(e.name)}</div>
                           <div className="row-sub" style={{ whiteSpace: "normal" }}>

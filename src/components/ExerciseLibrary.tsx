@@ -9,6 +9,7 @@ import { round } from "../lib/nutrition";
 import { useStore } from "../lib/store";
 import type { Exercise } from "../lib/types";
 import { Segmented, Sheet, Stepper, useShowMore } from "./ui";
+import { ExerciseHero, ExerciseThumb } from "./ExercisePicture";
 
 export function ExerciseLibrary({
   open,
@@ -94,6 +95,7 @@ export function ExerciseLibrary({
                 setDetail(e);
               }}
             >
+              <ExerciseThumb name={e.name} category={e.category} />
               <div className="row-main">
                 <div className="row-title">{exName(e.name)}</div>
                 <div className="row-sub">
@@ -111,6 +113,7 @@ export function ExerciseLibrary({
       <Sheet open={!!detail} onClose={() => setDetail(null)} title={exLabel(detail?.category)}>
         {detail && (
           <>
+            <ExerciseHero name={detail.name} category={detail.category} />
             <h2 className="h2" style={{ marginTop: 4 }}>
               {exName(detail.name)}
             </h2>

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, Clock, Dumbbell, Flame, History, LogIn, LogOut, Plus, Share, Timer, Trash2, Trophy, Weight } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { exName, useExerciseNames } from "../i18n/exercises";
+import { ExerciseThumb } from "../components/ExercisePicture";
 import { workoutCard } from "../lib/export";
 import { scheduleRestEnd, shareFile } from "../lib/native";
 import { isNewRecord, lastPerformance, personalRecords, suggestNext } from "../lib/records";
@@ -196,6 +197,7 @@ export function Train() {
               style={{ marginTop: 12 }}
             >
               <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+                <ExerciseThumb name={ex.name} size={44} />
                 <div className="row-main">
                   <div style={{ fontWeight: 600 }}>{exName(ex.name)}</div>
                   <div className="row-sub">
