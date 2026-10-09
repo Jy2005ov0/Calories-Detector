@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, Flame, Plus, Search } from "lucide-react";
 import { CARDIO_GROUPS, EXERCISES, STRENGTH_GROUPS } from "../data/exercises";
+import { useExerciseSteps } from "../lib/usda";
 import { t, useLanguage } from "../i18n";
 import { kcalFor } from "../lib/fitness";
 import { round } from "../lib/nutrition";
@@ -36,6 +37,7 @@ export function ExerciseLibrary({
   const [group, setGroup] = useState("All");
   const [q, setQ] = useState("");
   const [detail, setDetail] = useState<Exercise | null>(null);
+  const howTo = useExerciseSteps(detail?.name);
   const [minutes, setMinutes] = useState(30);
 
   useEffect(() => {
@@ -153,7 +155,7 @@ export function ExerciseLibrary({
                   <div className="row-main">{t("Equipment")}</div>
                   <div className="row-value">{label("Equipment", detail.equipment)}</div>
                 </div>
-                {detail.tip && (
+                {detail.tip && !howTo.length && (
                   <div className="row">
                     <div className="row-main" style={{ fontSize: 15 }}>
                       <div className="muted" style={{ fontSize: 13, marginBottom: 2 }}>
@@ -164,6 +166,16 @@ export function ExerciseLibrary({
                   </div>
                 )}
               </div>
+            )}
+            {howTo.length > 0 && (
+              <>
+                <div className="section-header">{t("How to do it")}</div>
+                <ol className="card how-to" data-testid="how-to">
+                  {howTo.map((step, i) => (
+                    <li key={i}>{step}</li>
+                  ))}
+                </ol>
+              </>
             )}
             {detail.kind === "cardio" && onPick && (
               <div className="group" style={{ marginTop: 12 }}>

@@ -1,5 +1,7 @@
 import type { Exercise } from "../lib/types";
 import { MORE_CARDIO, MORE_STRENGTH } from "./moreExercises";
+import { MORE_CARDIO_2, MORE_STRENGTH_2 } from "./moreExercises2";
+import { OPEN_CARDIO, OPEN_STRENGTH } from "./openExercises";
 
 // MET values from the 2024 Adult Compendium of Physical Activities (Herrmann et al.).
 // kcal ≈ MET × body weight (kg) × hours.
@@ -269,6 +271,20 @@ const strength: StrengthRow[] = [
   ["Medicine ball slam", "Full Body", "Equipment", 8.0, "Core, Lats", "Overhead and slam."],
 ];
 
+const cardioOf = (rows: CardioRow[], prefix: string) =>
+  rows.map(([name, category, met, aliases], i): Exercise => ({ id: `${prefix}-${i}`, name, kind: "cardio", category, met, aliases }));
+const strengthOf = (rows: StrengthRow[], prefix: string) =>
+  rows.map(([name, category, equipment, met, muscles, tip], i): Exercise => ({
+    id: `${prefix}-${i}`,
+    name,
+    kind: "strength",
+    category,
+    met,
+    equipment,
+    muscles: muscles.split(", "),
+    tip,
+  }));
+
 export const EXERCISES: Exercise[] = [
   ...cardio.map(([name, category, met, aliases], i): Exercise => ({
     id: `c-${i}`,
@@ -307,9 +323,15 @@ export const EXERCISES: Exercise[] = [
     muscles: muscles.split(", "),
     tip,
   })),
+  // Third batch, then free-exercise-db (public domain). Each set has its own id prefix so
+  // ids saved in workouts never change.
+  ...cardioOf(MORE_CARDIO_2, "c3"),
+  ...strengthOf(MORE_STRENGTH_2, "s3"),
+  ...cardioOf(OPEN_CARDIO, "co"),
+  ...strengthOf(OPEN_STRENGTH, "so"),
 ];
 
 export const EXERCISE_BY_NAME = new Map(EXERCISES.map((e) => [e.name, e]));
 
 export const STRENGTH_GROUPS = ["Chest", "Back", "Shoulders", "Arms", "Legs", "Core", "Full Body"];
-export const CARDIO_GROUPS = Array.from(new Set([...cardio, ...MORE_CARDIO].map((c) => c[1])));
+export const CARDIO_GROUPS = Array.from(new Set([...cardio, ...MORE_CARDIO, ...MORE_CARDIO_2, ...OPEN_CARDIO].map((c) => c[1])));

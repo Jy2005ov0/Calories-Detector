@@ -62,7 +62,7 @@ export const TOUR_STEPS: Step[] = [
     targets: ["log-activity"],
     optional: true,
     title: "Log other activities",
-    body: "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 650+ exercises and sports.",
+    body: "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 1,900+ exercises and sports.",
   },
   {
     tab: "plan",
