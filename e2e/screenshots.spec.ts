@@ -29,9 +29,11 @@ function dayKey(offset: number) {
   return d.toISOString().slice(0, 10);
 }
 
+let seedPhoto: string | undefined;
+
 function seed() {
   return {
-    profile: { name: "Aisyah", sex: "female", age: 27, heightCm: 162, weightKg: 61, activity: 1.55, goal: "lose", experience: "intermediate", trainingDays: 5, diet: "halal", onboarded: true },
+    profile: { name: "Aisyah", sex: "female", age: 27, heightCm: 162, weightKg: 61, activity: 1.55, goal: "lose", experience: "intermediate", trainingDays: 5, diet: "halal", onboarded: true, photo: seedPhoto },
     log: [
       entry("l1", "breakfast", "Oats (dry)", 50, 300),
       entry("l2", "breakfast", "Greek yogurt (plain, nonfat)", 170, 299),
@@ -183,8 +185,6 @@ for (const set of SETS) {
       await pg.route("https://world.openfoodfacts.org/**", (r) => r.fulfill({ json: { products: [] } }));
       await pg.route("**/api/analyze-photo", (r) => r.fulfill({ json: PHOTO_RESULT }));
       await pg.route("https://world.openfoodfacts.org/api/v2/product/**", (r) => r.fulfill({ json: MILO }));
-      // Shown as the App Store / TestFlight version, where Apple and Google sign-in are set up.
-      await pg.route("**/api/auth/config", (r) => r.fulfill({ json: { google: true, apple: true, appleWeb: true } }));
       await pg.route("**/api/coach", (r) => r.fulfill({ status: 200, contentType: "text/plain; charset=utf-8", body: COACH_REPLY }));
       await pg.goto("/");
       return pg;
@@ -204,14 +204,16 @@ for (const set of SETS) {
     };
 
     // First launch
+    const PROFILE_PHOTO = await profilePhoto(page);
+    seedPhoto = `data:image/jpeg;base64,${PROFILE_PHOTO.toString("base64")}`;
     await shot("intro-guide");
     await page.getByRole("button", { name: "Skip" }).click();
-    await shot("sign-in");
-    await page.getByRole("button", { name: "Sign up with email" }).click();
-    await shot("create-account");
-    await closeSheet();
-    await page.getByRole("button", { name: "Continue without an account" }).click();
+    await shot("onboarding-welcome");
     await page.getByRole("button", { name: "Get started" }).click();
+    await page.getByLabel("Profile photo", { exact: true }).setInputFiles({ name: "me.jpg", mimeType: "image/jpeg", buffer: PROFILE_PHOTO });
+    await page.getByLabel("Name").fill("Aisyah");
+    await page.getByRole("tab", { name: "Female", exact: true }).click();
+    await shot("onboarding-about-you");
     await page.getByRole("button", { name: "Continue" }).click();
     await shot("onboarding-goal");
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: /Continue|Build my plan/ }).click();
@@ -393,6 +395,45 @@ for (const set of SETS) {
 }
 
 /** A simple drawn plate, so the photo screen shows something food-like without a real photo. */
+/** A simple illustrated portrait standing in for a profile picture (256 px, like the app stores). */
+async function profilePhoto(page: Page) {
+  const data = await page.evaluate(() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 256;
+    const g = c.getContext("2d")!;
+    const sky = g.createLinearGradient(0, 0, 0, 256);
+    sky.addColorStop(0, "#ffd6a5");
+    sky.addColorStop(1, "#ff9f7a");
+    g.fillStyle = sky;
+    g.fillRect(0, 0, 256, 256);
+    g.fillStyle = "#3a2d5c"; // headscarf
+    g.beginPath();
+    g.ellipse(128, 120, 70, 78, 0, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "#e9b48a"; // face
+    g.beginPath();
+    g.ellipse(128, 124, 46, 54, 0, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "#3a2d5c"; // shoulders
+    g.beginPath();
+    g.ellipse(128, 262, 104, 74, 0, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "#2b2b2b"; // eyes
+    for (const x of [110, 146]) {
+      g.beginPath();
+      g.arc(x, 118, 5, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.strokeStyle = "#a0523d"; // smile
+    g.lineWidth = 4;
+    g.beginPath();
+    g.arc(128, 140, 16, 0.15 * Math.PI, 0.85 * Math.PI);
+    g.stroke();
+    return c.toDataURL("image/jpeg", 0.9).split(",")[1];
+  });
+  return Buffer.from(data, "base64");
+}
+
 async function mealPhoto(page: Page) {
   const data = await page.evaluate(() => {
     const c = document.createElement("canvas");

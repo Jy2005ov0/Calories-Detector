@@ -2074,3 +2074,33 @@ button.row:active,
   font-size: 15px;
   line-height: 1.45;
 }
+
+/* ── Profile photo picker ───────────────────────────── */
+.photo-picker {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 4px 14px;
+}
+
+.photo-picker-avatar {
+  position: relative;
+  background: none;
+  border: 0;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.photo-picker-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--blue);
+  color: #fff;
+  border: 2px solid var(--bg);
+}

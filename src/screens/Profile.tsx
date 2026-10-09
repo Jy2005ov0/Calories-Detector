@@ -1,19 +1,17 @@
-import { useState } from "react";
-import { AccountCard } from "../components/Account";
-import { PeopleList } from "../components/People";
+import { useRef, useState } from "react";
+import { PeopleList, PhotoPicker } from "../components/People";
 import { AnimatePresence, motion } from "motion/react";
-import { Activity, Bell, CalendarHeart, ChevronRight, Dumbbell, FileDown, FileText, Flame, Languages, Leaf, LineChart, Moon, MoonStar, Scale, Sun, SunMoon, Target, Trash2, TrendingDown, TrendingUp, User } from "lucide-react";
+import { Activity, Bell, CalendarHeart, ChevronRight, Dumbbell, FileDown, FileText, Flame, Languages, Leaf, LineChart, Moon, MoonStar, Save, Upload, Scale, Sun, SunMoon, Target, Trash2, TrendingDown, TrendingUp, User } from "lucide-react";
 import { NumberInput, Segmented, SPRING, Stepper, Switch, showToast } from "../components/ui";
 import { LANGUAGES, locale, t, useLanguage } from "../i18n";
 import { ALLERGENS } from "../lib/allergens";
 import { averageLength, cycleStatus } from "../lib/cycle";
-import { toCsv, toPdf } from "../lib/export";
+import { fromBackup, toBackup, toCsv, toPdf } from "../lib/export";
 import { shareFile } from "../lib/native";
 import { isNative } from "../lib/platform";
-import { getState, todayKey, useTodayKey } from "../lib/store";
+import { getState, replaceState, todayKey, useTodayKey } from "../lib/store";
 import type { SheetKind } from "../App";
 import { bmi, bmiLabel, bmr, round, targets, tdee } from "../lib/nutrition";
-import { getAccount, syncNow, useAccount } from "../lib/account";
 import { confirmDialog } from "../lib/platform";
 import { actions, useStore } from "../lib/store";
 import type { Profile as P } from "../lib/types";
@@ -202,11 +200,22 @@ function CycleSection() {
       {c.on && (
         <p className="footnote">
           {status && learned ? `${t("Your cycles average {n} days.", { n: learned })} ` : ""}
-          {t("Predictions are estimates for planning training and food, not medical advice or contraception. Cycle data stays on your phone, and syncs only if you have an account.")}
+          {t("Predictions are estimates for planning training and food, not medical advice or contraception. Cycle data stays on your phone.")}
         </p>
       )}
     </>
   );
+}
+
+/** Replace everything on this phone with a backup file, after asking. */
+async function restoreBackup(file?: File) {
+  if (!file) return;
+  const saved = fromBackup(await file.text());
+  if (!saved) return showToast(t("That isn't a W backup file."));
+  if (await confirmDialog(t("Restore this backup?"), t("Everything on this phone will be replaced with the backup from {date}.", { date: new Date(file.lastModified).toLocaleDateString(locale()) }), t("Restore"))) {
+    replaceState(saved);
+    showToast(t("Backup restored"));
+  }
 }
 
 function exportName(ext: string) {
@@ -217,9 +226,22 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
   useLanguage();
   const openBodyCheck = () => openSheet("bodyCheck");
   const p = useStore((s) => s.profile);
+  const personId = useStore((s) => s.personId);
   const reminders = useStore((s) => s.reminders);
   const language = useStore((s) => s.language);
-  const [exporting, setExporting] = useState<null | "csv" | "pdf">(null);
+  const [exporting, setExporting] = useState<null | "csv" | "pdf" | "backup">(null);
+  const restoreInput = useRef<HTMLInputElement>(null);
+  const backUp = async () => {
+    setExporting("backup");
+    try {
+      await shareFile(exportName("json").replace("W-", "W-backup-"), new Blob([toBackup(getState())], { type: "application/json" }), t("W backup"));
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") showToast(t("Couldn't export: {msg}", { msg: (e as Error).message }));
+    } finally {
+      setExporting(null);
+    }
+  };
+
   const doExport = async (kind: "csv" | "pdf") => {
     setExporting(kind);
     try {
@@ -234,7 +256,6 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
   };
   const tg = targets(p);
   const b = bmi(p);
-  const signedIn = !!useAccount().token;
   const theme = useStore((s) => s.theme);
   return (
     <div className="screen">
@@ -254,11 +275,9 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
       </div>
       <p className="subtitle">{t("Your numbers drive every target and plan in the app.")}</p>
 
-      <AccountCard />
-
       <div className="section-header">{t("People")}</div>
       <PeopleList />
-      <p className="footnote">{t("Everyone shares this phone and account, with their own plan, food log, workouts and weight.")}</p>
+      <p className="footnote">{t("Everyone shares this phone, with their own plan, food log, workouts and weight.")}</p>
 
       <div className="card">
         <div className="stat-grid">
@@ -293,6 +312,7 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
       </div>
 
       <div className="section-header">{t("About you")}</div>
+      <PhotoPicker id={personId} name={p.name} photo={p.photo} onChange={(photo) => actions.updateProfile({ photo })} />
       <ProfileFields p={p} set={actions.updateProfile} />
 
       <div className="group" style={{ marginTop: 12 }}>
@@ -495,17 +515,43 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
         </button>
       </div>
       <div className="group" style={{ marginTop: 12 }}>
+        <button className="row with-icon" onClick={backUp} disabled={!!exporting}>
+          <div className="icon-tile" style={{ background: "var(--blue)" }}>
+            {exporting === "backup" ? <div className="spinner" style={{ borderTopColor: "#fff" }} /> : <Save size={17} />}
+          </div>
+          <div className="row-main">
+            <div className="row-title">{t("Back up to a file")}</div>
+            <div className="row-sub">{t("Everyone's data, to keep safe or move to a new phone")}</div>
+          </div>
+        </button>
+        <button className="row with-icon" onClick={() => restoreInput.current?.click()}>
+          <div className="icon-tile" style={{ background: "var(--indigo)" }}>
+            <Upload size={17} />
+          </div>
+          <div className="row-main">
+            <div className="row-title">{t("Restore from a file")}</div>
+            <div className="row-sub">{t("Bring back a W backup")}</div>
+          </div>
+        </button>
+        <input
+          ref={restoreInput}
+          type="file"
+          accept="application/json,.json"
+          hidden
+          aria-label={t("Backup file")}
+          onChange={(e) => {
+            void restoreBackup(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+      </div>
+      <div className="group" style={{ marginTop: 12 }}>
         <button
           className="row"
           style={{ color: "var(--red)" }}
           onClick={async () => {
-            const signedIn = !!getAccount().token;
-            const msg = signedIn
-              ? t("Your logs, workouts, custom foods and profile on this phone and in your account will be erased. This can't be undone.")
-              : t("Your logs, workouts, custom foods and profile on this phone will be erased. This can't be undone.");
-            if (await confirmDialog(t("Delete all data?"), msg)) {
+            if (await confirmDialog(t("Delete all data?"), t("Your logs, workouts, custom foods and profile on this phone will be erased. This can't be undone."))) {
               actions.resetAll();
-              if (signedIn) syncNow();
               showToast(t("All data deleted"));
             }
           }}
@@ -513,11 +559,7 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           {t("Delete all data")}
         </button>
       </div>
-      <p className="footnote">
-        {signedIn
-          ? t("Your data is stored on this phone and backed up to your account. Photos are sent to the server only for analysis and are not kept.")
-          : t("Everything is stored only on this phone. Photos are sent to the server only for analysis and are not kept.")}
-      </p>
+      <p className="footnote">{t("Everything is stored only on this phone, so back up to a file now and then. Photos are sent to the server only for analysis and are not kept.")}</p>
     </div>
   );
 }
@@ -529,10 +571,11 @@ export function Onboarding() {
   const stored = useStore((s) => s.profile);
   // Adding a family member: skip the welcome page, and offer a way back.
   const adding = useStore((s) => s.people.length > 0);
-  // Signed in with Google/Apple/email? Start with the account's first name (not for someone being added).
-  const [p, setP] = useState<P>(() => ({ ...stored, name: stored.name || (adding ? "" : getAccount().user?.name?.split(" ")[0]) || "" }));
+  const [p, setP] = useState<P>(() => ({ ...stored }));
   const [step, setStep] = useState(adding ? 1 : 0);
   const [lastPeriod, setLastPeriod] = useState("");
+  const personId = useStore((s) => s.personId);
+  const restoreInput = useRef<HTMLInputElement>(null);
   const set = (x: Partial<P>) => setP((o) => ({ ...o, ...x }));
   const within = (v: number, [lo, hi]: [number, number]) => v >= lo && v <= hi;
   const valid = within(p.age, AGE) && within(p.heightCm, HEIGHT) && within(p.weightKg, WEIGHT);
@@ -570,6 +613,7 @@ export function Onboarding() {
       sub: t("Used to calculate how many calories your body needs."),
       body: (
         <>
+          <PhotoPicker id={personId} name={p.name} photo={p.photo} onChange={(photo) => set({ photo })} />
           <ProfileFields p={p} set={set} draft />
           {p.sex === "female" && (
             <>
@@ -659,6 +703,26 @@ export function Onboarding() {
           <h1 className="large-title">{s.title}</h1>
           <p className="subtitle">{s.sub}</p>
           {s.body}
+          {step === 0 && !adding && (
+            // New phone? Bring everything back instead of starting over.
+            <p style={{ textAlign: "center", margin: "18px 0 0", fontSize: 15 }}>
+              <span className="muted">{t("Have a backup?")} </span>
+              <button className="link bold tap" onClick={() => restoreInput.current?.click()}>
+                {t("Restore it")}
+              </button>
+              <input
+                ref={restoreInput}
+                type="file"
+                accept="application/json,.json"
+                hidden
+                aria-label={t("Backup file")}
+                onChange={(e) => {
+                  void restoreBackup(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+            </p>
+          )}
         </motion.div>
       </AnimatePresence>
       <div className="btn-row" style={{ marginTop: 24 }}>

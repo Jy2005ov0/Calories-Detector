@@ -23,7 +23,6 @@ const tab = (page: Page, name: string) => page.getByRole("navigation").getByRole
 const sheet = (page: Page, name: string) => page.getByRole("dialog", { name });
 
 async function onboard(page: Page, name: string, opts: { sex?: "Male" | "Female"; weight?: string; diet?: string } = {}) {
-  await page.getByRole("button", { name: "Continue without an account" }).click();
   await page.getByRole("button", { name: "Get started" }).click();
   await page.getByLabel("Name").fill(name);
   await page.getByRole("tab", { name: opts.sex ?? "Female", exact: true }).click();

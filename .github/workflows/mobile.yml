@@ -129,22 +129,7 @@ jobs:
       - run: npm run build
         env:
           VITE_API_URL: ${{ vars.API_URL }}
-          # Installed with Sideloadly/AltStore and a free Apple ID: hide Sign in with Apple, which Apple doesn't allow there.
-          VITE_SIDELOAD: "1"
       - run: npx cap sync ios
-      # Google sign-in on iPhone returns to the app through the iOS client's reversed ID as a URL scheme.
-      - name: Add the Google sign-in URL scheme
-        if: vars.GOOGLE_IOS_CLIENT_ID != ''
-        env:
-          CLIENT_ID: ${{ vars.GOOGLE_IOS_CLIENT_ID }}
-        run: |
-          SCHEME="com.googleusercontent.apps.${CLIENT_ID%.apps.googleusercontent.com}"
-          PLIST=ios/App/App/Info.plist
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" "$PLIST" 2>/dev/null || true
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" "$PLIST"
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" "$PLIST"
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string $SCHEME" "$PLIST"
-          echo "Added URL scheme $SCHEME"
       # A real-device (arm64) Release build without code signing. Sideloadly or AltStore signs it
       # with the user's own Apple ID when installing, so no Mac or paid developer account is needed.
       - run: >

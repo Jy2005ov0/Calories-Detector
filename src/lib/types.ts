@@ -72,6 +72,8 @@ export interface Profile {
   stepGoal: number;
   /** Menstrual cycle tracking (off unless turned on). */
   cycle: CycleSettings;
+  /** Profile picture: a small square JPEG as a data URL. */
+  photo?: string;
   onboarded: boolean;
 }
 

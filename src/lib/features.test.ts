@@ -3,7 +3,7 @@ import { FOOD_BY_NAME } from "../data/foods";
 import { conflicts, foodConflicts, foodTags } from "./allergens";
 import { averageLength, cycleOf, cycleStatus, periodDue, phaseTip } from "./cycle";
 import { recommendedFoods, sampleDay } from "./diet";
-import { toCsv } from "./export";
+import { fromBackup, toBackup, toCsv } from "./export";
 import { fastStatus, logStreak, waterGoalMl, weightTrend, workoutWeekStreak } from "./progress";
 import { e1rm, isNewRecord, lastPerformance, personalRecords, suggestNext } from "./records";
 import { DEFAULT_PROFILE, INITIAL_STATE } from "./store";
@@ -177,6 +177,16 @@ describe("export", () => {
     expect(csv).toContain('"Roti ""kosong"", extra"');
     expect(csv).toContain("2026-10-08,70.4");
     expect(csv).toContain("2026-10-08,1500,6000");
+  });
+
+  it("backs up everyone to a file and restores it exactly", () => {
+    const state = { ...INITIAL_STATE, profile: { ...DEFAULT_PROFILE, name: "Aina", onboarded: true }, people: [{ id: "mum", data: { ...INITIAL_STATE, profile: { ...DEFAULT_PROFILE, name: "Mum" } } }] };
+    const back = fromBackup(toBackup(state as never))!;
+    expect(back.profile.name).toBe("Aina");
+    expect(back.people[0].data.profile.name).toBe("Mum");
+    expect(fromBackup("{}")).toBeNull();
+    expect(fromBackup("not json")).toBeNull();
+    expect(fromBackup(JSON.stringify({ kind: "w-backup", state: {} }))).toBeNull();
   });
 
   it("neutralises spreadsheet formulas", () => {

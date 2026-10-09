@@ -5,9 +5,7 @@ import { fileURLToPath } from "node:url";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
-import { authConfigFromEnv, authRouter, optionalUser, rateLimiter, type AuthConfig } from "./auth";
-import { openDb, type DB } from "./db";
-import { syncRouter } from "./sync";
+import { rateLimiter } from "./limits";
 import { coachRouter } from "./coach";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -45,7 +43,7 @@ function getClient() {
   return client;
 }
 
-export function createApp(db: DB = openDb(), authConfig: AuthConfig = authConfigFromEnv()) {
+export function createApp() {
   const app = express();
   // Behind a proxy (Render, Fly, Railway…) so rate limits see the real client IP. Set TRUST_PROXY
   // to the number of proxies in front of the server (0 if none, 2 with Cloudflare in front of Render).
@@ -55,23 +53,18 @@ export function createApp(db: DB = openDb(), authConfig: AuthConfig = authConfig
   const extraOrigins = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean);
   app.use("/api", cors({ origin: [...NATIVE_ORIGINS, ...extraOrigins] }));
   app.use(express.json({ limit: "12mb" }));
-  app.use("/api/auth", authRouter(db, authConfig));
-  app.use("/api/data", syncRouter(db));
 
-  // The AI endpoints spend the server's Anthropic credit, so they're limited per person (account, or
-  // IP without one) and in total per day. AI_REQUIRE_ACCOUNT=1 restricts them to signed-in users.
+  // The AI endpoints spend the server's Anthropic credit, so they're limited per network address and
+  // in total per day.
   const perPersonPhotos = rateLimiter(20, 10 * 60 * 1000);
   const dailyLimit = Number(process.env.AI_DAILY_LIMIT ?? 2000);
   let day = "";
   let usedToday = 0;
   const aiGate = (perPerson?: (key: string) => boolean): express.RequestHandler => (req, res, next) => {
-    const userId = optionalUser(db, req);
-    if (process.env.AI_REQUIRE_ACCOUNT === "1" && !userId) return void res.status(401).json({ error: "Sign in to use this feature." });
-    if (perPerson?.(userId ?? req.ip ?? "unknown")) return void res.status(429).json({ error: "Too many photos in a short time. Wait a few minutes and try again." });
+    if (perPerson?.(req.ip ?? "unknown")) return void res.status(429).json({ error: "Too many photos in a short time. Wait a few minutes and try again." });
     const today = new Date().toISOString().slice(0, 10);
     if (today !== day) [day, usedToday] = [today, 0];
     if (++usedToday > dailyLimit) return void res.status(429).json({ error: "The AI features are busy today. Try again tomorrow." });
-    res.locals.aiKey = userId ?? req.ip;
     next();
   };
 
@@ -164,9 +157,7 @@ export function createApp(db: DB = openDb(), authConfig: AuthConfig = authConfig
 
 // Run the server unless this file is imported (tests import createApp).
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const db = openDb();
-  setInterval(() => db.purgeSessions(), 60 * 60 * 1000).unref();
-  createApp(db).listen(PORT, () => {
+  createApp().listen(PORT, () => {
     console.log(`API listening on http://localhost:${PORT} (photo analysis ${getClient() ? "enabled" : "disabled"})`);
   });
 }

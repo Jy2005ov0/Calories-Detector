@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { animate, motion, useMotionValue, useReducedMotion } from "motion/react";
-import { Camera, CircleHelp, Cloud, Dumbbell, HeartPulse, Target, type LucideIcon } from "lucide-react";
+import { Camera, CircleHelp, Dumbbell, HeartPulse, Target, Users, type LucideIcon } from "lucide-react";
 import { SPRING, SPRING_MOMENTUM, project } from "./ui";
 import { t, useLanguage } from "../i18n";
 
@@ -42,15 +42,15 @@ export const INTRO_SLIDES: Slide[] = [
     points: ["Training plans for 2–6 days a week", "Calorie and protein targets", "A sample day of meals you can log"],
   },
   {
-    Icon: Cloud,
+    Icon: Users,
     colors: ["#64d2ff", "#0a84ff"],
-    title: "Your data, on every phone",
-    body: "Sign in with Apple, Google or email to back up and sync. Or use the app without an account.",
-    points: ["Works offline", "Delete your account any time", "Tap ? on any screen to see the guide again"],
+    title: "Private, and for the whole family",
+    body: "No sign-up: just create your profile. Everything stays on your phone, and family members can add their own profiles.",
+    points: ["Works offline", "Back up to a file to move to a new phone", "Tap ? on any screen to see the guide again"],
   },
 ];
 
-/** Full-screen intro shown on first launch, before sign-in. Swipe, tap Next, or Skip. */
+/** Full-screen intro shown on first launch, before setting up a profile. Swipe, tap Next, or Skip. */
 export function IntroGuide({ onDone }: { onDone: () => void }) {
   useLanguage();
   const reduce = useReducedMotion();

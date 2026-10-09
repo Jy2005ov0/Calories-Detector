@@ -203,7 +203,7 @@ export function ProgressSheet({ open, onClose }: { open: boolean; onClose: () =>
         <DayBars label={t("Water")} unit="ml" color="var(--teal)" goal={waterGoal} days={week.map((date) => ({ date, value: statsFor(date)?.waterMl ?? 0 }))} />
         <WaterControl />
       </div>
-      <p className="footnote">{t("Progress is saved on this phone and synced to your account if you have one.")}</p>
+      <p className="footnote">{t("Progress is saved on this phone.")}</p>
     </Sheet>
   );
 }

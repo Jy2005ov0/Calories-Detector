@@ -3,7 +3,7 @@ import { formatDuration, sessionMinutes, sessionVolume } from "./fitness";
 import { round, sum, targets } from "./nutrition";
 import { addDays } from "./progress";
 import { personalRecords } from "./records";
-import type { AppState } from "./store";
+import { parseState, type AppState } from "./store";
 import type { WorkoutSession } from "./types";
 
 // ── CSV ──────────────────────────────────────────────────
@@ -232,3 +232,23 @@ function roundRect(g: CanvasRenderingContext2D, x: number, y: number, w: number,
   g.closePath();
 }
 
+
+// ── Backup file ──────────────────────────────────────────
+// Everything (every person in the household too) in one file, to move to a new phone or keep safe.
+
+const BACKUP_KIND = "w-backup";
+
+export function toBackup(s: AppState): string {
+  return JSON.stringify({ kind: BACKUP_KIND, version: 1, savedAt: new Date().toISOString(), state: s });
+}
+
+/** The saved data from a backup file, or null if it isn't one. */
+export function fromBackup(text: string): AppState | null {
+  try {
+    const file = JSON.parse(text) as { kind?: string; state?: AppState };
+    if (file?.kind !== BACKUP_KIND || !file.state?.profile) return null;
+    return parseState(JSON.stringify(file.state));
+  } catch {
+    return null;
+  }
+}

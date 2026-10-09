@@ -37,7 +37,7 @@ export interface AppState {
   resetAt?: number;
   /** Who is using the app now. Everything above except the shared settings belongs to this person. */
   personId: string;
-  /** Other people on this phone or account (family members), with their own data. */
+  /** Other people on this phone (family members), with their own data. */
   people: PersonSnapshot[];
   /** People removed from the household, so sync doesn't bring them back. */
   removedPeople: string[];
@@ -376,6 +376,8 @@ export const actions = {
     // Everyone else in the household is removed too.
     setState((s) => ({
       ...initial,
+      // Starting over goes straight to setting up a profile, not the first-launch guide.
+      introDone: true,
       stamps: {},
       resetAt: Date.now(),
       personId: s.personId,

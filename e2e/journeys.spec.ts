@@ -56,7 +56,6 @@ async function onboard(
   page: Page,
   p: { name: string; sex: "Male" | "Female"; age: string; height: string; weight: string; goal: RegExp; activity: RegExp; experience: RegExp; days: number; diet: string },
 ) {
-  await page.getByRole("button", { name: "Continue without an account" }).click();
   await page.getByRole("button", { name: "Get started" }).click();
   await page.getByLabel("Name").fill(p.name);
   await page.getByRole("tab", { name: p.sex, exact: true }).click();
@@ -317,7 +316,6 @@ test("Failures are explained, not silent", async ({ page }) => {
   await start(page);
 
   // Onboarding blocks impossible numbers.
-  await page.getByRole("button", { name: "Continue without an account" }).click();
   await page.getByRole("button", { name: "Get started" }).click();
   await page.getByLabel("Age").fill("");
   await expect(page.getByRole("button", { name: "Continue" })).toBeDisabled();
@@ -479,7 +477,6 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
 });
 
 async function onboardWithoutSkipping(page: Page) {
-  await page.getByRole("button", { name: "Continue without an account" }).click();
   await page.getByRole("button", { name: "Get started" }).click();
   await page.getByLabel("Name").fill("Farid");
   await page.getByLabel("Age").fill("30");
@@ -490,96 +487,63 @@ async function onboardWithoutSkipping(page: Page) {
 
 // ── Journey 4 ────────────────────────────────────────────
 
-test("Nadia: creates an account, switches phones, and her data follows her", async ({ page, browser }, info) => {
-  const email = `nadia.${info.project.name.replace(/\W/g, "").toLowerCase()}.${Date.now()}@example.com`;
-  const password = "kopi-o-kosong-2026";
+test("Nadia: no sign-up — adds a profile photo, backs up to a file and restores it on a new phone", async ({ page, browser }, info) => {
   await start(page, { fakeClock: false });
 
-  // 1. Welcome offers email or no account. Google and Apple aren't set up on the test server,
-  //    so their buttons aren't shown (rather than failing when tapped).
-  await expect(page.getByRole("button", { name: "Sign up with email" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue without an account" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue with Google" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Continue with Apple" })).toHaveCount(0);
-  await expectNoHorizontalScroll(page);
-
-  // 2. Sign up with email. Weak passwords are explained inline.
-  await page.getByRole("button", { name: "Sign up with email" }).click();
-  const signup = page.getByRole("dialog", { name: "Create account" });
-  await signup.getByLabel("Name").fill("Nadia Rahman");
-  await signup.getByLabel("Email", { exact: true }).fill(email);
-  await signup.getByLabel("Password", { exact: true }).fill("short");
-  await signup.getByRole("button", { name: "Create account" }).last().click();
-  await expect(signup.getByRole("alert")).toContainText("at least 8 characters");
-  await signup.getByLabel("Password", { exact: true }).fill(password);
-  await signup.getByRole("button", { name: "Show password" }).click();
-  await expect(signup.getByLabel("Password", { exact: true })).toHaveAttribute("type", "text");
-  await signup.getByRole("button", { name: "Create account" }).last().click();
-
-  // 3. Onboarding starts with her first name from the account.
+  // 1. No sign-in screen: straight from the guide to setting up a profile, with an optional photo.
+  await expect(page.getByRole("button", { name: "Get started" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Sign up|Log in|Continue with/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Get started" }).click();
-  await expect(page.getByLabel("Name")).toHaveValue("Nadia");
+  await page.getByLabel("Profile photo", { exact: true }).setInputFiles({ name: "me.png", mimeType: "image/png", buffer: PHOTO });
+  await expect(page.locator("img.avatar")).toBeVisible();
+  await page.getByLabel("Name").fill("Nadia");
+  await page.getByRole("tab", { name: "Female", exact: true }).click();
+  await page.getByLabel("Age").fill("26");
+  await page.getByLabel("Height").fill("158");
+  await page.getByLabel("Weight").fill("55");
   for (let i = 0; i < 4; i++) await page.getByRole("button", { name: /Continue|Build my plan/ }).click();
   await page.getByRole("button", { name: "Skip" }).click();
   await expect(page.getByRole("heading", { name: /Good \w+, Nadia/ })).toBeVisible();
+  // Her photo shows on Today.
+  await expect(page.locator(".title-actions img.avatar")).toBeVisible();
 
-  // 4. Log breakfast; Profile shows the account as synced.
+  // 2. Log breakfast.
   await searchAndOpen(page, "teh tarik", "Teh tarik");
   await page.getByRole("dialog").getByRole("tab", { name: "Breakfast" }).click();
   await page.getByRole("button", { name: "Add to Breakfast" }).click();
-  await searchAndOpen(page, "roti canai", "Roti canai");
-  await page.getByRole("dialog").getByRole("tab", { name: "Breakfast" }).click();
-  await page.getByRole("button", { name: "Add to Breakfast" }).click();
+  await tab(page, "Today");
+  await expect(mealHeader(page, "Breakfast")).toContainText("185 kcal");
+
+  // 3. Profile: change the photo is there; back up to a file.
   await tab(page, "Profile");
-  const card = page.getByTestId("account");
-  await expect(card).toContainText("Nadia Rahman");
-  await expect(card).toContainText(email);
-  await expect(card).toContainText("Email");
-  await expect(card.getByRole("status")).toContainText(/Synced/, { timeout: 10_000 });
+  await expect(page.getByRole("button", { name: "Change photo" })).toBeVisible();
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: /Back up to a file/ }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/^W-backup-\d{4}-\d{2}-\d{2}\.json$/);
+  const backup = (await file.path())!;
   await expectNoHorizontalScroll(page);
 
-  // 5. A new phone: log in (wrong password first) and everything is there — no onboarding again.
+  // 4. A new phone: restore from the first setup page — no need to fill in a profile again.
   const phone2 = await browser.newContext({ ...info.project.use, baseURL: info.project.use.baseURL });
   const page2 = await phone2.newPage();
   await page2.route("https://world.openfoodfacts.org/**", (r) => r.fulfill({ json: { products: [] } }));
   await page2.goto("/");
   await page2.getByRole("button", { name: "Skip" }).click();
-  await page2.getByRole("button", { name: "Log in" }).click();
-  const login = page2.getByRole("dialog", { name: "Log in" });
-  await login.getByLabel("Email", { exact: true }).fill(email);
-  await login.getByLabel("Password", { exact: true }).fill("wrong-password");
-  await login.getByRole("button", { name: "Log in" }).last().click();
-  await expect(login.getByRole("alert")).toHaveText("Wrong email or password.");
-  await login.getByLabel("Password", { exact: true }).fill(password);
-  await login.getByRole("button", { name: "Log in" }).last().click();
+  page2.once("dialog", (d) => d.accept());
+  await page2.getByLabel("Backup file").setInputFiles(backup);
   await expect(page2.getByRole("heading", { name: /Good \w+, Nadia/ })).toBeVisible();
-  await expect(page2.getByRole("dialog")).toHaveCount(0); // tour already done on phone 1
-  await expect(mealHeader(page2, "Breakfast")).toContainText("534 kcal"); // teh tarik 185 + roti canai with dhal 349
+  await expect(mealHeader(page2, "Breakfast")).toContainText("185 kcal");
+  await expect(page2.locator(".title-actions img.avatar")).toBeVisible();
 
-  // 6. Delete the teh tarik on phone 2; phone 1 picks that up when it comes back to the foreground.
-  await page2.getByRole("button", { name: "Remove Teh tarik" }).click();
+  // 5. Something that isn't a backup is refused, and nothing changes.
   await tab(page2, "Profile");
-  await expect(page2.getByTestId("account").getByRole("status")).toContainText(/Synced/, { timeout: 10_000 });
-  await page2.waitForTimeout(2000); // let the debounced upload finish
-  await tab(page, "Today");
-  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
-  await expect(mealHeader(page, "Breakfast")).toContainText("349 kcal");
-  await expect(page.getByText("Teh tarik", { exact: true })).toHaveCount(0);
+  await page2.getByLabel("Backup file").setInputFiles({ name: "notes.json", mimeType: "application/json", buffer: Buffer.from('{"hello":1}') });
+  await expect(page2.getByRole("status").filter({ hasText: "That isn't a W backup file." })).toBeVisible();
 
-  // 7. Sign out on phone 2: the data stays on that phone.
-  await page2.getByRole("button", { name: "Sign out" }).click();
-  await expect(page2.getByText("Back up & sync")).toBeVisible();
-  await tab(page2, "Today");
-  await expect(mealHeader(page2, "Breakfast")).toContainText("349 kcal");
-
-  // 8. Delete the account on phone 1 (required by the App Store): it's gone from the server.
-  await tab(page, "Profile");
-  page.once("dialog", (d) => d.accept());
-  await page.getByRole("button", { name: "Delete account" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Account deleted" })).toBeVisible();
-  await expect(page.getByText("Back up & sync")).toBeVisible();
-  const relogin = await page2.request.post("/api/auth/login", { data: { email, password } });
-  expect(relogin.status()).toBe(401);
+  // 6. Removing the photo goes back to the initial.
+  await page2.getByRole("button", { name: "Remove photo" }).click();
+  await expect(page2.getByRole("button", { name: "Add a photo" })).toBeVisible();
   await phone2.close();
 });
 
@@ -592,7 +556,7 @@ test("First launch: the step-by-step guide comes first and can be swiped, steppe
   await expect(guide.getByRole("button", { name: "Skip" })).toBeVisible();
   await expectNoHorizontalScroll(page);
 
-  const titles = ["Snap or search your food", "Know if it's good for you", "Clock in at the gym", "A plan made for your body", "Your data, on every phone"];
+  const titles = ["Snap or search your food", "Know if it's good for you", "Clock in at the gym", "A plan made for your body", "Private, and for the whole family"];
   const current = (i: number) => guide.getByRole("heading", { name: titles[i] });
 
   // Next walks through every page; the visible page is fully on screen.
@@ -617,19 +581,20 @@ test("First launch: the step-by-step guide comes first and can be swiped, steppe
   await expect(current(1)).toBeInViewport({ ratio: 0.9 });
   await expect(guide).toContainText("2 of 5");
 
-  // Finishing goes to sign-in; the guide doesn't come back after a reload.
+  // Finishing goes to setting up a profile; the guide doesn't come back after a reload.
   await guide.getByRole("tab", { name: /Page 5:/ }).click();
   await guide.getByRole("button", { name: "Get started" }).click();
-  await expect(page.getByRole("button", { name: "Continue without an account" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Get started" })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("region", { name: "Welcome guide" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Continue without an account" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Get started" })).toBeVisible();
 });
 
-test("First launch: Skip goes straight to sign-in", async ({ page }) => {
+test("First launch: Skip goes straight to setting up a profile", async ({ page }) => {
   await start(page, { fakeClock: false, skipIntro: false });
   await page.getByRole("region", { name: "Welcome guide" }).getByRole("button", { name: "Skip" }).click();
-  await expect(page.getByRole("button", { name: "Sign up with email" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Get started" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Restore it" })).toBeVisible();
 });
 
 // ── Journey 6 ────────────────────────────────────────────
@@ -738,18 +703,4 @@ test("A dish can take your own custom food as an extra (regression: used to cras
   await expect(page.getByTestId("dish-parts")).toContainText("Mak's sambal sotong");
   await expect(page.getByRole("dialog").first().locator(".big-number")).toHaveText("686"); // 506 + 180
   expect(errors).toEqual([]);
-});
-
-test("Sign in with Apple and Google are offered once the server is set up for them", async ({ page }) => {
-  await page.route("**/api/auth/config", (r) => r.fulfill({ json: { google: true, apple: true, appleWeb: true, googleWebClientId: "x.apps.googleusercontent.com" } }));
-  await start(page, { fakeClock: false });
-  await expect(page.getByRole("button", { name: "Continue with Apple" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
-});
-
-test("Apple isn't offered on the website or Android until a Services ID is set up (the iPhone app only needs the bundle ID)", async ({ page }) => {
-  await page.route("**/api/auth/config", (r) => r.fulfill({ json: { google: true, apple: true, appleWeb: false } }));
-  await start(page, { fakeClock: false });
-  await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue with Apple" })).toHaveCount(0);
 });

@@ -25,7 +25,7 @@ The short version:
 | **First time** | Allow notifications, and set **Battery → Unrestricted** so reminders and the workout timer keep working | Turn on **Developer Mode** and trust your Apple ID under **VPN & Device Management** |
 | **Keep it** | Nothing to do — it doesn't expire | **Renew every 7 days** with a free Apple ID (Sideloadly or AltStore can do it automatically over Wi-Fi). Your data stays. |
 | **Update** | Open the new `W.apk` → **Update** | Install the new `W.ipa` with the same Apple ID |
-| **Not available** | — | Sign in with Apple and Apple Health (need a paid developer account); everything else works |
+| **Not available** | — | Apple Health (needs a paid developer account); everything else works |
 
 No install at all: open the web app and use **Add to Home Screen** (Safari) or **Install app** (Chrome). See the [guide](docs/INSTALL.md#no-install-web-app-on-the-home-screen).
 
@@ -42,7 +42,7 @@ CI builds the Android APK and the unsigned iPhone IPA and attaches both to a Git
   git push origin v1.0.1
   ```
 
-Photo recognition and accounts need the server running somewhere (see [Run it](#run-it)). Set the repository variable `API_URL` before tagging so the APK knows where your server is.
+Photo recognition and the AI coach need the server running somewhere (see [Run it](#run-it)). Set the repository variable `API_URL` before tagging so the APK knows where your server is.
 
 ## Screenshots
 
@@ -230,8 +230,10 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 | **Halal & allergen filters** | Pick allergies (peanuts, tree nuts, shellfish, fish, milk, egg, gluten, soy, sesame). Foods that usually contain them — or pork and alcohol on a halal diet, or meat on a vegetarian one — are hidden from search (one tap shows them), flagged with a warning, and left out of your meal plan. |
 | **Ramadan & 16:8 fasting** | Ramadan mode turns meals into Sahur, Iftar and Moreh, counts down to iftar or the end of sahur, uses a gentler 15% deficit, and builds a sample day around dates at iftar. 16:8 mode shows when your eating window opens and closes. |
 | **Cycle tracking** | For women, off until turned on in Profile. Log the first day of each period; W learns your cycle length, shows the cycle day and phase on Today with a training and food tip for that phase (e.g. heavier lifts in the follicular phase, iron-rich food during your period, a little extra appetite and water weight in the luteal phase), predicts the next period, and offers a one-tap *My period started today* when it's due or late. Optional reminder two days before and on the day. The coach knows your phase. Estimates only — not medical advice or contraception. |
-| **Family members** | Several people can share one phone and one account (Profile → People → *Add a person*). Each person has their own profile, plan, food log, workouts, weight, water and cycle; theme and language are shared. Switch from Profile or the avatar on Today. Sync keeps each person's data separate across phones. |
+| **Family members** | Several people can share one phone (Profile → People → *Add a person*). Each person has their own profile and photo, plan, food log, workouts, weight, water and cycle; theme and language are shared. Switch from Profile or the avatar on Today. |
 | **AI coach** | Ask anything about food, portions or training. The coach (Claude) sees your targets, today's log, your plan and your recent workouts, answers in your language, and streams its reply. |
+| **No sign-up** | Create a profile (with an optional picture from your photo library) and start — no email or password. Data stays on the phone. |
+| **Backup & restore** | Save everyone's data to one file and restore it on a new phone, from Profile or the first setup page. |
 | **Export & share** | Export everything as CSV, or a 30-day PDF report for a coach or doctor. Share a finished workout as an image card. |
 | **Languages** | English, Bahasa Melayu and 中文 (Simplified Chinese), switchable in Profile. |
 
@@ -246,39 +248,16 @@ The UI follows [emilkowalski/skills → apple-design](https://github.com/emilkow
 - Undo for slips instead of confirmation dialogs. Confirmations are kept for destructive actions only.
 - Respects `prefers-reduced-motion`, `prefers-reduced-transparency` and `prefers-contrast`.
 
-## Accounts & sync
+## No sign-up, data on the phone
 
-Users can **Continue with Apple**, **Continue with Google**, **sign up with email**, or **use the app without an account**. With an account, the food log, workouts, custom foods, meals and plan are backed up and synced across every phone the user signs in on.
+There are no accounts. On first launch you go from the short guide straight to creating your profile: name, sex, age, height, weight, an optional **profile picture** from the photo library, then goal, activity, experience and diet. Everything is stored on the phone (and in iOS/Android storage the OS doesn't clear) and works offline.
 
-- **Server:** Express + SQLite (Node's built-in `node:sqlite`), no third-party auth service.
-- **Passwords:** hashed with scrypt and a per-user salt. Logins are rate-limited, and a wrong password gets the same answer as an unknown email.
-- **Sessions:** random 256-bit tokens; only their SHA-256 is stored. They last 90 days and are revoked on sign-out.
-- **Google & Apple:** the ID token is verified against Google's and Apple's public keys (issuer, audience, expiry). A verified email links to an existing account. Any password someone else set on that unverified address is then removed, which blocks account pre-hijacking.
-- **Sync:** the app keeps working offline. Changes upload in the background. If two phones edited at once, the server rejects the stale write and the app merges both copies: lists are joined by ID, deletions are respected, and each setting keeps its newest value.
-- **Delete account** (Profile) erases the account and everything stored on the server, as the App Store requires.
+- **Back up to a file** (Profile → Data) saves everyone's data — every family member's profile, photo, logs, workouts, weight and cycle — into one `W-backup-YYYY-MM-DD.json` file, shared or saved wherever you like.
+- **Restore from a file** brings a backup back, from Profile or from the first setup page on a new phone ("Have a backup? Restore it"), so moving phones doesn't mean starting over.
+- **Export data (CSV)** and the **30-day report (PDF)** are for spreadsheets, a coach or a doctor.
+- **Delete all data** wipes the phone and starts profile setup again.
 
-### Setting up Google and Apple sign-in
-
-Both need accounts only you can create, so they're off until you set them up. Until then the app hides their buttons and offers email sign-in, which works out of the box. Set the variables from `.env.example` on your server; the app reads them from `/api/auth/config` when it opens. The phone apps must also know where your server is: set the GitHub repository variable `API_URL` (e.g. `https://w.example.com`) before publishing a release.
-
-- **Google** (free, about 15 minutes). In [Google Cloud Console](https://console.cloud.google.com):
-  1. Create a project, then **APIs & Services → OAuth consent screen**: choose *External*, fill in the app name (W) and your email, and add yourself as a test user (or publish the app).
-  2. **APIs & Services → Credentials → Create credentials → OAuth client ID**, three times:
-     | Type | Settings | Put the client ID in |
-     |---|---|---|
-     | **Web application** | Authorised JavaScript origins: your server's address, e.g. `https://w.example.com` | `GOOGLE_WEB_CLIENT_ID` on the server |
-     | **Android** | Package name `com.caloriesdetector.app`, SHA-1 `4F:6F:9A:31:A1:0D:48:DF:27:95:78:F7:06:A3:38:BC:0E:68:68:49` (the key the release APK is signed with, see [android/keystore](android/keystore/README.md)) | `GOOGLE_EXTRA_CLIENT_IDS` on the server |
-     | **iOS** | Bundle ID `com.caloriesdetector.app` | `GOOGLE_IOS_CLIENT_ID` on the server **and** as a GitHub repository variable `GOOGLE_IOS_CLIENT_ID` (Settings → Secrets and variables → Actions → Variables), so CI adds the URL scheme the iPhone app needs |
-  3. Restart the server, then publish a new release (Actions → Mobile apps → Run workflow) so the iPhone app gets the URL scheme. **Continue with Google** appears as soon as the server has the IDs.
-
-  Building on a Mac instead of CI? Add the iOS client's *reversed client ID* (`com.googleusercontent.apps.…`) as a URL scheme in Xcode (Target → Info → URL Types).
-- **Apple:** needs a paid **Apple Developer Program** membership ($99/year) — Apple doesn't allow Sign in with Apple in apps signed with a free Apple ID.
-  1. In Certificates, Identifiers & Profiles, open the App ID `com.caloriesdetector.app` (or yours) and tick **Sign in with Apple**. The Xcode project already has the entitlement.
-  2. On the server set `APPLE_BUNDLE_ID` to that bundle ID (it defaults to `com.caloriesdetector.app`). That's all the **iPhone app** needs.
-  3. Install the iPhone app signed by that team: from Xcode, **TestFlight** or the App Store.
-  4. Optional, for the **website and Android:** create a *Services ID* (`APPLE_SERVICE_ID`) with your domain and return URL (`APPLE_REDIRECT_URL`).
-
-  The app only shows **Continue with Apple** where it can work. It's hidden in the sideloaded `W.ipa` from Releases (free Apple ID), and on Android and the web until the Services ID is set up. Email and Google work everywhere.
+The server is only used for photo recognition and the AI coach; photos and questions are analysed and not kept.
 
 ## iOS & Android apps
 
@@ -371,8 +350,7 @@ ios/, android/           Native projects (generated by Capacitor, safe to edit)
 assets/                  Icon and splash sources
 src/lib/platform.ts      Native/web bridge: camera, haptics, dialogs, storage, back button
 server/index.ts          Express app: photo analysis (Claude vision), static hosting
-server/auth.ts           Sign-up, login, Google & Apple token verification, sessions
-server/sync.ts           Per-user data document with conflict detection
+server/limits.ts         Rate limits for the AI endpoints
 server/db.ts             SQLite schema and queries
 src/data/foods.ts        Food database
 src/data/exercises.ts    Exercise & activity database

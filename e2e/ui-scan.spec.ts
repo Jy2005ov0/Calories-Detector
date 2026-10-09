@@ -18,13 +18,16 @@ interface Issue {
 
 const ZERO = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, satFat: 0, sodium: 0 };
 
+// A tiny square image standing in for a profile picture.
+const PHOTO_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
 function seedState() {
   const today = new Date();
   const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const n = (kcal: number, p: number, c: number, f: number) => ({ ...ZERO, kcal, protein: p, carbs: c, fat: f, sugar: c / 5, sodium: kcal * 1.2, satFat: f / 3, fiber: 2 });
   const now = Date.now();
   return {
-    profile: { name: "Aisyah binti Abdullah", sex: "female", age: 27, heightCm: 162, weightKg: 61, activity: 1.55, goal: "lose", experience: "intermediate", trainingDays: 5, diet: "halal", onboarded: true, cycle: { on: true, length: 28, periodDays: 5, remind: true } },
+    profile: { name: "Aisyah binti Abdullah", sex: "female", age: 27, heightCm: 162, weightKg: 61, activity: 1.55, goal: "lose", experience: "intermediate", trainingDays: 5, diet: "halal", onboarded: true, cycle: { on: true, length: 28, periodDays: 5, remind: true }, photo: PHOTO_URL },
     periods: [-53, -25].map((d, i) => ({ id: `p${i}`, date: dayKey(d), createdAt: i })),
     personId: "me",
     people: [
@@ -224,13 +227,6 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
     await audit(page, `Intro guide · page ${i}`, issues);
   }
   await page.getByRole("button", { name: "Get started" }).click();
-  await audit(page, "Welcome", issues);
-  await page.getByRole("button", { name: "Sign up with email" }).click();
-  await audit(page, "Create account sheet", issues);
-  await dialog().getByRole("tab", { name: "Log in" }).click();
-  await audit(page, "Log in sheet", issues);
-  await close();
-  await page.getByRole("button", { name: "Continue without an account" }).click();
   await audit(page, "Onboarding · welcome", issues);
   await page.getByRole("button", { name: "Get started" }).click();
   await audit(page, "Onboarding · about you", issues);
@@ -244,18 +240,8 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await audit(page, "Guided tour · step 2", issues);
   await page.getByRole("button", { name: "Skip" }).click();
 
-  // ── A real user's data, signed in ──────────────────
-  const reg = await page.request.post("/api/auth/register", {
-    data: { email: `scan.${device.replace(/\W/g, "")}.${scheme}.${Date.now()}@example.com`, password: "scan-password-1", name: "Aisyah Abdullah" },
-  });
-  const { token, user } = await reg.json();
-  await page.evaluate(
-    ([state, account]) => {
-      localStorage.setItem("calories-detector:v1", JSON.stringify(state));
-      localStorage.setItem("calories-detector:account", JSON.stringify(account));
-    },
-    [seedState(), { token, user, guest: false, version: 0, lastSyncedAt: null }] as const,
-  );
+  // ── A real user's data ─────────────────────────────
+  await page.evaluate((state) => localStorage.setItem("calories-detector:v1", JSON.stringify(state)), seedState());
   await page.reload();
 
   // ── Today ──────────────────────────────────────────
@@ -446,8 +432,9 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await page.getByRole("button", { name: "English" }).click();
   await page.getByRole("tab", { name: "Off" }).click();
 
-  await page.getByRole("button", { name: "Sign out" }).click();
-  await audit(page, "Profile · guest", issues);
+  // Profile with a photo, and the backup rows.
+  await page.locator(".section-header", { hasText: "Data" }).scrollIntoViewIfNeeded();
+  await audit(page, "Profile · data and backup", issues);
 
   await ctx.close();
   return issues;

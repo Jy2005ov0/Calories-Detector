@@ -3,6 +3,9 @@ import type { AreaDict } from "./index";
 // Translations for the core area. Keys are the exact English strings passed to t().
 export const CORE: AreaDict = {
   ms: {
+    "Private, and for the whole family": "Peribadi, dan untuk seluruh keluarga",
+    "No sign-up: just create your profile. Everything stays on your phone, and family members can add their own profiles.": "Tiada pendaftaran: hanya cipta profil anda. Semua data kekal dalam telefon anda, dan ahli keluarga boleh menambah profil mereka sendiri.",
+    "Back up to a file to move to a new phone": "Sandarkan ke fail untuk berpindah ke telefon baharu",
     "How to do it": "Cara melakukannya",
     "USDA food database": "Pangkalan data makanan USDA",
     "Baby food": "Makanan bayi",
@@ -283,6 +286,9 @@ export const CORE: AreaDict = {
     "Weight from {from} kg on {d1} to {to} kg on {d2}": "Berat daripada {from} kg pada {d1} kepada {to} kg pada {d2}",
   },
   zh: {
+    "Private, and for the whole family": "私密，适合全家使用",
+    "No sign-up: just create your profile. Everything stays on your phone, and family members can add their own profiles.": "无需注册：只需创建你的个人资料。所有数据都保存在你的手机上，家庭成员也可以添加自己的资料。",
+    "Back up to a file to move to a new phone": "备份到文件，方便转移到新手机",
     "How to do it": "动作要领",
     "USDA food database": "美国农业部食物数据库",
     "Baby food": "婴儿食品",

@@ -94,10 +94,7 @@ A paid Apple Developer account ($99/year) signs for a year instead.
 
 ### What works in a sideloaded build
 
-Everything — camera, photo library, barcode scanner, reminders, rest timer, cycle tracking, family members, accounts and sync — **except** two things Apple only allows for apps signed by a paid developer account:
-
-- **Sign in with Apple** — use email or Google instead.
-- **Apple Health** (steps and weight sync) — type steps and weight in by hand.
+Everything — camera, photo library, barcode scanner, reminders, rest timer, cycle tracking, family members and backups — **except Apple Health** (steps and weight sync), which Apple only allows for apps signed by a paid developer account. Type steps and weight in by hand instead.
 
 ---
 
@@ -148,7 +145,7 @@ Your data stays on the phone when you update. Download the newest file from the 
 - **Android:** open the new **W.apk** and tap **Update**.
 - **iPhone:** install the new **W.ipa** with Sideloadly or AltStore using the **same Apple ID**. It replaces the old version and keeps your data.
 
-With an account (Profile → *Back up & sync*), your data is also in the cloud, so even a fresh install gets everything back when you log in.
+Moving to a new phone, or reinstalling? First use **Profile → Back up to a file**, then on the new phone tap **Have a backup? Restore it** on the first setup page.
 
 ---
 
@@ -158,7 +155,7 @@ With an account (Profile → *Back up & sync*), your data is also in the cloud, 
 
 | Problem | Fix |
 |---|---|
-| **"App not installed"** or **"package conflicts with an existing package"** when updating | Versions before **v1.2.1** were each signed with a different key, so Android won't update them in place. Back up first (Profile → *Back up & sync*, or *Export data*), uninstall W, then install the new APK. From v1.2.1 on, updates install over the old version. |
+| **"App not installed"** or **"package conflicts with an existing package"** when updating | Versions before **v1.2.1** were each signed with a different key, so Android won't update them in place. Back up first (**Profile → Back up to a file**), uninstall W, then install the new APK. From v1.2.1 on, updates install over the old version. |
 | **"There was a problem parsing the package"** | The download didn't finish. Delete it and download **W.apk** again. Check your phone runs Android 8.0 or later. |
 | **Blocked by Play Protect** | Tap **More details → Install anyway**. |
 | **No Install button / "Install blocked"** | Allow **Install unknown apps** for the app you opened the APK from (Chrome or Files): **Settings → Apps → Special app access → Install unknown apps**. |
@@ -174,7 +171,7 @@ With an account (Profile → *Back up & sync*), your data is also in the cloud, 
 | **Sideloadly doesn't see the iPhone** (Windows) | Use iTunes and iCloud from **Apple's website**, not the Microsoft Store; unlock the phone and tap **Trust**; try another cable or USB port. |
 | **Login or "Guru Meditation" errors in Sideloadly** | Check the Apple ID email and password, approve the two-factor prompt on the phone, and update Sideloadly. A spare Apple ID often helps. |
 | **"Maximum number of apps"** | A free Apple ID allows 3 sideloaded apps at once. Remove one under **Settings → General → VPN & Device Management**, or delete an old sideloaded app. |
-| **No "Continue with Apple" button, or Apple Health doesn't work** | Expected in sideloaded builds: Apple only allows these for apps signed by a paid developer account (see [What works](#what-works-in-a-sideloaded-build)). Use email or Google to sign in. |
+| **Apple Health doesn't work** | Expected in sideloaded builds: Apple only allows it for apps signed by a paid developer account (see [What works](#what-works-in-a-sideloaded-build)). Type steps and weight in by hand. |
 
 ### Both
 
@@ -182,4 +179,4 @@ With an account (Profile → *Back up & sync*), your data is also in the cloud, 
 |---|---|
 | **Photo calories or the AI coach say they're not available** | These run on the W server, which needs to be deployed with an Anthropic API key (see [Run it](../README.md#run-it)). Food search, the barcode scanner, workouts and everything else work without it. |
 | **Barcode scanner shows "camera not available"** | Allow the camera: iPhone **Settings → W → Camera**; Android **Settings → Apps → W → Permissions → Camera**. You can also type the barcode number. |
-| **Lost data after reinstalling** | Data lives on the phone. Make an account (Profile → *Back up & sync*) so it's also in the cloud and comes back when you log in. |
+| **Lost data after reinstalling** | Data lives only on the phone. Back up now and then (**Profile → Back up to a file**) and restore it with **Restore from a file**. |

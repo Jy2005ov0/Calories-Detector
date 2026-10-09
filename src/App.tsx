@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CalendarCheck, Dumbbell, Flame, Search, UserRound } from "lucide-react";
-import { Welcome } from "./components/Auth";
 import { IntroGuide } from "./components/IntroGuide";
 import { BodyCheckSheet } from "./components/BodyCheckSheet";
 import { PhotoSheet } from "./components/PhotoSheet";
@@ -14,7 +13,6 @@ import { t, useLanguage } from "./i18n";
 import type { Food } from "./lib/types";
 import { HelpButton, Tour } from "./components/Tour";
 import { ToastHost } from "./components/ui";
-import { resumeSync, useAccount } from "./lib/account";
 import { applyTheme, onBackButton } from "./lib/platform";
 import { actions, useStore } from "./lib/store";
 import { FoodScreen } from "./screens/FoodScreen";
@@ -36,8 +34,6 @@ const TABS: { id: Tab; label: string; Icon: typeof Flame }[] = [
 
 export default function App() {
   const onboarded = useStore((s) => s.profile.onboarded);
-  const account = useAccount();
-  const chosen = !!account.token || account.guest;
   const introDone = useStore((s) => s.introDone);
   const theme = useStore((s) => s.theme);
 
@@ -51,7 +47,6 @@ export default function App() {
     return () => mq.removeEventListener("change", onChange);
   }, [theme]);
 
-  useEffect(() => resumeSync(), []);
   const live = useStore((s) => !!s.activeSessionId);
   const [tab, setTab] = useState<Tab>("today");
   const [sheet, setSheet] = useState<SheetKind>(null);
@@ -99,17 +94,8 @@ export default function App() {
     [],
   );
 
-  // New here: choose Apple / Google / email / no account. Existing users skip this.
-  // First launch: the step-by-step guide comes first (with Skip), then sign-in.
-  if (!onboarded && !chosen && !introDone) return <IntroGuide onDone={actions.finishIntro} />;
-  // Toasts must show on these screens too (e.g. "Google sign-in isn't set up").
-  if (!onboarded && !chosen)
-    return (
-      <>
-        <Welcome />
-        <ToastHost />
-      </>
-    );
+  // First launch: the step-by-step guide (with Skip), then setting up a profile. No sign-up needed.
+  if (!onboarded && !introDone) return <IntroGuide onDone={actions.finishIntro} />;
   if (!onboarded)
     return (
       <>
