@@ -67,21 +67,23 @@ jobs:
         working-directory: android
       - uses: actions/upload-artifact@v4
         with:
-          name: calories-android-debug
+          name: W-android-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
       # Pushing a tag like v1.0.0 publishes a GitHub Release with the APK attached.
       - if: startsWith(github.ref, 'refs/tags/v')
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk calories-${{ github.ref_name }}.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk W-${{ github.ref_name }}.apk
       - if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: calories-${{ github.ref_name }}.apk
+          files: W-${{ github.ref_name }}.apk
           generate_release_notes: true
 
   ios:
-    name: iOS · simulator build
+    name: iOS · unsigned IPA (for Sideloadly / AltStore)
     runs-on: macos-15
     needs: web
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -93,8 +95,26 @@ jobs:
         env:
           VITE_API_URL: ${{ vars.API_URL }}
       - run: npx cap sync ios
-      # Unsigned simulator build proves the project compiles. Signing for devices / the App Store happens in Xcode.
+      # A real-device (arm64) Release build without code signing. Sideloadly or AltStore signs it
+      # with the user's own Apple ID when installing, so no Mac or paid developer account is needed.
       - run: >
-          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug
-          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
-          CODE_SIGNING_ALLOWED=NO build
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release
+          -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build
+          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" CODE_SIGN_ENTITLEMENTS="" build
+      - name: Package the .ipa
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qry W-unsigned.ipa Payload
+          ls -lh W-unsigned.ipa
+      - uses: actions/upload-artifact@v4
+        with:
+          name: W-ios-unsigned-ipa
+          path: W-unsigned.ipa
+      - if: startsWith(github.ref, 'refs/tags/v')
+        run: cp W-unsigned.ipa W-${{ github.ref_name }}-unsigned.ipa
+      - if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: W-${{ github.ref_name }}-unsigned.ipa
+          generate_release_notes: true

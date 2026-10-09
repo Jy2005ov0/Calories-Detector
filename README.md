@@ -39,12 +39,34 @@ Runs on **iOS and Android** three ways:
 
 With a free Apple ID the app has to be re-installed every 7 days. A paid Apple Developer account lets you share it through **TestFlight** or publish it on the App Store.
 
+**No Mac? Install the .ipa with Sideloadly (Windows or Mac)**
+
+GitHub builds an unsigned iPhone app (`.ipa`) for you. [Sideloadly](https://sideloadly.io) signs it with your own Apple ID while installing, so you don't need a Mac or a paid developer account.
+
+1. **Download the app file.** Open this repository's **[Releases](../../releases)** page and download `W-vX.Y.Z-unsigned.ipa`.
+   (No release yet? **Actions** tab → latest green **Mobile apps** run → **Artifacts** → `W-ios-unsigned-ipa`. You need to be signed in to GitHub, and the download is a zip with the `.ipa` inside.)
+2. **Install the tools on your computer.**
+   - **Windows:** install **iTunes** and **iCloud** from Apple's website (*not* the Microsoft Store versions — Sideloadly needs Apple's own drivers), then install **Sideloadly**.
+   - **Mac:** just install **Sideloadly**.
+3. **Connect your iPhone** with a cable, unlock it and tap **Trust This Computer**. Make sure iTunes (Windows) or Finder (Mac) can see the phone.
+4. **Open Sideloadly**, drag `W-…-unsigned.ipa` onto it, pick your iPhone, type your **Apple ID** email and press **Start**. Enter your Apple ID password (and the 2-factor code) when asked. The password is only sent to Apple. Using a spare Apple ID is a good idea.
+5. **Trust the app on the iPhone.** Go to **Settings → General → VPN & Device Management**, tap your Apple ID and tap **Trust**.
+6. **iOS 16 or later:** turn on **Settings → Privacy & Security → Developer Mode**, restart the phone and confirm.
+7. **Open W** from your Home Screen.
+
+Good to know:
+
+- **It expires after 7 days.** With a free Apple ID the app stops opening after 7 days. Your data stays on the phone; just install the same `.ipa` again with Sideloadly. Sideloadly can also refresh it automatically over Wi-Fi.
+- **The 3-app limit.** A free Apple ID can have up to 3 sideloaded apps at a time.
+- **What doesn't work.** Apple only allows **Sign in with Apple** and **Apple Health** for apps signed by a paid developer account. In a sideloaded build those two buttons won't work — use email or Google to sign in. Everything else works, including the camera, photo library, barcode scanner, reminders, rest timer and sync.
+- **Other installers.** [AltStore](https://altstore.io) works the same way and also refreshes the app for you.
+
 ### Android
 
 **Install the APK**
 
-1. On your phone, open this repository's **[Releases](../../releases)** page and download the latest `calories-vX.Y.Z.apk`.
-   (No release yet? Open the **Actions** tab → the latest green **Mobile apps** run → **Artifacts** → `calories-android-debug`. This needs you to be signed in to GitHub, and it downloads as a zip with the APK inside.)
+1. On your phone, open this repository's **[Releases](../../releases)** page and download the latest `W-vX.Y.Z.apk`.
+   (No release yet? Open the **Actions** tab → the latest green **Mobile apps** run → **Artifacts** → `W-android-apk`. This needs you to be signed in to GitHub, and it downloads as a zip with the APK inside.)
 2. Open the downloaded file. If Android asks, allow **Install unknown apps** for your browser or Files app.
 3. Tap **Install**, then **Open**.
 
@@ -67,7 +89,7 @@ With a free Apple ID the app has to be re-installed every 7 days. A paid Apple D
 
 ### For maintainers: publishing a download
 
-Push a version tag and CI builds the APK and attaches it to a new GitHub Release:
+Push a version tag and CI builds the Android APK and the unsigned iPhone IPA and attaches both to a new GitHub Release:
 
 ```bash
 git tag v1.0.0
@@ -334,7 +356,7 @@ To publish, set your own bundle ID in `capacitor.config.ts` (`appId`, currently 
 
 ### CI
 
-`.github/workflows/mobile.yml` builds the web app, an Android debug APK and an iOS simulator build on every push. You can download the APK from the workflow run's **Artifacts** and install it on an Android phone. Pushing a `v*` tag also attaches the APK to a GitHub Release. Set the repository variable `API_URL` (Settings → Secrets and variables → Actions → Variables) to bake your server address into those builds.
+`.github/workflows/mobile.yml` builds the web app, runs the tests and user journeys, and builds an Android APK and an unsigned iPhone IPA on every push. Both can be downloaded from the workflow run's **Artifacts**. Pushing a `v*` tag also attaches them to a GitHub Release. Set the repository variable `API_URL` (Settings → Secrets and variables → Actions → Variables) to bake your server address into those builds.
 
 ## Run it
 
