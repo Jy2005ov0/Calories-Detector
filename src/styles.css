@@ -1765,6 +1765,13 @@ button.row:active,
 .avoid-toggle {
   margin-top: 14px;
   gap: 6px;
+  /* Long translations wrap inside the chip rather than widening the page. */
+  max-width: 100%;
+  height: auto;
+  min-height: 36px;
+  padding-block: 6px;
+  white-space: normal;
+  text-align: left;
 }
 .avoid-card {
   display: flex;

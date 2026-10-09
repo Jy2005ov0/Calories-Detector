@@ -334,6 +334,7 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   }
   await page.getByLabel("Search foods").fill("chicken");
   await audit(page, "Food · search results", issues);
+  await page.getByLabel("Search foods").fill("general tso");
   await page.locator(".row", { hasText: "General Tso's chicken" }).first().click();
   await audit(page, "Food detail", issues);
   await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, el.scrollHeight));

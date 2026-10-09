@@ -251,6 +251,7 @@ for (const set of SETS) {
     await shot("food");
     await page.getByLabel("Search foods").fill("chicken");
     await shot("food-search");
+    await page.getByLabel("Search foods").fill("chicken tikka masala");
     await page.locator(".row", { hasText: "Chicken tikka masala" }).first().click();
     await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, 380));
     await shot("food-health-check");

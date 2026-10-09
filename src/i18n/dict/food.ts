@@ -77,7 +77,7 @@ export const FOOD: AreaDict = {
       "Bina hidangan daripada sebarang makanan dan kuantiti, kemudian simpan untuk merekodnya semula dengan satu ketikan.",
     "Build a meal": "Bina hidangan",
     "Add your own foods or recipes with their nutrition label.": "Tambah makanan atau resipi anda sendiri dengan label pemakanannya.",
-    "Hiding foods you avoid": "Menyembunyikan makanan yang anda elak",
+    "Hiding foods you avoid": "Sembunyi makanan yang dielak",
     "Showing all foods": "Menunjukkan semua makanan",
     Foods: "Makanan",
     "No built-in matches": "Tiada padanan terbina dalam",

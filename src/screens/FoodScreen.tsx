@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Barcode, Camera, Images, Sparkles, ChevronRight, Globe, PencilLine, Plus, Search, Trash2, UtensilsCrossed, X } from "lucide-react";
-import { t, useLanguage } from "../i18n";
+import { locale, t, useLanguage } from "../i18n";
 import { foodConflicts, hasRestrictions } from "../lib/allergens";
 import type { SheetKind } from "../App";
 import { FOODS, FOOD_CATEGORIES } from "../data/foods";
@@ -106,7 +106,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
       <h1 className="large-title" style={{ marginTop: 14 }}>
         {t("Food")}
       </h1>
-      <p className="subtitle">{t("{foods} foods from {groups} cuisines and groups, plus millions of packaged products online.", { foods: FOODS.length, groups: FOOD_CATEGORIES.length })}</p>
+      <p className="subtitle">{t("{foods} foods from {groups} cuisines and groups, plus millions of packaged products online.", { foods: FOODS.length.toLocaleString(locale()), groups: FOOD_CATEGORIES.length })}</p>
 
       <div className="search" data-tour="food-search">
         <Search size={17} />

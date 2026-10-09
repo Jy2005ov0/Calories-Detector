@@ -22,6 +22,8 @@ export default defineConfig({
     locale: "en-MY",
     timezoneId: "Asia/Kuala_Lumpur",
     trace: "retain-on-failure",
+    // Fail fast with a clear message if an element never appears.
+    actionTimeout: 15_000,
     screenshot: "only-on-failure",
   },
   projects: [
