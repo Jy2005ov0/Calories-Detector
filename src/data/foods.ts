@@ -2,6 +2,7 @@ import type { Food } from "../lib/types";
 import { COMPONENT_ROWS, RECIPES } from "./dishes";
 import { WORLD_ROWS } from "./worldFoods";
 import { MORE_ROWS } from "./moreFoods";
+import { DISH_COMPONENTS_2, MORE_RECIPES } from "./moreDishes";
 
 // Values are per 100 g (or 100 ml for drinks), compiled from USDA FoodData Central
 // and the Malaysian Food Composition Database. Cooked dishes include typical oil.
@@ -451,7 +452,7 @@ const rows: Row[] = [
 ];
 
 // IDs are positional: new rows are only ever appended at the end.
-const BASE: Food[] = [...rows, ...WORLD_ROWS, ...COMPONENT_ROWS, ...MORE_ROWS].map((r, i) => ({
+const BASE: Food[] = [...rows, ...WORLD_ROWS, ...COMPONENT_ROWS, ...MORE_ROWS, ...DISH_COMPONENTS_2].map((r, i) => ({
   id: `db-${i}`,
   name: r[0],
   category: r[1],
@@ -489,7 +490,7 @@ export function recipeTotals(parts: { food: string; grams: number; per100?: Food
 // Dishes with a recipe take their nutrition from their parts, so the dish and its
 // customised versions always agree.
 export const FOODS: Food[] = BASE.map((f) => {
-  const recipe = RECIPES[f.name];
+  const recipe = RECIPES[f.name] ?? MORE_RECIPES[f.name];
   if (!recipe) return f;
   const { total, grams } = recipeTotals(recipe.map((r) => ({ food: r.food, grams: r.unitGrams * r.qty })));
   const per100 = Object.fromEntries(Object.entries(total).map(([k, v]) => [k, (v / grams) * 100])) as unknown as Food["per100"];
