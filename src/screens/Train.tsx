@@ -316,6 +316,14 @@ export function Train() {
           <button
             className="btn green"
             onClick={() => {
+              // Clocked in and straight out with nothing done: don't fill the history with an empty workout.
+              if (doneSets === 0 && round(kcal) < 1) {
+                actions.discardSession(active.id);
+                setFinishing(false);
+                setRest(null);
+                showToast(t("Nothing was logged, so the workout wasn't saved"));
+                return;
+              }
               actions.clockOut(active.id, kcal);
               haptic("success");
               setFinishing(false);

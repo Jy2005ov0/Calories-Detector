@@ -56,6 +56,43 @@ describe("mergeStates", () => {
     expect(mergeStates(after, cloud).log.map((e) => e.id)).toEqual(["c"]);
   });
 
+  it("keeps each person's data separate when two phones show different people", () => {
+    const mum = { ...DEFAULT_PROFILE, name: "Mum", onboarded: true };
+    const me = { ...DEFAULT_PROFILE, name: "Aina", onboarded: true };
+    // Phone A is on Aina and has an older copy of Mum; phone B is on Mum and logged lunch.
+    const phoneA = state({
+      personId: "aina",
+      profile: me,
+      log: [entry("a1", 1)],
+      stamps: { log: 1, profile: 1 },
+      people: [{ id: "mum", data: { ...state({ profile: mum, log: [entry("m1", 2)], stamps: { log: 2, profile: 1 } }) } }],
+    });
+    const phoneB = state({
+      personId: "mum",
+      profile: mum,
+      log: [entry("m1", 2), entry("m2", 3)],
+      stamps: { log: 3, profile: 1 },
+      people: [{ id: "aina", data: { ...state({ profile: me, log: [entry("a1", 1)], stamps: { log: 1, profile: 1 } }) } }],
+    });
+    const a = mergeStates(phoneA, phoneB);
+    expect(a.personId).toBe("aina");
+    expect(a.profile.name).toBe("Aina");
+    expect(a.log.map((e) => e.id)).toEqual(["a1"]);
+    expect(a.people.map((p) => p.id)).toEqual(["mum"]);
+    expect(a.people[0].data.log.map((e) => e.id)).toEqual(["m1", "m2"]);
+    const b = mergeStates(phoneB, phoneA);
+    expect(b.profile.name).toBe("Mum");
+    expect(b.log.map((e) => e.id)).toEqual(["m1", "m2"]);
+    expect(b.people[0].data.log.map((e) => e.id)).toEqual(["a1"]);
+  });
+
+  it("a person removed on one phone is removed on the other", () => {
+    const withKid = state({ personId: "me", people: [{ id: "kid", data: state({ log: [entry("k", 1)] }) }] });
+    const removed = state({ personId: "me", removedPeople: ["kid"] });
+    expect(mergeStates(withKid, removed).people).toEqual([]);
+    expect(mergeStates(removed, withKid).people).toEqual([]);
+  });
+
   it("merges settings field by field", () => {
     // Weight changed on the phone; split changed later in the cloud. Both survive.
     const phone = state({ profile: { ...DEFAULT_PROFILE, weightKg: 80, onboarded: true }, split: "auto", stamps: { profile: 10, split: 1 } });

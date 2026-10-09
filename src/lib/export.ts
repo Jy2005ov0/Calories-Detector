@@ -53,7 +53,9 @@ export function toCsv(s: AppState): string {
   );
   const weights = table(["date", "weight_kg"], s.weights.map((w) => [w.date, w.kg]));
   const days = table(["date", "water_ml", "steps"], s.days.map((d) => [d.id, d.waterMl, d.steps]));
-  return [`# Food log`, food, ``, `# Workouts`, sets, ``, `# Weight`, weights, ``, `# Water and steps`, days].join("\r\n");
+  const parts = [`# Food log`, food, ``, `# Workouts`, sets, ``, `# Weight`, weights, ``, `# Water and steps`, days];
+  if (s.periods?.length) parts.push(``, `# Periods`, table(["first_day"], s.periods.map((p) => [p.date])));
+  return parts.join("\r\n");
 }
 
 // ── PDF report ───────────────────────────────────────────

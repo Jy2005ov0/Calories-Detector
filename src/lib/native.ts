@@ -5,6 +5,7 @@ import { Share } from "@capacitor/share";
 import { t } from "../i18n";
 import { buildPlan, sessionFromPlan, sessionKcal } from "./fitness";
 import { isNative, platform } from "./platform";
+import { cycleStatus } from "./cycle";
 import { minutesOf } from "./progress";
 import { actions, getState, subscribe, todayKey, weekdayOf, type AppState } from "./store";
 
@@ -13,7 +14,7 @@ import { actions, getState, subscribe, todayKey, weekdayOf, type AppState } from
 // Apple Watch or Wear OS watch the phone's notifications appear on the wrist with their
 // action buttons, so "Clock in" and "Clock out" work from the watch.
 
-const ID = { meal: 1000, water: 1100, gym: 1200, workout: 2000, rest: 3000 };
+const ID = { meal: 1000, water: 1100, gym: 1200, workout: 2000, rest: 3000, period: 4000 };
 const GYM_TYPE = "GYM_REMINDER";
 const WORKOUT_TYPE = "WORKOUT_RUNNING";
 
@@ -87,17 +88,34 @@ function reminderSchedule(s: AppState): LocalNotificationSchema[] {
       });
     }
   }
+  const c = p.cycle;
+  const cycle = c?.on && c.remind ? cycleStatus(c, s.periods ?? [], todayKey()) : null;
+  if (cycle) {
+    // 9 am two days before, and on the day it's expected.
+    const at = (daysBefore: number) => {
+      const [y, m, d] = cycle.nextStart.split("-").map(Number);
+      return new Date(y, m - 1, d - daysBefore, 9, 0);
+    };
+    const soon = at(2);
+    if (soon.getTime() > Date.now())
+      list.push({ id: ID.period, title: t("Period expected in 2 days"), body: t("Pack what you need. Lighter training is fine if you feel tired."), channelId: "reminders", schedule: { at: soon, allowWhileIdle: true } });
+    const due = at(0);
+    if (due.getTime() > Date.now())
+      list.push({ id: ID.period + 1, title: t("Period due today"), body: t("If it started, log it in W so predictions stay accurate."), channelId: "reminders", schedule: { at: due, allowWhileIdle: true } });
+  }
   return list;
 }
 
 const allReminderIds = () =>
-  [...Array(3).keys()].map((i) => ID.meal + i).concat([...Array(7).keys()].map((i) => ID.water + i), [...Array(7).keys()].map((i) => ID.gym + i));
+  [...Array(3).keys()]
+    .map((i) => ID.meal + i)
+    .concat([...Array(7).keys()].map((i) => ID.water + i), [...Array(7).keys()].map((i) => ID.gym + i), [ID.period, ID.period + 1]);
 
 /** Replace scheduled reminders with what the current settings call for. */
 export async function syncReminders(s: AppState = getState()) {
   if (!isNative) return;
   const wanted = reminderSchedule(s);
-  const any = s.reminders.meals || s.reminders.water || s.reminders.gym;
+  const any = s.reminders.meals || s.reminders.water || s.reminders.gym || (s.profile.cycle?.on && s.profile.cycle.remind);
   if (any && !(await notificationsReady())) return;
   try {
     await LocalNotifications.cancel({ notifications: allReminderIds().map((id) => ({ id })) });
@@ -180,7 +198,7 @@ export function startNativeServices() {
   subscribe(() => {
     const s = getState();
     if (s.activeSessionId !== prev.activeSessionId || s.sessions !== prev.sessions) syncWorkoutNotification(s);
-    if (s.reminders !== prev.reminders || s.profile !== prev.profile || s.split !== prev.split || s.language !== prev.language) syncReminders(s);
+    if (s.reminders !== prev.reminders || s.profile !== prev.profile || s.split !== prev.split || s.language !== prev.language || s.periods !== prev.periods) syncReminders(s);
     prev = s;
   });
 }

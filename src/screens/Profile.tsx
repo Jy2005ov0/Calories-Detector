@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { AccountCard } from "../components/Account";
+import { PeopleList } from "../components/People";
 import { AnimatePresence, motion } from "motion/react";
-import { Activity, Bell, ChevronRight, Dumbbell, FileDown, FileText, Flame, Languages, Leaf, LineChart, Moon, MoonStar, Scale, Sun, SunMoon, Target, TrendingDown, TrendingUp, User } from "lucide-react";
+import { Activity, Bell, CalendarHeart, ChevronRight, Dumbbell, FileDown, FileText, Flame, Languages, Leaf, LineChart, Moon, MoonStar, Scale, Sun, SunMoon, Target, Trash2, TrendingDown, TrendingUp, User } from "lucide-react";
 import { NumberInput, Segmented, SPRING, Stepper, Switch, showToast } from "../components/ui";
-import { LANGUAGES, t, useLanguage } from "../i18n";
+import { LANGUAGES, locale, t, useLanguage } from "../i18n";
 import { ALLERGENS } from "../lib/allergens";
+import { averageLength, cycleStatus } from "../lib/cycle";
 import { toCsv, toPdf } from "../lib/export";
 import { shareFile } from "../lib/native";
 import { isNative } from "../lib/platform";
-import { getState, todayKey } from "../lib/store";
+import { getState, todayKey, useTodayKey } from "../lib/store";
 import type { SheetKind } from "../App";
 import { bmi, bmiLabel, bmr, round, targets, tdee } from "../lib/nutrition";
 import { getAccount, syncNow, useAccount } from "../lib/account";
@@ -123,6 +125,90 @@ function TimeField({ id, label, value, onChange }: { id: string; label: string; 
   );
 }
 
+/** Period tracking: settings, log a start date, recent periods. */
+function CycleSection() {
+  const p = useStore((s) => s.profile);
+  const periods = useStore((s) => s.periods);
+  const today = useTodayKey();
+  const [date, setDate] = useState(today);
+  const c = p.cycle;
+  const set = (x: Partial<typeof c>) => actions.updateProfile({ cycle: { ...c, ...x } });
+  const status = cycleStatus(c, periods, today);
+  const learned = averageLength(periods, 0);
+  const show = (key: string) => {
+    const [y, m, d] = key.split("-").map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" });
+  };
+  return (
+    <>
+      <div className="section-header">
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <CalendarHeart size={14} /> {t("Cycle")}
+        </span>
+      </div>
+      <div className="group">
+        <div className="field">
+          <label>{t("Track my cycle")}</label>
+          <Switch checked={c.on} onChange={(on) => set({ on })} label={t("Track my cycle")} />
+        </div>
+        {c.on && (
+          <>
+            <div className="field">
+              <label>{t("Cycle length")}</label>
+              <Stepper value={c.length} min={21} max={40} onChange={(length) => set({ length })} format={(v) => t("{n} days", { n: v })} label={t("cycle length")} />
+            </div>
+            <div className="field">
+              <label>{t("Period length")}</label>
+              <Stepper value={c.periodDays} min={2} max={10} onChange={(periodDays) => set({ periodDays })} format={(v) => t("{n} days", { n: v })} label={t("period length")} />
+            </div>
+            <div className="field">
+              <label>{t("Period reminder")}</label>
+              <Switch checked={c.remind} onChange={(remind) => set({ remind })} label={t("Period reminder")} />
+            </div>
+            <div className="field">
+              <label htmlFor="cy-date">{t("First day of a period")}</label>
+              <input id="cy-date" type="date" value={date} max={today} onChange={(e) => e.target.value && setDate(e.target.value)} style={{ width: "auto", minWidth: 140, flex: "none" }} />
+            </div>
+            <button
+              className="row"
+              style={{ color: "var(--blue)", fontWeight: 600 }}
+              onClick={() => {
+                actions.logPeriod(date);
+                showToast(t("Period logged"));
+              }}
+            >
+              {t("Log period")}
+            </button>
+          </>
+        )}
+      </div>
+      {c.on && periods.length > 0 && (
+        <div className="group" role="group" style={{ marginTop: 12 }} aria-label={t("Logged periods")}>
+          {[...periods]
+            .reverse()
+            .slice(0, 6)
+            .map((x) => (
+              <div className="row" key={x.id}>
+                <div className="row-main">
+                  <div className="row-title">{show(x.date)}</div>
+                </div>
+                <button className="icon-btn" aria-label={t("Remove period on {date}", { date: show(x.date) })} onClick={() => actions.removePeriod(x.id)}>
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+        </div>
+      )}
+      {c.on && (
+        <p className="footnote">
+          {status && learned ? `${t("Your cycles average {n} days.", { n: learned })} ` : ""}
+          {t("Predictions are estimates for planning training and food, not medical advice or contraception. Cycle data stays on your phone, and syncs only if you have an account.")}
+        </p>
+      )}
+    </>
+  );
+}
+
 function exportName(ext: string) {
   return `W-${todayKey()}.${ext}`;
 }
@@ -169,7 +255,10 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
       <p className="subtitle">{t("Your numbers drive every target and plan in the app.")}</p>
 
       <AccountCard />
-      <div className="spacer" />
+
+      <div className="section-header">{t("People")}</div>
+      <PeopleList />
+      <p className="footnote">{t("Everyone shares this phone and account, with their own plan, food log, workouts and weight.")}</p>
 
       <div className="card">
         <div className="stat-grid">
@@ -327,6 +416,8 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
         </p>
       )}
 
+      {p.sex === "female" && <CycleSection />}
+
       <div className="section-header">
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <Bell size={14} /> {t("Reminders")}
@@ -436,9 +527,11 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
 export function Onboarding() {
   useLanguage();
   const stored = useStore((s) => s.profile);
-  // Signed in with Google/Apple/email? Start with the account's first name.
-  const [p, setP] = useState<P>(() => ({ ...stored, name: stored.name || getAccount().user?.name?.split(" ")[0] || "" }));
-  const [step, setStep] = useState(0);
+  // Adding a family member: skip the welcome page, and offer a way back.
+  const adding = useStore((s) => s.people.length > 0);
+  // Signed in with Google/Apple/email? Start with the account's first name (not for someone being added).
+  const [p, setP] = useState<P>(() => ({ ...stored, name: stored.name || (adding ? "" : getAccount().user?.name?.split(" ")[0]) || "" }));
+  const [step, setStep] = useState(adding ? 1 : 0);
   const set = (x: Partial<P>) => setP((o) => ({ ...o, ...x }));
   const within = (v: number, [lo, hi]: [number, number]) => v >= lo && v <= hi;
   const valid = within(p.age, AGE) && within(p.heightCm, HEIGHT) && within(p.weightKg, WEIGHT);
@@ -512,6 +605,14 @@ export function Onboarding() {
 
   return (
     <div className="onboard">
+      {adding && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <strong>{t("New person")}</strong>
+          <button className="btn small secondary" style={{ width: "auto" }} onClick={actions.cancelNewPerson}>
+            {t("Cancel")}
+          </button>
+        </div>
+      )}
       <div style={{ display: "flex", gap: 6, marginBottom: 24 }}>
         {steps.map((_, i) => (
           <div key={i} className="bar" style={{ flex: 1, height: 4 }}>

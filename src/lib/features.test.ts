@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FOOD_BY_NAME } from "../data/foods";
 import { conflicts, foodConflicts, foodTags } from "./allergens";
+import { averageLength, cycleStatus, periodDue, phaseTip } from "./cycle";
 import { recommendedFoods, sampleDay } from "./diet";
 import { toCsv } from "./export";
 import { fastStatus, logStreak, waterGoalMl, weightTrend, workoutWeekStreak } from "./progress";
@@ -29,6 +30,15 @@ describe("allergens and halal", () => {
       const tags = foodTags(food(n));
       for (const t of ["pork", "alcohol", "peanuts", "treeNuts", "shellfish", "honey"] as const) expect(tags.has(t), `${n} ${t}`).toBe(false);
     }
+  });
+
+  it("doesn't mistake beef ribs for pork, or paneer and custard buns for meat", () => {
+    expect(foodTags(food("Galbi (grilled beef short ribs)")).has("pork")).toBe(false);
+    expect(foodTags(food("Chicken bak kut teh")).has("pork")).toBe(false);
+    expect(foodTags(food("Pork spare ribs (braised)")).has("pork")).toBe(true);
+    expect(foodTags(food("Paneer tikka")).has("meat")).toBe(false);
+    expect(foodTags(food("Egg custard bun (lai wong bao)")).has("meat")).toBe(false);
+    expect(foodTags(food("Tartar sauce")).has("gluten")).toBe(false);
   });
 
   it("explains conflicts for allergies, halal and vegetarian diets", () => {
@@ -172,5 +182,40 @@ describe("export", () => {
   it("neutralises spreadsheet formulas", () => {
     const csv = toCsv({ ...INITIAL_STATE, log: [{ id: "1", date: "2026-10-08", meal: "snack", name: "=HYPERLINK(1)", grams: 1, nutrients: food("Apple").per100, source: "custom", createdAt: 1 }] });
     expect(csv).toContain("'=HYPERLINK(1)");
+  });
+});
+
+describe("cycle tracking", () => {
+  const on = { on: true, length: 28, periodDays: 5, remind: true };
+  const p = (...dates: string[]) => dates.map((date, i) => ({ id: String(i), date, createdAt: i }));
+
+  it("works out the day, phase and next period", () => {
+    const periods = p("2026-10-01");
+    expect(cycleStatus(on, periods, "2026-10-03")).toEqual(expect.objectContaining({ day: 3, phase: "period", nextStart: "2026-10-29", daysUntil: 26 }));
+    expect(cycleStatus(on, periods, "2026-10-08")?.phase).toBe("follicular");
+    expect(cycleStatus(on, periods, "2026-10-14")?.phase).toBe("ovulation"); // day 14 of 28
+    expect(cycleStatus(on, periods, "2026-10-22")?.phase).toBe("luteal");
+    expect(cycleStatus(on, periods, "2026-10-31")).toEqual(expect.objectContaining({ phase: "late", daysUntil: -2 }));
+  });
+
+  it("learns the cycle length from logged periods and ignores a missed month", () => {
+    expect(averageLength(p("2026-06-01", "2026-07-01", "2026-07-31", "2026-08-30"), 28)).toBe(30);
+    // A 60-day gap is a forgotten log, not a 60-day cycle.
+    expect(averageLength(p("2026-06-01", "2026-07-01", "2026-08-30"), 28)).toBe(30);
+    expect(averageLength(p("2026-06-01"), 28)).toBe(28);
+  });
+
+  it("is off until turned on, and needs a logged period", () => {
+    expect(cycleStatus({ ...on, on: false }, p("2026-10-01"), "2026-10-03")).toBeNull();
+    expect(cycleStatus(on, [], "2026-10-03")).toBeNull();
+    // A date in the future isn't used.
+    expect(cycleStatus(on, p("2026-10-20"), "2026-10-03")).toBeNull();
+  });
+
+  it("offers 'Period started' only when it's due", () => {
+    expect(periodDue(cycleStatus(on, p("2026-10-01"), "2026-10-20"))).toBe(false);
+    expect(periodDue(cycleStatus(on, p("2026-10-01"), "2026-10-27"))).toBe(true);
+    expect(periodDue(cycleStatus(on, p("2026-10-01"), "2026-11-02"))).toBe(true);
+    expect(phaseTip(cycleStatus(on, p("2026-10-01"), "2026-11-02")!)).toMatch(/^4 days late/);
   });
 });

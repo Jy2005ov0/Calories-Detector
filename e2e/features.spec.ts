@@ -315,3 +315,112 @@ test("Mei: reminders, step goal and switching language to Malay and Chinese", as
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(nav.getByRole("button", { name: "Today", exact: true })).toBeVisible();
 });
+
+test("Aisyah: tracks her cycle — logs a period, sees her phase and tips, and logs the next one when it's due", async ({ page }) => {
+  await start(page);
+  await onboard(page, "Aisyah");
+
+  // Cycle tracking is off until she turns it on in Profile.
+  await expect(page.getByTestId("cycle-card")).toHaveCount(0);
+  await tab(page, "Profile");
+  await page.getByRole("switch", { name: "Track my cycle" }).click();
+  await tab(page, "Today");
+  await expect(page.getByTestId("cycle-card")).toContainText("Cycle tracking is on");
+
+  // Her last period started on 16 September; with a 28-day cycle the next is due 14 October.
+  await tab(page, "Profile");
+  await page.getByLabel("First day of a period").fill("2026-09-16");
+  await page.getByRole("button", { name: "Log period", exact: true }).click();
+  await tab(page, "Today");
+  const card = page.getByTestId("cycle-card");
+  await expect(card).toContainText("Day 27 · Luteal phase");
+  await expect(card).toContainText("Next period in 2 days");
+  await expect(card).toContainText("Appetite can rise");
+
+  // It's due soon, so a one-tap button appears.
+  await card.getByRole("button", { name: "My period started today" }).click();
+  await expect(card).toContainText("Period · day 1");
+  await expect(card).toContainText("Iron-rich foods");
+  await expect(card.getByRole("button")).toHaveCount(0);
+
+  // Both periods are listed in Profile and can be removed.
+  await tab(page, "Profile");
+  const logged = page.getByRole("group", { name: "Logged periods" });
+  await expect(logged.locator(".row")).toHaveCount(2);
+  await logged.getByRole("button", { name: /Remove period on/ }).first().click();
+  await expect(logged.locator(".row")).toHaveCount(1);
+  await expect(page.getByText(/not medical advice or contraception/)).toBeVisible();
+
+  // In Malay.
+  await page.getByRole("button", { name: "Bahasa Melayu" }).click();
+  await page.getByRole("navigation").getByRole("button").first().click();
+  await expect(page.getByTestId("cycle-card")).toContainText("Hari 27 · Fasa luteal");
+  await page.getByRole("navigation").getByRole("button").last().click();
+  await page.getByRole("button", { name: "English" }).click();
+
+  // The section only shows for women.
+  await page.getByRole("tab", { name: "Male", exact: true }).click();
+  await expect(page.getByRole("switch", { name: "Track my cycle" })).toHaveCount(0);
+});
+
+test("Family: Aina adds her mum, each gets their own plan and log, and they switch from Today", async ({ page }) => {
+  await start(page);
+  await onboard(page, "Aina", { weight: "58" });
+
+  // Aina logs breakfast.
+  await tab(page, "Food");
+  await page.getByLabel("Search foods").fill("roti canai");
+  await page.locator(".row", { hasText: /^Roti canai/ }).first().click();
+  await page.getByRole("dialog").getByRole("tab", { name: "Breakfast" }).click();
+  await page.getByRole("button", { name: "Add to Breakfast" }).click();
+  await tab(page, "Today");
+  const ainaEaten = await page.locator(".stat", { hasText: "Eaten" }).locator(".stat-value").innerText();
+  expect(Number(ainaEaten.replace(/\D/g, ""))).toBeGreaterThan(0);
+
+  // Adding someone opens onboarding for them (skipping the welcome page); Cancel goes back.
+  await tab(page, "Profile");
+  await page.getByRole("button", { name: /Add a person/ }).click();
+  await expect(page.getByText("New person")).toBeVisible();
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "People" }).getByRole("button", { name: /Switch to/ })).toHaveCount(0);
+
+  // Now for real: Mum, 55, 152 cm, 70 kg, wants to lose fat, halal.
+  await page.getByRole("button", { name: /Add a person/ }).click();
+  await page.getByLabel("Name").fill("Mum");
+  await page.getByRole("tab", { name: "Female", exact: true }).click();
+  await page.getByLabel("Age").fill("55");
+  await page.getByLabel("Height").fill("152");
+  await page.getByLabel("Weight").fill("70");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: /Lose fat/ }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: /Lightly active/ }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: /New to the gym/ }).click();
+  await page.locator(".chip", { hasText: "Halal" }).click();
+  await page.getByRole("button", { name: "Build my plan" }).click();
+
+  // Mum's Today is her own: her name, nothing eaten, her own (smaller) target. No second welcome tour.
+  await expect(page.getByRole("heading", { name: /Good \w+, Mum/ })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(Number((await page.locator(".stat", { hasText: "Eaten" }).locator(".stat-value").innerText()).replace(/\D/g, ""))).toBe(0);
+
+  // Switch back to Aina from the avatar on Today; her breakfast is still there.
+  await page.getByRole("button", { name: "Switch person" }).click();
+  await page.getByRole("dialog", { name: "Who's using W?" }).getByRole("button", { name: "Switch to Aina" }).click();
+  await expect(page.getByRole("heading", { name: /Good \w+, Aina/ })).toBeVisible();
+  await expect(page.locator(".stat", { hasText: "Eaten" }).locator(".stat-value")).toHaveText(ainaEaten);
+
+  // Everything survives closing the app.
+  await page.reload();
+  await expect(page.getByRole("heading", { name: /Good \w+, Aina/ })).toBeVisible();
+  await tab(page, "Profile");
+  const people = page.getByRole("group", { name: "People" });
+  await expect(people).toContainText("Mum");
+
+  // Removing Mum deletes her data.
+  page.once("dialog", (d) => d.accept());
+  await people.getByRole("button", { name: "Remove Mum" }).click();
+  await expect(people).not.toContainText("Mum");
+});

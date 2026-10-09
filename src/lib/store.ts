@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { SplitId } from "./fitness";
 import { readDurable, writeDurable } from "./platform";
-import type { ChatMessage, CustomMeal, DayStats, Food, LogEntry, Profile, Reminders, WeightEntry, WorkoutSession } from "./types";
+import type { ChatMessage, CustomMeal, DayStats, Food, LogEntry, PeriodEntry, Profile, Reminders, WeightEntry, WorkoutSession } from "./types";
 
 export interface AppState {
   profile: Profile;
@@ -22,6 +22,8 @@ export interface AppState {
   language: "en" | "ms" | "zh";
   /** Weigh-ins, oldest first. */
   weights: WeightEntry[];
+  /** First days of logged periods (cycle tracking). */
+  periods: PeriodEntry[];
   /** Water and steps per day. */
   days: DayStats[];
   reminders: Reminders;
@@ -33,7 +35,45 @@ export interface AppState {
   stamps: Partial<Record<keyof AppState, number>>;
   /** When "Delete all data" was last used; synced copies from before it are dropped. */
   resetAt?: number;
+  /** Who is using the app now. Everything above except the shared settings belongs to this person. */
+  personId: string;
+  /** Other people on this phone or account (family members), with their own data. */
+  people: PersonSnapshot[];
+  /** People removed from the household, so sync doesn't bring them back. */
+  removedPeople: string[];
 }
+
+/** Settings shared by everyone on the phone; everything else is per person. */
+export const SHARED_KEYS = ["theme", "language", "introDone", "tourDone"] as const;
+const HOUSEHOLD_KEYS = ["personId", "people", "removedPeople"] as const;
+type SharedKey = (typeof SHARED_KEYS)[number] | (typeof HOUSEHOLD_KEYS)[number];
+export type PersonData = Omit<AppState, SharedKey>;
+export interface PersonSnapshot {
+  id: string;
+  data: PersonData;
+}
+
+/** One person's part of the state. */
+export function personData(s: AppState): PersonData {
+  const out = { ...s } as Partial<AppState>;
+  for (const k of [...SHARED_KEYS, ...HOUSEHOLD_KEYS]) delete out[k];
+  return out as PersonData;
+}
+
+/** Everyone's data as full states (shared settings from `s`), keyed by person. */
+export function everyone(s: AppState): Map<string, AppState> {
+  const map = new Map<string, AppState>([[s.personId, s]]);
+  for (const p of s.people ?? []) if (!map.has(p.id)) map.set(p.id, { ...s, ...fill(p.data), personId: p.id });
+  return map;
+}
+
+/** Fill in fields added in later versions. */
+const fill = (d: Partial<PersonData>): PersonData => ({
+  ...personData(initial),
+  ...d,
+  profile: { ...DEFAULT_PROFILE, ...d.profile },
+  reminders: { ...DEFAULT_REMINDERS, ...d.reminders },
+});
 
 const KEY = "calories-detector:v1";
 
@@ -52,6 +92,7 @@ export const DEFAULT_PROFILE: Profile = {
   fasting: "off",
   fastTimes: { sahur: "05:45", iftar: "19:20", windowStart: "12:00" },
   stepGoal: 8000,
+  cycle: { on: false, length: 28, periodDays: 5, remind: true },
   onboarded: false,
 };
 
@@ -79,11 +120,15 @@ const initial: AppState = {
   theme: "system",
   language: "en",
   weights: [],
+  periods: [],
   days: [],
   reminders: DEFAULT_REMINDERS,
   coach: [],
   deleted: [],
   stamps: {},
+  personId: "me",
+  people: [],
+  removedPeople: [],
 };
 
 export const INITIAL_STATE = initial;
@@ -92,7 +137,13 @@ export function parseState(raw: string | null): AppState | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Partial<AppState>;
-    return { ...initial, ...parsed, profile: { ...DEFAULT_PROFILE, ...parsed.profile }, reminders: { ...DEFAULT_REMINDERS, ...parsed.reminders } };
+    return {
+      ...initial,
+      ...parsed,
+      profile: { ...DEFAULT_PROFILE, ...parsed.profile },
+      reminders: { ...DEFAULT_REMINDERS, ...parsed.reminders },
+      people: (parsed.people ?? []).map((p) => ({ id: p.id, data: fill(p.data) })),
+    };
   } catch {
     return null;
   }
@@ -275,6 +326,13 @@ export const actions = {
       return { weights, profile: latest.id === entry.id ? { ...s.profile, weightKg: kg } : s.profile };
     });
   },
+  /** Log the first day of a period (one per date). */
+  logPeriod(date = todayKey()) {
+    setState((s) => (s.periods.some((p) => p.date === date) ? {} : { periods: [...s.periods, { id: uid(), date, createdAt: Date.now() }].sort((a, b) => a.date.localeCompare(b.date)) }));
+  },
+  removePeriod(id: string) {
+    setState((s) => ({ periods: s.periods.filter((p) => p.id !== id), deleted: tombstone(s.deleted, id) }));
+  },
   removeWeight(id: string) {
     setState((s) => ({ weights: s.weights.filter((w) => w.id !== id), deleted: tombstone(s.deleted, id) }));
   },
@@ -308,7 +366,53 @@ export const actions = {
   },
   resetAll() {
     // Every field is stamped as changed now, and resetAt tells sync to drop anything older.
-    setState({ ...initial, stamps: {}, resetAt: Date.now() });
+    // Everyone else in the household is removed too.
+    setState((s) => ({
+      ...initial,
+      stamps: {},
+      resetAt: Date.now(),
+      personId: s.personId,
+      removedPeople: [...new Set([...s.removedPeople, ...s.people.map((p) => p.id)])],
+    }));
+  },
+
+  // ── People ──
+  /** Start a new person (they go through onboarding); the current person is kept as they are. */
+  addPerson() {
+    commit({
+      ...initial,
+      theme: state.theme,
+      language: state.language,
+      introDone: true,
+      tourDone: true,
+      personId: uid(),
+      people: [...state.people, { id: state.personId, data: personData(state) }],
+      removedPeople: state.removedPeople,
+    });
+  },
+  /** Switch who is using the app. Nothing is changed, so nothing looks newer to sync. */
+  switchPerson(id: string) {
+    const target = state.people.find((p) => p.id === id);
+    if (!target) return;
+    commit({
+      ...state,
+      ...fill(target.data),
+      personId: id,
+      people: [...state.people.filter((p) => p.id !== id), { id: state.personId, data: personData(state) }],
+    });
+  },
+  /** Remove someone else in the household and their data. */
+  removePerson(id: string) {
+    if (id === state.personId) return;
+    commit({ ...state, people: state.people.filter((p) => p.id !== id), removedPeople: [...state.removedPeople, id].slice(-200) });
+  },
+  /** Back out of adding a person: go back to whoever was using the app before. */
+  cancelNewPerson() {
+    const back = state.people[state.people.length - 1];
+    if (!back || state.profile.onboarded) return;
+    const leaving = state.personId;
+    actions.switchPerson(back.id);
+    actions.removePerson(leaving);
   },
 };
 

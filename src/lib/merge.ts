@@ -1,8 +1,8 @@
-import type { AppState } from "./store";
+import { everyone, personData, SHARED_KEYS, type AppState } from "./store";
 
-type Collection = "log" | "customFoods" | "customMeals" | "sessions" | "weights" | "days";
-const COLLECTIONS: Collection[] = ["log", "customFoods", "customMeals", "sessions", "weights", "days"];
-const SCALARS = ["profile", "split", "tourDone", "activeSessionId", "recentFoodIds", "theme", "introDone", "language", "reminders", "coach"] as const;
+type Collection = "log" | "customFoods" | "customMeals" | "sessions" | "weights" | "periods" | "days";
+const COLLECTIONS: Collection[] = ["log", "customFoods", "customMeals", "sessions", "weights", "periods", "days"];
+const SCALARS = ["profile", "split", "activeSessionId", "recentFoodIds", "reminders", "coach"] as const;
 
 const stamp = (s: AppState, k: keyof AppState) => s.stamps?.[k] ?? 0;
 
@@ -24,6 +24,37 @@ function pick(a: Item, b: Item): Item {
  * - after "Delete all data", anything from before the reset is dropped on every phone.
  */
 export function mergeStates(local: AppState, remote: AppState): AppState {
+  // Each person in the household is merged with their own copy from the other side, so two phones
+  // showing different people never mix their data.
+  const removed = [...new Set([...(local.removedPeople ?? []), ...(remote.removedPeople ?? [])])];
+  const L = everyone(local);
+  const R = everyone(remote);
+  const merged = new Map<string, AppState>();
+  for (const id of new Set([...L.keys(), ...R.keys()])) {
+    // Someone removed elsewhere is dropped, unless they're the one using this phone.
+    if (removed.includes(id) && id !== local.personId) continue;
+    const l = L.get(id);
+    const r = R.get(id);
+    merged.set(id, l && r ? mergePerson(l, r) : (l ?? r)!);
+  }
+  const me = merged.get(local.personId)!;
+  const out: AppState = {
+    ...me,
+    personId: local.personId,
+    people: [...merged].filter(([id]) => id !== local.personId).map(([id, st]) => ({ id, data: personData(st) })),
+    removedPeople: removed.filter((id) => id !== local.personId).slice(-200),
+  };
+  // Settings shared by the household: whichever side changed them last.
+  for (const key of SHARED_KEYS) {
+    const src = stamp(remote, key) > stamp(local, key) ? remote : local;
+    (out as unknown as Record<string, unknown>)[key] = src[key];
+    out.stamps = { ...out.stamps, [key]: Math.max(stamp(local, key), stamp(remote, key)) };
+  }
+  return out;
+}
+
+/** Merge two copies of one person's data. */
+function mergePerson(local: AppState, remote: AppState): AppState {
   const deleted = Array.from(new Set([...(remote.deleted ?? []), ...(local.deleted ?? [])])).slice(-2000);
   const gone = new Set(deleted);
   const resetAt = Math.max(local.resetAt ?? 0, remote.resetAt ?? 0);
@@ -52,6 +83,10 @@ export function mergeStates(local: AppState, remote: AppState): AppState {
   for (const w of out.weights) if ((byDate.get(w.date)?.createdAt ?? -1) < w.createdAt) byDate.set(w.date, w);
   out.weights = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
   out.days.sort((a, b) => a.id.localeCompare(b.id));
+  // One period start per date, whichever phone logged it.
+  const periodByDate = new Map<string, AppState["periods"][number]>();
+  for (const p of out.periods ?? []) if (!periodByDate.has(p.date)) periodByDate.set(p.date, p);
+  out.periods = [...periodByDate.values()].sort((a, b) => a.date.localeCompare(b.date));
 
   for (const key of SCALARS) {
     const src = stamp(remote, key) > stamp(local, key) ? remote : local;

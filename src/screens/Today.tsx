@@ -1,16 +1,18 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Barcode, Camera, Images, ChevronRight, Dumbbell, Flame, Footprints, MoonStar, Scale, Search, Sparkles, Trash2, Utensils } from "lucide-react";
+import { Barcode, CalendarHeart, Camera, Images, ChevronRight, Dumbbell, Flame, Footprints, MoonStar, Scale, Search, Sparkles, Trash2, Utensils } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { mealLabel, mealOptions } from "../lib/api";
 import { formatDuration, plural, sessionKcal, sessionMinutes } from "../lib/fitness";
 import { bmi, round, sum, targets } from "../lib/nutrition";
+import { cycleStatus, periodDue, phaseName, phaseTip } from "../lib/cycle";
 import { fastStatus, logStreak } from "../lib/progress";
 import { bmiBand } from "../lib/recommend";
 import { actions, useStore, useTodayKey } from "../lib/store";
 import type { LogEntry, MealType } from "../lib/types";
 import { Bar, MacroBars, Ring, SPRING, showToast, useNow } from "../components/ui";
 import { WaterControl } from "../components/ProgressSheet";
+import { PeopleSheet, PersonAvatar, householdSize } from "../components/People";
 import type { SheetKind, Tab } from "../App";
 
 const hm = (min: number) => (min >= 60 ? `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, "0")}m` : `${min}m`);
@@ -42,6 +44,76 @@ function FastCard({ now }: { now: number }) {
   );
 }
 
+const longDate = (key: string) => {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" });
+};
+
+/** Cycle day, phase and what it means for training and food; a one-tap "Period started" when it's due. */
+function CycleCard({ today }: { today: string }) {
+  const cycle = useStore((s) => s.profile.cycle);
+  const periods = useStore((s) => s.periods);
+  if (!cycle?.on) return null;
+  const c = cycleStatus(cycle, periods, today);
+  const log = () => {
+    actions.logPeriod(today);
+    showToast(t("Period logged · day 1"));
+  };
+  if (!c) {
+    return (
+      <div className="card cycle-card" style={{ marginTop: 12 }} data-testid="cycle-card">
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div className="icon-tile" style={{ background: "var(--pink)" }}>
+            <CalendarHeart size={18} />
+          </div>
+          <div className="row-main">
+            <div className="tile-title">{t("Cycle tracking is on")}</div>
+            <div className="tile-sub">{t("Log the first day of your last period in Profile to see predictions.")}</div>
+          </div>
+        </div>
+        <button className="btn small secondary" style={{ marginTop: 10 }} onClick={log}>
+          {t("My period started today")}
+        </button>
+      </div>
+    );
+  }
+  const title =
+    c.phase === "period"
+      ? t("Period · day {n}", { n: c.day })
+      : c.phase === "late"
+        ? t("Period late · day {n}", { n: c.day })
+        : t("Day {n} · {phase}", { n: c.day, phase: phaseName(c.phase) });
+  const next =
+    c.daysUntil > 1
+      ? t("Next period in {n} days · {date}", { n: c.daysUntil, date: longDate(c.nextStart) })
+      : c.daysUntil === 1
+        ? t("Next period expected tomorrow")
+        : c.daysUntil === 0
+          ? t("Next period expected today")
+          : t("Expected {date}", { date: longDate(c.nextStart) });
+  return (
+    <div className="card cycle-card" style={{ marginTop: 12 }} data-testid="cycle-card">
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="icon-tile" style={{ background: "var(--pink)" }}>
+          <CalendarHeart size={18} />
+        </div>
+        <div className="row-main">
+          <div className="tile-title">{title}</div>
+          <div className="tile-sub">{next}</div>
+        </div>
+      </div>
+      <p className="tile-sub" style={{ margin: "10px 0 0" }}>
+        {phaseTip(c)}
+      </p>
+      {periodDue(c) && (
+        <button className="btn small secondary" style={{ marginTop: 10 }} onClick={log}>
+          {t("My period started today")}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function Today({ go, openSheet }: { go: (t: Tab) => void; openSheet: (k: SheetKind) => void }) {
   useLanguage();
   const profile = useStore((s) => s.profile);
@@ -61,6 +133,9 @@ export function Today({ go, openSheet }: { go: (t: Tab) => void; openSheet: (k: 
   const remaining = tg.kcal - eaten.kcal + burned;
 
   const days = useStore((s) => s.days);
+  const personId = useStore((s) => s.personId);
+  const household = useStore(householdSize);
+  const [peopleOpen, setPeopleOpen] = useState(false);
   const streak = useMemo(() => logStreak(log, today), [log, today]);
   const steps = days.find((d) => d.id === today)?.steps ?? 0;
   // Ramadan shows sahur / iftar / moreh; lunch only if something was logged there.
@@ -77,6 +152,7 @@ export function Today({ go, openSheet }: { go: (t: Tab) => void; openSheet: (k: 
 
   return (
     <div className="screen">
+      <PeopleSheet open={peopleOpen} onClose={() => setPeopleOpen(false)} />
       <p className="subtitle" style={{ margin: "8px 0 0", textTransform: "uppercase", fontSize: 13, fontWeight: 600, letterSpacing: "0.02em" }}>
         {date}
       </p>
@@ -85,6 +161,11 @@ export function Today({ go, openSheet }: { go: (t: Tab) => void; openSheet: (k: 
           {greet}
           {profile.name ? `, ${profile.name}` : ""}
         </h1>
+        {household > 1 && (
+          <button className="pressable" style={{ background: "none", border: 0, padding: 0, marginLeft: "auto" }} onClick={() => setPeopleOpen(true)} aria-label={t("Switch person")}>
+            <PersonAvatar id={personId} name={profile.name} size={36} />
+          </button>
+        )}
         {streak > 0 && (
           <button className="streak-chip pressable" onClick={() => openSheet("progress")} aria-label={t("{n}-day logging streak", { n: streak })}>
             <Flame size={15} /> {streak}
@@ -152,6 +233,7 @@ export function Today({ go, openSheet }: { go: (t: Tab) => void; openSheet: (k: 
       </div>
 
       <FastCard now={now} />
+      <CycleCard today={today} />
 
       <div className="tiles" style={{ marginTop: 12 }}>
         <div className="tile split" data-tour="scan">

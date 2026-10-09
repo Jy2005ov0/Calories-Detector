@@ -66,7 +66,12 @@ export function NumberInput({
           return;
         }
         const n = integer ? Math.round(parseNum(s)) : parseNum(s);
-        if (Number.isFinite(n) && n >= min && n <= max) onChange(n);
+        if (!Number.isFinite(n)) return;
+        // Too big snaps to the limit; too small may just be half-typed ("1" on the way to "18").
+        if (n > max) {
+          setText(String(max));
+          onChange(max);
+        } else if (n >= min) onChange(n);
       }}
       onBlur={(e) => {
         const n = parseNum(text);

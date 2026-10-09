@@ -4,6 +4,7 @@ import { ArrowUp, Sparkles, Trash2 } from "lucide-react";
 import { LANGUAGES, t, useLanguage } from "../i18n";
 import { mealLabel } from "../lib/api";
 import { authHeaders } from "../lib/account";
+import { cycleStatus } from "../lib/cycle";
 import { buildPlan, sessionKcal } from "../lib/fitness";
 import { round, sum, targets } from "../lib/nutrition";
 import { apiConfigured, apiUrl } from "../lib/platform";
@@ -38,6 +39,10 @@ function coachContext() {
     diet: p.diet,
     allergies: p.allergies,
     fasting: p.fasting,
+    menstrualCycle: (() => {
+      const c = p.cycle?.on ? cycleStatus(p.cycle, s.periods ?? [], today) : null;
+      return c ? { day: c.day, phase: c.phase, nextPeriodInDays: c.daysUntil } : undefined;
+    })(),
     dailyTargets: { kcal: t0.kcal, proteinG: t0.protein, carbsG: t0.carbs, fatG: t0.fat, sugarMaxG: t0.sugarMax, sodiumMaxMg: t0.sodiumMax },
     today: {
       eatenKcal: round(eaten.kcal),

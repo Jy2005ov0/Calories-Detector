@@ -70,7 +70,26 @@ export interface Profile {
   fastTimes: { sahur: string; iftar: string; windowStart: string };
   /** Daily step goal. */
   stepGoal: number;
+  /** Menstrual cycle tracking (off unless turned on). */
+  cycle: CycleSettings;
   onboarded: boolean;
+}
+
+export interface CycleSettings {
+  on: boolean;
+  /** Usual cycle length in days, used until enough periods are logged to learn it. */
+  length: number;
+  /** Usual period length in days. */
+  periodDays: number;
+  /** Notify two days before the next period is expected. */
+  remind: boolean;
+}
+
+/** The first day of a period. */
+export interface PeriodEntry {
+  id: string;
+  date: string;
+  createdAt: number;
 }
 
 export type Allergen = "peanuts" | "treeNuts" | "shellfish" | "fish" | "dairy" | "egg" | "gluten" | "soy" | "sesame";
