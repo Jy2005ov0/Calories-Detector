@@ -3,9 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CalendarCheck, Dumbbell, Flame, Search, UserRound } from "lucide-react";
 import { IntroGuide } from "./components/IntroGuide";
 import { BodyCheckSheet } from "./components/BodyCheckSheet";
-import { PhotoSheet } from "./components/PhotoSheet";
 import { BarcodeSheet } from "./components/BarcodeSheet";
-import { CoachSheet } from "./components/CoachSheet";
 import { FoodSheet } from "./components/FoodSheet";
 import { CustomFoodSheet } from "./components/MealBuilder";
 import { ProgressSheet } from "./components/ProgressSheet";
@@ -22,7 +20,7 @@ import { Today } from "./screens/Today";
 import { Train } from "./screens/Train";
 
 export type Tab = "today" | "food" | "train" | "plan" | "profile";
-export type SheetKind = "photo" | "photoLibrary" | "bodyCheck" | "barcode" | "coach" | "progress" | null;
+export type SheetKind = "bodyCheck" | "barcode" | "progress" | null;
 
 const TABS: { id: Tab; label: string; Icon: typeof Flame }[] = [
   { id: "today", label: "Today", Icon: Flame },
@@ -117,7 +115,7 @@ export default function App() {
           {tab === "today" && <Today go={setTab} openSheet={setSheet} />}
           {tab === "food" && <FoodScreen openSheet={setSheet} />}
           {tab === "train" && <Train />}
-          {tab === "plan" && <Plan go={setTab} openSheet={setSheet} />}
+          {tab === "plan" && <Plan go={setTab} />}
           {tab === "profile" && <ProfileScreen openSheet={setSheet} />}
         </motion.main>
       </AnimatePresence>
@@ -142,7 +140,6 @@ export default function App() {
       </nav>
 
       <HelpButton onClick={() => setTour(true)} />
-      <PhotoSheet open={sheet === "photo" || sheet === "photoLibrary"} start={sheet === "photoLibrary" ? "library" : undefined} onClose={closeSheet} />
       <BodyCheckSheet open={sheet === "bodyCheck"} onClose={closeSheet} />
       <BarcodeSheet
         open={sheet === "barcode"}
@@ -158,7 +155,6 @@ export default function App() {
       />
       <FoodSheet food={found} onClose={() => setFound(null)} />
       <CustomFoodSheet open={newFood} onClose={() => setNewFood(false)} />
-      <CoachSheet open={sheet === "coach"} onClose={closeSheet} />
       <ProgressSheet open={sheet === "progress"} onClose={closeSheet} />
       <Tour open={tour} onClose={closeTour} setTab={setTab} />
       <ToastHost />

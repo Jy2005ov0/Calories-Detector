@@ -1,4 +1,3 @@
-import { apiConfigured, apiUrl } from "./platform";
 import { t } from "../i18n";
 import { getState } from "./store";
 import type { Food, MealType, Profile } from "./types";
@@ -69,54 +68,6 @@ export async function lookupBarcode(code: string, signal?: AbortSignal): Promise
   if (data.status !== 1 || !data.product) return null;
   const p = { ...data.product, code: data.product.code ?? clean };
   return hasNutrition(p) ? offToFood(p) : null;
-}
-
-// ── Photo analysis (server → Claude vision) ──
-
-export interface PhotoItem {
-  name: string;
-  grams: number;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  fiber: number;
-  sugar: number;
-  confidence: "high" | "medium" | "low";
-}
-
-export interface PhotoAnalysis {
-  isFood: boolean;
-  mealName: string;
-  items: PhotoItem[];
-  notes: string;
-}
-
-export async function analyzePhoto(base64: string, mediaType: string, hint: string, signal?: AbortSignal): Promise<PhotoAnalysis> {
-  if (!apiConfigured) throw new Error(t("Photo analysis needs a server. Rebuild the app with VITE_API_URL set to your deployed server."));
-  const res = await fetch(apiUrl("/api/analyze-photo"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ image: base64, mediaType, hint }),
-    signal,
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? t("Request failed ({status})", { status: res.status }));
-  return data as PhotoAnalysis;
-}
-
-/** Downscale to ≤1280px JPEG so uploads are fast and well under API limits. */
-export async function prepareImage(file: File): Promise<{ base64: string; mediaType: string; preview: string }> {
-  // Honour EXIF rotation so portrait phone photos aren't sent sideways.
-  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-  const maxSide = 1280;
-  const ratio = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * ratio);
-  canvas.height = Math.round(bitmap.height * ratio);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  const preview = canvas.toDataURL("image/jpeg", 0.85);
-  return { base64: preview.split(",")[1], mediaType: "image/jpeg", preview };
 }
 
 export function defaultMeal(d = new Date(), fasting: Profile["fasting"] = getState().profile.fasting): MealType {

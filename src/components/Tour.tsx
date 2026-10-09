@@ -29,9 +29,9 @@ export const TOUR_STEPS: Step[] = [
   },
   {
     tab: "today",
-    targets: ["scan"],
-    title: "Snap your meal",
-    body: "Take a photo of your plate. The app recognises each food, estimates the grams and works out the calories. You can adjust the portions before saving.",
+    targets: ["barcode"],
+    title: "Scan a barcode",
+    body: "Point the camera at the barcode on packaged food to get its calories and nutrition. You can also type the number.",
   },
   {
     tab: "today",

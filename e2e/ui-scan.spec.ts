@@ -57,7 +57,6 @@ function seedState() {
     weights: [64.2, 63.8, 63.1, 62.6, 62.0, 61.4, 61.0].map((kg, i) => ({ id: `w${i}`, date: dayKey(-(6 - i) * 5), kg, createdAt: i })),
     days: [8200, 10400, 6100, 12850, 7300, 9900, 4300].map((steps, i) => ({ id: dayKey(i - 6), steps, waterMl: 250 * (4 + i) })),
     reminders: { meals: true, water: true, gym: true, breakfast: "08:00", lunch: "12:30", dinner: "19:00", gymTime: "18:00" },
-    coach: [],
     language: "en",
     deleted: [],
     stamps: {},
@@ -149,7 +148,7 @@ async function audit(page: Page, screen: string, issues: Issue[]) {
         if (a.contains(b) || b.contains(a)) continue;
         // Content scrolling under the floating tab bar or ? button is by design.
         // Floating bars that content scrolls under by design (and can scroll clear of).
-        const chrome = (el: Element) => !!el.closest(".tabbar, .help-btn, .sheet-cta, .coach-input, .rest-bar");
+        const chrome = (el: Element) => !!el.closest(".tabbar, .help-btn, .sheet-cta, .rest-bar");
         if (chrome(a) !== chrome(b)) continue;
         const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
         const ox = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left);
@@ -251,32 +250,6 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, el.scrollHeight));
   await audit(page, "Body check · recommendations", issues);
   await close();
-  await page.getByRole("button", { name: /Scan meal/ }).click();
-  await audit(page, "Scan a meal", issues);
-  await page.route("**/api/analyze-photo", (r) =>
-    r.fulfill({
-      json: {
-        isFood: true,
-        mealName: "Chicken rice with soup, chilli sauce and cucumber",
-        notes: "Assumed roasted chicken thigh with skin and rice cooked in chicken fat.",
-        items: [
-          { name: "Hainanese chicken rice (rice cooked in chicken stock and fat)", grams: 250, calories: 420, protein: 8, carbs: 60, fat: 15, fiber: 1, sugar: 1, confidence: "high" },
-          { name: "Roasted chicken", grams: 120, calories: 280, protein: 28, carbs: 2, fat: 18, fiber: 0, sugar: 1, confidence: "medium" },
-        ],
-      },
-    }),
-  );
-  await page.locator('input[type=file]:not([capture])').setInputFiles({
-    name: "meal.png",
-    mimeType: "image/png",
-    buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64"),
-  });
-  await audit(page, "Scan a meal · preview", issues);
-  await page.getByRole("button", { name: "Analyse" }).click();
-  await expect(dialog()).toContainText("Chicken rice with soup");
-  await audit(page, "Scan a meal · result", issues);
-  await close();
-
   // Barcode (no camera in the test browser → the typed-number fallback)
   await page.route("https://world.openfoodfacts.org/api/v2/product/**", (r) =>
     r.fulfill({
@@ -301,25 +274,15 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await audit(page, "Barcode · product", issues);
   await close();
 
-  // Water, progress and coach
+  // Water and progress
   await page.getByRole("button", { name: /^Add \d+ ml of water$/ }).click();
   await page.getByRole("button", { name: /steps Progress$/ }).click();
   await audit(page, "Progress · weight", issues);
   await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, el.scrollHeight));
   await audit(page, "Progress · steps & water", issues);
   await close();
-  await page.route("**/api/coach", (r) =>
-    r.fulfill({
-      status: 200,
-      contentType: "text/plain; charset=utf-8",
-      body: "You have about **490 kcal** left:\n\n- **Ikan bakar** with ½ cup rice and ulam — about 420 kcal, 38 g protein\n- Or chicken soup with bihun and extra vegetables\n- Skip the sweet drink; https://example.com/a-very-long-link-that-should-wrap-inside-the-bubble-and-not-overflow",
-    }),
-  );
-  await page.getByRole("button", { name: /Ask coach/ }).click();
-  await audit(page, "Coach · empty", issues);
-  await dialog().getByRole("button", { name: /dinner/ }).click();
-  await expect(dialog().locator(".bubble.assistant li")).toHaveCount(3);
-  await audit(page, "Coach · answer", issues);
+  await page.getByRole("button", { name: /^Cup size \d+ ml, change$/ }).click();
+  await audit(page, "Water · cup size", issues);
   await close();
 
   await page.getByRole("button", { name: "Switch person" }).click();

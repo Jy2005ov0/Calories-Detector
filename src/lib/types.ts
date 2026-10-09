@@ -131,12 +131,6 @@ export interface Reminders {
   gymTime: string;
 }
 
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  text: string;
-  at: number;
-}
 
 export type ExerciseKind = "cardio" | "strength";
 

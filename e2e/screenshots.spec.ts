@@ -79,7 +79,6 @@ function seed() {
     weights: [63.4, 63.1, 62.9, 62.6, 62.7, 62.2, 61.9, 61.8, 61.4, 61.0].map((kg, i) => ({ id: `w${i}`, date: dayKey(-(9 - i) * 4), kg, createdAt: i })),
     days: [7400, 9100, 6200, 10400, 8300, 5600, 4200].map((steps, i) => ({ id: dayKey(i - 6), steps, waterMl: [2000, 2250, 1750, 2500, 2250, 1500, 1250][i] })),
     reminders: { meals: true, water: true, gym: true, breakfast: "08:00", lunch: "12:30", dinner: "19:00", gymTime: "18:00" },
-    coach: [],
     deleted: [],
     stamps: {},
     // Three 28-day cycles; the next period is due in 3 days.
@@ -111,26 +110,7 @@ const MILO = {
   },
 };
 
-const COACH_REPLY = `You have about **490 kcal** left and need **59 g** more protein, so make dinner lean and filling:
 
-- **Ikan bakar** (grilled fish, 150 g) with ½ cup rice and ulam — about 420 kcal, 38 g protein
-- Or **chicken soup** with bihun and extra veg — about 380 kcal, 32 g protein
-- Skip the sweet drink; teh O kosong or water instead
-
-That keeps you on track for 0.5 kg a week.`;
-
-const PHOTO_RESULT = {
-  isFood: true,
-  mealName: "Nasi lemak with fried chicken",
-  notes: "Assumed about 1 tbsp of oil in the chicken and 2 tbsp of sambal.",
-  items: [
-    { name: "Coconut rice", grams: 160, calories: 280, protein: 5, carbs: 48, fat: 7.7, fiber: 1, sugar: 0.3, confidence: "high" },
-    { name: "Ayam goreng (fried chicken)", grams: 140, calories: 371, protein: 30, carbs: 11, fat: 23, fiber: 1, sugar: 0.7, confidence: "medium" },
-    { name: "Sambal", grams: 30, calories: 42, protein: 0.6, carbs: 4, fat: 2.7, fiber: 0.7, sugar: 2.7, confidence: "medium" },
-    { name: "Fried egg", grams: 46, calories: 90, protein: 6.3, carbs: 0.4, fat: 6.8, fiber: 0, sugar: 0.2, confidence: "high" },
-    { name: "Peanuts & ikan bilis", grams: 25, calories: 140, protein: 8, carbs: 3, fat: 10.5, fiber: 1, sugar: 0.5, confidence: "medium" },
-  ],
-};
 
 for (const set of SETS) {
   test(`screenshots · ${set.dir}`, async ({ browser }, info) => {
@@ -183,9 +163,7 @@ for (const set of SETS) {
       await pg.clock.install({ time: LUNCHTIME });
       await pg.clock.resume();
       await pg.route("https://world.openfoodfacts.org/**", (r) => r.fulfill({ json: { products: [] } }));
-      await pg.route("**/api/analyze-photo", (r) => r.fulfill({ json: PHOTO_RESULT }));
       await pg.route("https://world.openfoodfacts.org/api/v2/product/**", (r) => r.fulfill({ json: MILO }));
-      await pg.route("**/api/coach", (r) => r.fulfill({ status: 200, contentType: "text/plain; charset=utf-8", body: COACH_REPLY }));
       await pg.goto("/");
       return pg;
     };
@@ -230,14 +208,6 @@ for (const set of SETS) {
     await shot("today-meals");
     await page.evaluate(() => window.scrollTo(0, 0));
 
-    // Photo
-    await page.getByRole("button", { name: /Scan meal/ }).click();
-    await page.locator('input[type=file]:not([capture])').setInputFiles({ name: "lunch.jpg", mimeType: "image/jpeg", buffer: await mealPhoto(page) });
-    await page.getByRole("button", { name: "Analyse" }).click();
-    await expect(sheet()).toContainText("Nasi lemak with fried chicken");
-    await shot("photo-calories");
-    await closeSheet();
-
     // Barcode
     await page.getByRole("button", { name: /Scan barcode/ }).click();
     await page.waitForTimeout(800);
@@ -256,12 +226,9 @@ for (const set of SETS) {
     await shot("progress-steps-water");
     await closeSheet();
 
-    // AI coach
-    await page.getByRole("button", { name: /Ask coach/ }).click();
-    await sheet().getByRole("button", { name: /dinner/ }).click();
-    await expect(sheet().locator(".bubble.assistant li")).toHaveCount(3);
-    await shot("ai-coach");
-    await sheet().getByRole("button", { name: "Clear chat" }).click();
+    // Water cup size
+    await page.getByRole("button", { name: /^Cup size \d+ ml, change$/ }).click();
+    await shot("water-cup-size");
     await closeSheet();
 
     // Food
@@ -394,7 +361,6 @@ for (const set of SETS) {
   });
 }
 
-/** A simple drawn plate, so the photo screen shows something food-like without a real photo. */
 /** A simple illustrated portrait standing in for a profile picture (256 px, like the app stores). */
 async function profilePhoto(page: Page) {
   const data = await page.evaluate(() => {
@@ -429,36 +395,6 @@ async function profilePhoto(page: Page) {
     g.beginPath();
     g.arc(128, 140, 16, 0.15 * Math.PI, 0.85 * Math.PI);
     g.stroke();
-    return c.toDataURL("image/jpeg", 0.9).split(",")[1];
-  });
-  return Buffer.from(data, "base64");
-}
-
-async function mealPhoto(page: Page) {
-  const data = await page.evaluate(() => {
-    const c = document.createElement("canvas");
-    c.width = 800;
-    c.height = 600;
-    const g = c.getContext("2d")!;
-    g.fillStyle = "#c8a27a";
-    g.fillRect(0, 0, 800, 600);
-    g.fillStyle = "#f4f1ea";
-    g.beginPath();
-    g.ellipse(400, 300, 300, 240, 0, 0, Math.PI * 2);
-    g.fill();
-    const blob = (x: number, y: number, rx: number, ry: number, color: string) => {
-      g.fillStyle = color;
-      g.beginPath();
-      g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
-      g.fill();
-    };
-    blob(340, 300, 120, 95, "#fbf6e9"); // rice
-    blob(500, 260, 85, 60, "#a8571f"); // chicken
-    blob(470, 380, 60, 38, "#c2301c"); // sambal
-    blob(300, 190, 45, 40, "#ffffff"); // egg white
-    blob(305, 192, 18, 18, "#f7b500"); // yolk
-    blob(540, 360, 34, 20, "#8a5a2b"); // peanuts
-    blob(250, 380, 40, 14, "#6aa84f"); // cucumber
     return c.toDataURL("image/jpeg", 0.9).split(",")[1];
   });
   return Buffer.from(data, "base64");

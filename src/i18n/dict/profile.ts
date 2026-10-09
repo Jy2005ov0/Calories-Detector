@@ -29,52 +29,13 @@ export const PROFILE: AreaDict = {
     "Everything is stored only on this phone, so back up to a file now and then. Photos are sent to the server only for analysis and are not kept.": "Semua data disimpan dalam telefon ini sahaja, jadi sandarkan ke fail dari semasa ke semasa. Foto dihantar ke pelayan hanya untuk analisis dan tidak disimpan.",
     "Have a backup?": "Ada sandaran?",
     "Restore it": "Pulihkannya",
-    "Accounts need the W server, and this copy of the app isn't connected to one yet. You can use W without an account.": "Akaun memerlukan pelayan W, dan salinan aplikasi ini belum disambungkan kepadanya. Anda boleh menggunakan W tanpa akaun.",
-    "Couldn't reach the W server. Check the server address the app was built with.": "Tidak dapat menghubungi pelayan W. Semak alamat pelayan yang digunakan semasa membina aplikasi.",
-    "Sign in with Apple only works in the App Store or TestFlight version. Use email or Google instead.": "Log masuk dengan Apple hanya berfungsi dalam versi App Store atau TestFlight. Gunakan e-mel atau Google.",
     // Account card & sync
-    "Syncing…": "Menyegerak…",
-    "Offline · will sync when you're back online": "Luar talian · akan disegerakkan apabila dalam talian",
-    "Couldn't sync · will retry": "Gagal menyegerak · akan cuba lagi",
-    "Backed up to your account": "Disandarkan ke akaun anda",
-    "Synced just now": "Disegerakkan sebentar tadi",
-    "Synced {n} min ago": "Disegerakkan {n} min lalu",
-    "Synced {n} h ago": "Disegerakkan {n} jam lalu",
-    "Back up & sync": "Sandaran & segerak",
-    "Create a free account to keep your data safe and use it on all your phones.": "Cipta akaun percuma untuk melindungi data anda dan gunakannya pada semua telefon anda.",
-    "Log in": "Log masuk",
-    "Create account": "Cipta akaun",
-    "Your account": "Akaun anda",
-    "Signed out · your data stays on this phone": "Telah log keluar · data anda kekal di telefon ini",
-    "Sign out": "Log keluar",
-    "Delete account?": "Padam akaun?",
-    "Your account and everything backed up to it will be permanently deleted. Data on this phone is kept.": "Akaun anda dan semua sandarannya akan dipadam secara kekal. Data di telefon ini dikekalkan.",
-    "Delete account": "Padam akaun",
-    "Account deleted": "Akaun dipadam",
-    Email: "E-mel",
-    Google: "Google",
     Apple: "Apple",
 
     // Auth
-    "Continue with Apple": "Teruskan dengan Apple",
-    "Continue with Google": "Teruskan dengan Google",
-    "Use at least 8 characters for your password.": "Gunakan sekurang-kurangnya 8 aksara untuk kata laluan anda.",
-    "Account created · your data is backed up": "Akaun dicipta · data anda telah disandarkan",
-    "Welcome back · your data is synced": "Selamat kembali · data anda telah disegerakkan",
     Name: "Nama",
     Optional: "Pilihan",
-    Password: "Kata laluan",
-    "8+ characters": "8+ aksara",
-    Required: "Wajib",
-    "Hide password": "Sembunyi kata laluan",
-    "Show password": "Tunjuk kata laluan",
     or: "atau",
-    "Your food log, workouts and plan are backed up and synced to every phone you sign in on.": "Log makanan, senaman dan pelan anda disandarkan dan disegerakkan ke setiap telefon yang anda log masuk.",
-    "Count calories from a photo, clock in at the gym and follow a plan made for your body.": "Kira kalori daripada foto, daftar masuk di gim dan ikuti pelan yang dibuat untuk badan anda.",
-    "Sign up with email": "Daftar dengan e-mel",
-    "Already have an account?": "Sudah ada akaun?",
-    "Continue without an account": "Teruskan tanpa akaun",
-    "Without an account, your data stays only on this phone.": "Tanpa akaun, data anda hanya disimpan di telefon ini.",
 
     // Error boundary
     "Something went wrong": "Ada masalah berlaku",
@@ -82,11 +43,6 @@ export const PROFILE: AreaDict = {
     Reload: "Muat semula",
 
     // lib/account
-    "You're offline. Check your connection and try again.": "Anda di luar talian. Semak sambungan anda dan cuba lagi.",
-    "Something went wrong ({status}).": "Ada masalah berlaku ({status}).",
-    "{provider} sign-in isn't set up on this server yet. Use email for now.": "Log masuk {provider} belum disediakan pada pelayan ini. Gunakan e-mel buat masa ini.",
-    "Couldn't sign in with {provider}. Please try again.": "Tidak dapat log masuk dengan {provider}. Sila cuba lagi.",
-    "{provider} didn't return a sign-in token. Please try again.": "{provider} tidak memulangkan token log masuk. Sila cuba lagi.",
 
     // Profile screen
     Sex: "Jantina",
@@ -169,17 +125,11 @@ export const PROFILE: AreaDict = {
     "Food log, workouts, weight, water and steps": "Log makanan, senaman, berat, air dan langkah",
     "30-day report (PDF)": "Laporan 30 hari (PDF)",
     "To share with a coach, trainer or doctor": "Untuk dikongsi dengan jurulatih atau doktor",
-    "Your logs, workouts, custom foods and profile on this phone and in your account will be erased. This can't be undone.":
-      "Log, senaman, makanan tersuai dan profil anda di telefon ini dan dalam akaun anda akan dipadam. Tindakan ini tidak boleh dibatalkan.",
     "Your logs, workouts, custom foods and profile on this phone will be erased. This can't be undone.":
       "Log, senaman, makanan tersuai dan profil anda di telefon ini akan dipadam. Tindakan ini tidak boleh dibatalkan.",
     "Delete all data?": "Padam semua data?",
     "All data deleted": "Semua data dipadam",
     "Delete all data": "Padam semua data",
-    "Your data is stored on this phone and backed up to your account. Photos are sent to the server only for analysis and are not kept.":
-      "Data anda disimpan di telefon ini dan disandarkan ke akaun anda. Foto dihantar ke pelayan hanya untuk analisis dan tidak disimpan.",
-    "Everything is stored only on this phone. Photos are sent to the server only for analysis and are not kept.":
-      "Semua data disimpan hanya di telefon ini. Foto dihantar ke pelayan hanya untuk analisis dan tidak disimpan.",
 
     // Goals, activity, diets (module-level constants)
     "Lose fat": "Turunkan lemak",
@@ -257,52 +207,13 @@ export const PROFILE: AreaDict = {
     "Everything is stored only on this phone, so back up to a file now and then. Photos are sent to the server only for analysis and are not kept.": "所有数据只保存在这部手机上，请不时备份到文件。照片仅发送到服务器用于分析，不会保留。",
     "Have a backup?": "有备份？",
     "Restore it": "恢复",
-    "Accounts need the W server, and this copy of the app isn't connected to one yet. You can use W without an account.": "账户功能需要 W 服务器，而此版本的应用尚未连接到服务器。你可以不登录直接使用 W。",
-    "Couldn't reach the W server. Check the server address the app was built with.": "无法连接 W 服务器。请检查构建应用时设置的服务器地址。",
-    "Sign in with Apple only works in the App Store or TestFlight version. Use email or Google instead.": "通过 Apple 登录仅适用于 App Store 或 TestFlight 版本。请改用电子邮件或 Google。",
     // Account card & sync
-    "Syncing…": "同步中…",
-    "Offline · will sync when you're back online": "离线 · 恢复联网后将同步",
-    "Couldn't sync · will retry": "同步失败 · 将重试",
-    "Backed up to your account": "已备份到你的账户",
-    "Synced just now": "刚刚已同步",
-    "Synced {n} min ago": "{n} 分钟前已同步",
-    "Synced {n} h ago": "{n} 小时前已同步",
-    "Back up & sync": "备份与同步",
-    "Create a free account to keep your data safe and use it on all your phones.": "创建免费账户，保护你的数据并在所有手机上使用。",
-    "Log in": "登录",
-    "Create account": "创建账户",
-    "Your account": "你的账户",
-    "Signed out · your data stays on this phone": "已退出登录 · 数据仍保留在此手机上",
-    "Sign out": "退出登录",
-    "Delete account?": "删除账户？",
-    "Your account and everything backed up to it will be permanently deleted. Data on this phone is kept.": "你的账户及其所有备份将被永久删除。此手机上的数据会保留。",
-    "Delete account": "删除账户",
-    "Account deleted": "账户已删除",
-    Email: "电子邮件",
-    Google: "Google",
     Apple: "Apple",
 
     // Auth
-    "Continue with Apple": "通过 Apple 继续",
-    "Continue with Google": "通过 Google 继续",
-    "Use at least 8 characters for your password.": "密码至少需要 8 个字符。",
-    "Account created · your data is backed up": "账户已创建 · 数据已备份",
-    "Welcome back · your data is synced": "欢迎回来 · 数据已同步",
     Name: "名字",
     Optional: "选填",
-    Password: "密码",
-    "8+ characters": "至少 8 个字符",
-    Required: "必填",
-    "Hide password": "隐藏密码",
-    "Show password": "显示密码",
     or: "或",
-    "Your food log, workouts and plan are backed up and synced to every phone you sign in on.": "你的饮食记录、训练和计划会备份并同步到你登录的每部手机。",
-    "Count calories from a photo, clock in at the gym and follow a plan made for your body.": "拍照计算卡路里，在健身房打卡，并按照为你身体定制的计划执行。",
-    "Sign up with email": "使用电子邮件注册",
-    "Already have an account?": "已有账户？",
-    "Continue without an account": "不注册直接使用",
-    "Without an account, your data stays only on this phone.": "没有账户时，你的数据只保存在此手机上。",
 
     // Error boundary
     "Something went wrong": "出错了",
@@ -310,11 +221,6 @@ export const PROFILE: AreaDict = {
     Reload: "重新加载",
 
     // lib/account
-    "You're offline. Check your connection and try again.": "你已离线。请检查网络连接后重试。",
-    "Something went wrong ({status}).": "出错了（{status}）。",
-    "{provider} sign-in isn't set up on this server yet. Use email for now.": "此服务器尚未设置 {provider} 登录。请暂时使用电子邮件。",
-    "Couldn't sign in with {provider}. Please try again.": "无法通过 {provider} 登录，请重试。",
-    "{provider} didn't return a sign-in token. Please try again.": "{provider} 未返回登录令牌，请重试。",
 
     // Profile screen
     Sex: "性别",
@@ -394,17 +300,11 @@ export const PROFILE: AreaDict = {
     "Food log, workouts, weight, water and steps": "饮食记录、训练、体重、饮水和步数",
     "30-day report (PDF)": "30 天报告（PDF）",
     "To share with a coach, trainer or doctor": "可分享给教练或医生",
-    "Your logs, workouts, custom foods and profile on this phone and in your account will be erased. This can't be undone.":
-      "此手机上及你账户中的记录、训练、自定义食物和个人资料将被清除。此操作无法撤销。",
     "Your logs, workouts, custom foods and profile on this phone will be erased. This can't be undone.":
       "此手机上的记录、训练、自定义食物和个人资料将被清除。此操作无法撤销。",
     "Delete all data?": "删除所有数据？",
     "All data deleted": "所有数据已删除",
     "Delete all data": "删除所有数据",
-    "Your data is stored on this phone and backed up to your account. Photos are sent to the server only for analysis and are not kept.":
-      "你的数据保存在此手机上并备份到你的账户。照片仅发送到服务器进行分析，不会被保留。",
-    "Everything is stored only on this phone. Photos are sent to the server only for analysis and are not kept.":
-      "所有数据仅保存在此手机上。照片仅发送到服务器进行分析，不会被保留。",
 
     // Goals, activity, diets (module-level constants)
     "Lose fat": "减脂",

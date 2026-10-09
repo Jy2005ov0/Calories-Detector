@@ -38,8 +38,6 @@ export const PLAN: AreaDict = {
     Log: "Rekod",
     "Log {name}": "Rekod {name}",
     "Timing & tips": "Masa & tip",
-    "Ask the coach": "Tanya jurulatih",
-    "Swap a meal, plan tomorrow, or ask about a hawker dish": "Tukar hidangan, rancang esok, atau tanya tentang makanan gerai",
     "General guidance, not medical advice. If you have a medical condition, are pregnant, or under 18, check with a doctor or dietitian.":
       "Panduan umum, bukan nasihat perubatan. Jika anda mempunyai masalah kesihatan, hamil, atau bawah 18 tahun, rujuk doktor atau pakar diet.",
 
@@ -257,8 +255,6 @@ export const PLAN: AreaDict = {
     Log: "记录",
     "Log {name}": "记录{name}",
     "Timing & tips": "时间与建议",
-    "Ask the coach": "询问教练",
-    "Swap a meal, plan tomorrow, or ask about a hawker dish": "换一餐、规划明天，或询问小贩美食",
     "General guidance, not medical advice. If you have a medical condition, are pregnant, or under 18, check with a doctor or dietitian.":
       "仅为一般建议，并非医疗建议。如有疾病、怀孕或未满 18 岁，请咨询医生或营养师。",
 

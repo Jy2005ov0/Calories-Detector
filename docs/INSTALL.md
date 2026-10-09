@@ -129,7 +129,7 @@ In Xcode, select the **App** target → **Signing & Capabilities** → choose yo
 
 ## No install: web app on the Home Screen
 
-If the server is deployed, W also runs as a web app that works offline:
+If you host the built web app (`npm run build`, then any static host), W also runs as a web app that works offline:
 
 - **iPhone (Safari):** open the web address → **Share** → **Add to Home Screen** → **Add**.
 - **Android (Chrome):** open the web address → **⋮** → **Install app**.
@@ -177,6 +177,5 @@ Moving to a new phone, or reinstalling? First use **Profile → Back up to a fil
 
 | Problem | Fix |
 |---|---|
-| **Photo calories or the AI coach say they're not available** | These run on the W server, which needs to be deployed with an Anthropic API key (see [Run it](../README.md#run-it)). Food search, the barcode scanner, workouts and everything else work without it. |
 | **Barcode scanner shows "camera not available"** | Allow the camera: iPhone **Settings → W → Camera**; Android **Settings → Apps → W → Permissions → Camera**. You can also type the barcode number. |
 | **Lost data after reinstalling** | Data lives only on the phone. Back up now and then (**Profile → Back up to a file**) and restore it with **Restore from a file**. |

@@ -1,21 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
 // A Monday morning in Kuala Lumpur, so "today's plan" is deterministic.
+// 1x1 PNG used as a profile picture.
+const PHOTO = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
 const MONDAY_8AM = new Date("2026-10-12T08:00:00+08:00");
 
-// 1x1 PNG standing in for a meal photo; the vision API itself is mocked.
-const PHOTO = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
-
-const NASI_LEMAK_ANALYSIS = {
-  isFood: true,
-  mealName: "Nasi lemak with fried chicken",
-  notes: "Assumed 1 tbsp sambal.",
-  items: [
-    { name: "Coconut rice", grams: 200, calories: 360, protein: 6, carbs: 58, fat: 12, fiber: 1, sugar: 1, confidence: "high" },
-    { name: "Fried chicken", grams: 120, calories: 350, protein: 26, carbs: 12, fat: 22, fiber: 0, sugar: 0, confidence: "medium" },
-    { name: "Sambal", grams: 30, calories: 45, protein: 1, carbs: 4, fat: 3, fiber: 1, sugar: 3, confidence: "medium" },
-  ],
-};
 
 // ── helpers ──────────────────────────────────────────────
 
@@ -95,7 +84,7 @@ const mealHeader = (page: Page, meal: string) => page.locator(".section-header",
 
 // ── Journey 1 ────────────────────────────────────────────
 
-test("Aiman: cutting, logs a hawker breakfast, scans lunch, trains, comes back tomorrow", async ({ page }) => {
+test("Aiman: cutting, logs a hawker breakfast and lunch, trains, comes back tomorrow", async ({ page }) => {
   await start(page);
 
   // 1. Onboarding — male, 28, 178 cm, 85 kg, lose fat, moderately active, new to the gym, 3 days, halal.
@@ -138,19 +127,14 @@ test("Aiman: cutting, logs a hawker breakfast, scans lunch, trains, comes back t
   await page.getByRole("status").getByRole("button", { name: "Undo" }).click();
   await expect(mealHeader(page, "Breakfast")).toContainText("883 kcal");
 
-  // 4. Lunch from a photo, correcting the rice portion from 200 g to 100 g.
-  await page.route("**/api/analyze-photo", (r) => r.fulfill({ json: NASI_LEMAK_ANALYSIS }));
-  await page.getByRole("button", { name: /Scan meal/ }).click();
-  await page.locator('input[type=file]:not([capture])').setInputFiles({ name: "lunch.png", mimeType: "image/png", buffer: PHOTO });
-  await page.getByRole("button", { name: "Analyse" }).click();
-  await expect(page.getByRole("dialog").getByRole("heading", { name: "Nasi lemak with fried chicken" })).toBeVisible();
-  await expect(page.getByRole("dialog").locator(".big-number")).toHaveText("755");
-  await page.getByLabel("Coconut rice grams").fill("100");
-  await expect(page.getByRole("dialog").locator(".big-number")).toHaveText("575");
+  // 4. Lunch: a plate of nasi lemak, built from its parts (506 kcal).
+  await searchAndOpen(page, "nasi lemak", "Nasi lemak (with sambal, egg, anchovies, peanuts)");
+  await expect(page.getByRole("dialog").locator(".big-number")).toHaveText("506");
   await page.getByRole("dialog").getByRole("tab", { name: "Lunch" }).click();
-  await page.getByRole("button", { name: "Log 3 items" }).click();
-  await expect(mealHeader(page, "Lunch")).toContainText("575 kcal");
-  expect(await statValue(page, "Eaten")).toBe(1458);
+  await page.getByRole("button", { name: "Add to Lunch" }).click();
+  await tab(page, "Today");
+  await expect(mealHeader(page, "Lunch")).toContainText("506 kcal");
+  expect(await statValue(page, "Eaten")).toBe(1389);
 
   // 5. Monday is Full Body A for a 3-day beginner. Clock in from the plan, do 3 sets, train 45 min.
   await tab(page, "Train");
@@ -186,12 +170,12 @@ test("Aiman: cutting, logs a hawker breakfast, scans lunch, trains, comes back t
   // 6. Today adds the workout back to the budget: left = target − eaten + burned.
   await tab(page, "Today");
   expect(await statValue(page, "Burned")).toBe(burned);
-  await expect(page.locator(".card").first()).toContainText(String(2270 - 1458 + burned));
+  await expect(page.locator(".card").first()).toContainText(String(2270 - 1389 + burned));
   await expectNoHorizontalScroll(page);
 
   // 7. Close and reopen the app: everything is still there.
   await page.reload();
-  expect(await statValue(page, "Eaten")).toBe(1458);
+  expect(await statValue(page, "Eaten")).toBe(1389);
   expect(await statValue(page, "Burned")).toBe(burned);
 
   // 8. Leave the app open overnight. When it comes back to the foreground, it shows the new day.
@@ -357,20 +341,6 @@ test("Failures are explained, not silent", async ({ page }) => {
   await page.locator(".row", { hasText: "Milo 3in1 Activ-Go" }).click();
   await expect(page.getByRole("dialog").locator(".big-number")).toHaveText("140"); // 33 g × 424 / 100
   await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
-
-  // Photo server not configured → the user is told why.
-  await page.route("**/api/analyze-photo", (r) => r.fulfill({ status: 503, json: { error: "Photo analysis is not configured. Set ANTHROPIC_API_KEY on the server." } }));
-  await page.getByLabel("Clear search").click();
-  await page.getByRole("button", { name: "Take photo" }).click();
-  await page.locator('input[type=file]:not([capture])').setInputFiles({ name: "x.png", mimeType: "image/png", buffer: PHOTO });
-  await page.getByRole("button", { name: "Analyse" }).click();
-  await expect(page.getByRole("dialog")).toContainText("Photo analysis is not configured");
-
-  // A photo that isn't food.
-  await page.unroute("**/api/analyze-photo");
-  await page.route("**/api/analyze-photo", (r) => r.fulfill({ json: { isFood: false, mealName: "", items: [], notes: "" } }));
-  await page.getByRole("button", { name: "Analyse" }).click();
-  await expect(page.getByRole("dialog")).toContainText("doesn't look like food");
 });
 
 // ── Journey 3 ────────────────────────────────────────────
@@ -386,7 +356,7 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
 
   const expected: [string, string, string][] = [
     ["Your day at a glance", "Today", "summary"],
-    ["Snap your meal", "Today", "scan"],
+    ["Scan a barcode", "Today", "barcode"],
     ["Body check & BMI", "Today", "body-check"],
     ["Search any food", "Food", "food-search"],
     ["Build your own meals", "Food", "food-tools"],
@@ -556,7 +526,7 @@ test("First launch: the step-by-step guide comes first and can be swiped, steppe
   await expect(guide.getByRole("button", { name: "Skip" })).toBeVisible();
   await expectNoHorizontalScroll(page);
 
-  const titles = ["Snap or search your food", "Know if it's good for you", "Clock in at the gym", "A plan made for your body", "For you and your family"];
+  const titles = ["Search or scan your food", "Know if it's good for you", "Clock in at the gym", "A plan made for your body", "For you and your family"];
   const current = (i: number) => guide.getByRole("heading", { name: titles[i] });
 
   // Next walks through every page; the visible page is fully on screen.

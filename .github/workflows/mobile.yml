@@ -67,10 +67,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - run: npm ci
-      # Set the repository variable API_URL to your deployed server so photo analysis works in the app.
       - run: npm run build
-        env:
-          VITE_API_URL: ${{ vars.API_URL }}
       - run: npx cap sync android
       # Sign every build with the same key so new versions install over old ones (see android/keystore).
       - name: Use the fixed signing key
@@ -127,8 +124,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-        env:
-          VITE_API_URL: ${{ vars.API_URL }}
       - run: npx cap sync ios
       # A real-device (arm64) Release build without code signing. Sideloadly or AltStore signs it
       # with the user's own Apple ID when installing, so no Mac or paid developer account is needed.

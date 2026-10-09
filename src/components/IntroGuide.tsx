@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { animate, motion, useMotionValue, useReducedMotion } from "motion/react";
-import { Camera, CircleHelp, Dumbbell, HeartPulse, Target, Users, type LucideIcon } from "lucide-react";
+import { CircleHelp, Search, Dumbbell, HeartPulse, Target, Users, type LucideIcon } from "lucide-react";
 import { SPRING, SPRING_MOMENTUM, project } from "./ui";
 import { t, useLanguage } from "../i18n";
 
@@ -14,10 +14,10 @@ interface Slide {
 
 export const INTRO_SLIDES: Slide[] = [
   {
-    Icon: Camera,
+    Icon: Search,
     colors: ["#0a84ff", "#5e5ce6"],
-    title: "Snap or search your food",
-    body: "Take a photo of your plate and the app works out what's on it and how many calories it has.",
+    title: "Search or scan your food",
+    body: "Look up any food, or scan the barcode on a packet, to see its calories and whether it suits you.",
     points: ["11,000+ foods from around the world", "Millions of packaged products online", "Build and save your own meals"],
   },
   {

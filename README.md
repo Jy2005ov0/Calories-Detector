@@ -4,7 +4,7 @@
 
 **W** is a calorie, training and fitness app. The logo is a **W** pressing a barbell overhead (training) with a flame at its heart (calories burned).
 
-A mobile-first calorie and gym app with an Apple-style interface. It counts calories from a **photo** or a **search**, tracks gym sessions with **clock in / clock out**, builds a **training split** (chest, back, arms, legs…) and a matching **meal plan**, and tells you whether a meal is **healthy and right for your goal**.
+A mobile-first calorie and gym app with an Apple-style interface. It counts calories with a **search** or a **barcode scan**, tracks gym sessions with **clock in / clock out**, builds a **training split** (chest, back, arms, legs…) and a matching **meal plan**, and tells you whether a meal is **healthy and right for your goal**.
 
 Runs on **iOS and Android** three ways:
 
@@ -42,7 +42,7 @@ CI builds the Android APK and the unsigned iPhone IPA and attaches both to a Git
   git push origin v1.0.1
   ```
 
-Photo recognition and the AI coach need the server running somewhere (see [Run it](#run-it)). Set the repository variable `API_URL` before tagging so the APK knows where your server is.
+W needs no server: everything runs on the phone. Food search online and barcode lookups use the free, public [Open Food Facts](https://world.openfoodfacts.org) database.
 
 ## Screenshots
 
@@ -209,7 +209,6 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 
 | | |
 |---|---|
-| **Photo calories** | Snap a meal with the camera, or pick one from your **photo library** (one tap from the *Photos* button on Today or the *Photo library* tile on Food). Claude vision lists each food, estimates the grams and works out the calories and macros. You can fix the grams before logging. |
 | **Food search** | 11,000+ foods: 2,560 hand-checked dishes and ingredients (per 100 g, from USDA, UK CoFID and the Malaysian Food Composition Database) plus the full 8,789-food USDA SR28 database, across 26 cuisines and groups: Malaysian, Chinese, Japanese, Korean, Thai & Vietnamese, Indian, Middle Eastern, Italian, Mexican & Latin American, American & British, European and African & Caribbean, plus everyday staples. Typing 3+ letters also searches **Open Food Facts** (millions of packaged products, no key needed). |
 | **Meal builder** | Combine any foods and quantities. See live totals, a health grade (A–E) and whether it fits your goal. Then log it or save it to reuse later. |
 | **Custom foods** | Copy any nutrition label into *My Foods*. |
@@ -229,9 +228,10 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 | **Personal records & progressive overload** | Best lifts with estimated 1-rep max. Each exercise shows last time's sets and what to do today ("Hit 10 reps on every set — try 42.5 kg"), and plan workouts start pre-filled with that weight. A new record gets a toast. |
 | **Halal & allergen filters** | Pick allergies (peanuts, tree nuts, shellfish, fish, milk, egg, gluten, soy, sesame). Foods that usually contain them — or pork and alcohol on a halal diet, or meat on a vegetarian one — are hidden from search (one tap shows them), flagged with a warning, and left out of your meal plan. |
 | **Ramadan & 16:8 fasting** | Ramadan mode turns meals into Sahur, Iftar and Moreh, counts down to iftar or the end of sahur, uses a gentler 15% deficit, and builds a sample day around dates at iftar. 16:8 mode shows when your eating window opens and closes. |
-| **Cycle tracking** | For women, off until turned on in Profile. Log the first day of each period; W learns your cycle length, shows the cycle day and phase on Today with a training and food tip for that phase (e.g. heavier lifts in the follicular phase, iron-rich food during your period, a little extra appetite and water weight in the luteal phase), predicts the next period, and offers a one-tap *My period started today* when it's due or late. Optional reminder two days before and on the day. The coach knows your phase. Estimates only — not medical advice or contraception. |
+| **Cycle tracking** | For women, off until turned on in Profile. Log the first day of each period; W learns your cycle length, shows the cycle day and phase on Today with a training and food tip for that phase (e.g. heavier lifts in the follicular phase, iron-rich food during your period, a little extra appetite and water weight in the luteal phase), predicts the next period, and offers a one-tap *My period started today* when it's due or late. Optional reminder two days before and on the day. Estimates only — not medical advice or contraception. |
 | **Family members** | Several people can share one phone (Profile → People → *Add a person*). Each person has their own profile and photo, plan, food log, workouts, weight, water and cycle; theme and language are shared. Switch from Profile or the avatar on Today. |
-| **AI coach** | Ask anything about food, portions or training. The coach (Claude) sees your targets, today's log, your plan and your recent workouts, answers in your language, and streams its reply. |
+| **Foods I don't eat** | Tap a group (vegetables, beef, chicken, pork, lamb, seafood, mushrooms, spicy food) or type it your way — "I don't eat vege", "tak makan sayur", "不吃牛肉", "durian". The meal plan and food suggestions leave them out and make up the calories with other foods (fruit takes the place of vegetables). It's a preference, not an allergy, so those foods can still be searched and logged. |
+| **Water your way** | Each tap adds your own cup or bottle size (100 ml to 1 L, or any amount you type), and a one-off amount can be added too. |
 | **No sign-up** | Create a profile (with an optional picture from your photo library) and start — no email or password. Data stays on the phone. |
 | **Backup & restore** | Save everyone's data to one file and restore it on a new phone, from Profile or the first setup page. |
 | **Export & share** | Export everything as CSV, or a 30-day PDF report for a coach or doctor. Share a finished workout as an image card. |
@@ -257,7 +257,7 @@ There are no accounts. On first launch you go from the short guide straight to c
 - **Export data (CSV)** and the **30-day report (PDF)** are for spreadsheets, a coach or a doctor.
 - **Delete all data** wipes the phone and starts profile setup again.
 
-The server is only used for photo recognition and the AI coach; photos and questions are analysed and not kept.
+Nothing is sent to a server. The only network requests are Open Food Facts searches and barcode lookups.
 
 ## iOS & Android apps
 
@@ -289,9 +289,6 @@ You need **Xcode** (on a Mac) for iOS, and **Android Studio** for Android.
 ```bash
 npm install
 
-# Photo recognition: the app calls your deployed server (see "Run it" below).
-echo "VITE_API_URL=https://your-server.example.com" > .env.production.local
-
 npm run ios        # build web, sync, open Xcode → pick a device → Run
 npm run android    # build web, sync, open Android Studio → Run
 npm run android:apk  # or build a debug APK from the command line
@@ -305,26 +302,16 @@ To publish, set your own bundle ID in `capacitor.config.ts` (`appId`, currently 
 
 ### CI
 
-`.github/workflows/mobile.yml` builds the web app, runs the tests and user journeys, and builds an Android APK and an unsigned iPhone IPA on every push. Both can be downloaded from the workflow run's **Artifacts**. Pushing a `v*` tag also attaches them to a GitHub Release. Set the repository variable `API_URL` (Settings → Secrets and variables → Actions → Variables) to bake your server address into those builds.
+`.github/workflows/mobile.yml` builds the web app, runs the tests and user journeys, and builds an Android APK and an unsigned iPhone IPA on every push. Both can be downloaded from the workflow run's **Artifacts**. Pushing a `v*` tag also attaches them to a GitHub Release.
 
 ## Run it
 
 ```bash
 npm install
-cp .env.example .env      # add ANTHROPIC_API_KEY to enable photo recognition and the AI coach
-npm run dev               # web on http://localhost:5173, API on :8787
+npm run dev               # http://localhost:5173
 ```
 
-Production:
-
-```bash
-npm run build
-ANTHROPIC_API_KEY=sk-ant-... npm start   # serves dist/ and the API on $PORT (default 8787)
-```
-
-The server accepts requests from the iOS and Android apps (CORS for `capacitor://localhost` and `https://localhost`). Add other origins with `ALLOWED_ORIGINS=https://a.com,https://b.com`. Deploy it anywhere that runs Node (Render, Railway, Fly.io, a VPS) and use its HTTPS address as `VITE_API_URL` for the apps.
-
-Everything except photo recognition works without a key. Search, plans and tracking run entirely in the browser, and your data is stored in `localStorage` on your device.
+Production: `npm run build` makes a static site in `dist/` that any static host can serve (`npm start` previews it). There is no server or API key: search, plans and tracking run entirely on the device, and your data is stored on the device.
 
 ```bash
 npm test         # calculation + database integrity tests
@@ -338,7 +325,6 @@ npm run typecheck
 - **Protein**: 2.0 g/kg while cutting, otherwise 1.8 g/kg. Fat is 27–28 % of calories and carbs fill the rest.
 - **Limits**: free sugar under 10 % of calories and saturated fat under 10 % (WHO). Sodium under 2,000 mg.
 - **Exercise calories**: MET × body weight (kg) × hours. Each completed strength set counts as 2 minutes, including rest. Clocked-in time with no exercise logged counts as general gym training (3.5 MET).
-- **Photo estimates** can be off by 20–30 %, especially for oil and sauces. Weigh your food when you need accuracy.
 
 This is general guidance, not medical advice.
 
@@ -349,9 +335,6 @@ capacitor.config.ts      Native app config (bundle ID, system bars, splash)
 ios/, android/           Native projects (generated by Capacitor, safe to edit)
 assets/                  Icon and splash sources
 src/lib/platform.ts      Native/web bridge: camera, haptics, dialogs, storage, back button
-server/index.ts          Express app: photo analysis (Claude vision), static hosting
-server/limits.ts         Rate limits for the AI endpoints
-server/db.ts             SQLite schema and queries
 src/data/foods.ts        Food database
 src/data/exercises.ts    Exercise & activity database
 src/lib/nutrition.ts     Targets, health score, suitability, search
@@ -359,5 +342,5 @@ src/lib/fitness.ts       Session calories, plan generator
 src/lib/diet.ts          Food recommendations & sample day
 src/lib/store.ts         localStorage-backed state
 src/screens/*            Today, Food, Train, Plan, Profile (+ onboarding)
-src/components/*         Sheet, segmented control, rings, food/photo/meal sheets
+src/components/*         Sheet, segmented control, rings, food/meal sheets
 ```

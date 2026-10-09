@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { SplitId } from "./fitness";
 import { readDurable, writeDurable } from "./platform";
-import type { ChatMessage, CustomMeal, DayStats, Food, LogEntry, PeriodEntry, Profile, Reminders, WeightEntry, WorkoutSession } from "./types";
+import type { CustomMeal, DayStats, Food, LogEntry, PeriodEntry, Profile, Reminders, WeightEntry, WorkoutSession } from "./types";
 
 export interface AppState {
   profile: Profile;
@@ -27,8 +27,6 @@ export interface AppState {
   /** Water and steps per day. */
   days: DayStats[];
   reminders: Reminders;
-  /** Conversation with the AI coach. */
-  coach: ChatMessage[];
   /** IDs of deleted entries, so a delete on one device isn't undone by another during sync. */
   deleted: string[];
   /** When each field last changed on this device; sync keeps the newer side field by field. */
@@ -130,7 +128,6 @@ const initial: AppState = {
   periods: [],
   days: [],
   reminders: DEFAULT_REMINDERS,
-  coach: [],
   deleted: [],
   stamps: {},
   personId: "me",
@@ -143,7 +140,7 @@ export const INITIAL_STATE = initial;
 export function parseState(raw: string | null): AppState | null {
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw) as Partial<AppState>;
+    const { coach: _coach, ...parsed } = JSON.parse(raw) as Partial<AppState> & { coach?: unknown };
     return {
       ...initial,
       ...parsed,
@@ -184,8 +181,15 @@ export function replaceState(next: AppState) {
   commit(next);
 }
 
-function commit(next: AppState) {
-  state = next;
+// Saving means turning the whole state (food log, workouts, photos…) into JSON, which takes a
+// few milliseconds on a phone. Doing that on every tap and keystroke made the app feel sluggish,
+// so changes are saved together a moment later, and straight away when the app is hidden or closed.
+let saveTimer: ReturnType<typeof setTimeout> | undefined;
+
+export function flushSave() {
+  if (saveTimer === undefined) return;
+  clearTimeout(saveTimer);
+  saveTimer = undefined;
   const json = JSON.stringify(state);
   try {
     localStorage.setItem(KEY, json);
@@ -193,6 +197,16 @@ function commit(next: AppState) {
     // Storage full or blocked (private mode) — keep working in memory.
   }
   writeDurable(KEY, json);
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("pagehide", flushSave);
+  document.addEventListener("visibilitychange", () => document.visibilityState === "hidden" && flushSave());
+}
+
+function commit(next: AppState) {
+  state = next;
+  if (saveTimer === undefined) saveTimer = setTimeout(flushSave, 400);
   listeners.forEach((l) => l());
 }
 
@@ -359,9 +373,6 @@ export const actions = {
   },
   setLanguage(language: AppState["language"]) {
     setState({ language });
-  },
-  setCoach(coach: ChatMessage[]) {
-    setState({ coach: coach.slice(-60) });
   },
   setTheme(theme: AppState["theme"]) {
     setState({ theme });

@@ -7,8 +7,6 @@ export const CORE: AreaDict = {
     "No sign-up. Your data stays on your phone, and family members get their own profiles.": "Tiada pendaftaran. Data anda kekal dalam telefon, dan ahli keluarga mendapat profil sendiri.",
     "Back up to move phones": "Sandarkan untuk tukar telefon",
     "Tap ? to see this guide again": "Ketik ? untuk melihat panduan ini semula",
-    "Private, and for the whole family": "Peribadi, dan untuk seluruh keluarga",
-    "No sign-up: just create your profile. Everything stays on your phone, and family members can add their own profiles.": "Tiada pendaftaran: hanya cipta profil anda. Semua data kekal dalam telefon anda, dan ahli keluarga boleh menambah profil mereka sendiri.",
     "Back up to a file to move to a new phone": "Sandarkan ke fail untuk berpindah ke telefon baharu",
     "How to do it": "Cara melakukannya",
     "USDA food database": "Pangkalan data makanan USDA",
@@ -17,13 +15,8 @@ export const CORE: AreaDict = {
     "Soups & Sauces": "Sup & sos",
     "Baked goods": "Bakeri",
     "Not suitable for you": "Tidak sesuai untuk anda",
-    "Scan meal with the camera": "Imbas hidangan dengan kamera",
     Camera: "Kamera",
-    "Calories · Training · Fitness": "Kalori · Latihan · Kecergasan",
-    "Camera or photo library": "Kamera atau galeri foto",
-    "Choose a meal photo from your library": "Pilih foto hidangan daripada galeri anda",
     "Photos": "Foto",
-    "Photo library": "Galeri foto",
     // ── Tabs (App) ──
     Today: "Hari ini",
     Food: "Makanan",
@@ -114,9 +107,6 @@ export const CORE: AreaDict = {
     // ── API errors ──
     "Search failed ({status})": "Carian gagal ({status})",
     "Lookup failed ({status})": "Semakan gagal ({status})",
-    "Photo analysis needs a server. Rebuild the app with VITE_API_URL set to your deployed server.":
-      "Analisis foto memerlukan pelayan. Bina semula aplikasi dengan VITE_API_URL ditetapkan kepada pelayan anda.",
-    "Request failed ({status})": "Permintaan gagal ({status})",
 
     // ── Notifications ──
     "Clock in": "Daftar masuk",
@@ -158,9 +148,6 @@ export const CORE: AreaDict = {
     "Your day at a glance": "Hari anda sepintas lalu",
     "The ring shows how many calories you have left. Eating fills it; workouts give calories back. Your protein, carbs and fat bars sit just below.":
       "Gelang menunjukkan baki kalori anda. Makan akan mengisinya; latihan memulangkan kalori. Bar protein, karbohidrat dan lemak berada di bawahnya.",
-    "Snap your meal": "Snap hidangan anda",
-    "Take a photo of your plate. The app recognises each food, estimates the grams and works out the calories. You can adjust the portions before saving.":
-      "Ambil foto pinggan anda. Aplikasi mengenal pasti setiap makanan, menganggar gramnya dan mengira kalori. Anda boleh ubah hidangan sebelum menyimpan.",
     "Body check & BMI": "Semakan badan & BMI",
     "Enter your height and weight to see your BMI and get a recommendation on how to train and what to eat. One tap applies it to your plan.":
       "Masukkan tinggi dan berat anda untuk melihat BMI serta cadangan cara berlatih dan apa yang perlu dimakan. Satu ketikan menggunakannya pada pelan anda.",
@@ -196,8 +183,6 @@ export const CORE: AreaDict = {
     "Get started": "Mula",
     "You can replay the guide from the ? button any time.": "Anda boleh main semula panduan melalui butang ? bila-bila masa.",
     "Snap or search your food": "Snap atau cari makanan anda",
-    "Take a photo of your plate and the app works out what's on it and how many calories it has.":
-      "Ambil foto pinggan anda dan aplikasi akan kenal pasti isinya serta jumlah kalorinya.",
     "11,000+ foods from around the world": "11,000+ makanan dari seluruh dunia",
     "Millions of packaged products online": "Berjuta-juta produk berbungkus dalam talian",
     "Build and save your own meals": "Bina dan simpan hidangan anda sendiri",
@@ -218,31 +203,9 @@ export const CORE: AreaDict = {
     "Training plans for 2–6 days a week": "Pelan latihan untuk 2–6 hari seminggu",
     "Calorie and protein targets": "Sasaran kalori dan protein",
     "A sample day of meals you can log": "Contoh menu sehari yang boleh anda catat",
-    "Your data, on every phone": "Data anda, pada setiap telefon",
-    "Sign in with Apple, Google or email to back up and sync. Or use the app without an account.":
-      "Log masuk dengan Apple, Google atau e-mel untuk sandaran dan penyegerakan. Atau guna aplikasi tanpa akaun.",
     "Works offline": "Berfungsi di luar talian",
-    "Delete your account any time": "Padam akaun anda bila-bila masa",
-    "Tap ? on any screen to see the guide again": "Ketik ? pada mana-mana skrin untuk melihat panduan semula",
 
     // ── Coach ──
-    Coach: "Jurulatih",
-    "Clear chat": "Kosongkan sembang",
-    "Ask about food, portions, training or habits. The coach sees your targets, today's log and your plan.":
-      "Tanya tentang makanan, hidangan, latihan atau tabiat. Jurulatih melihat sasaran, catatan hari ini dan pelan anda.",
-    "Coach is typing": "Jurulatih sedang menaip",
-    "Ask the coach…": "Tanya jurulatih…",
-    "Message the coach": "Mesej jurulatih",
-    Send: "Hantar",
-    "AI answers can be wrong. Not medical advice.": "Jawapan AI mungkin salah. Bukan nasihat perubatan.",
-    "The coach needs the app's server. Rebuild the app with VITE_API_URL set to your deployed server.":
-      "Jurulatih memerlukan pelayan aplikasi. Bina semula aplikasi dengan VITE_API_URL ditetapkan kepada pelayan anda.",
-    "The coach couldn't answer right now.": "Jurulatih tidak dapat menjawab sekarang.",
-    "What should I eat for dinner with the calories I have left?": "Apa patut saya makan untuk makan malam dengan baki kalori saya?",
-    "Is nasi lemak OK for my goal?": "Adakah nasi lemak OK untuk matlamat saya?",
-    "How much protein is in my day so far?": "Berapa banyak protein yang saya ambil setakat ini hari ini?",
-    "Plan my meals for tomorrow": "Rancang hidangan saya untuk esok",
-    "I'm stuck at the same weight. What should I change?": "Berat saya tidak berubah. Apa yang patut saya ubah?",
 
     // ── Progress ──
     Progress: "Kemajuan",
@@ -278,8 +241,6 @@ export const CORE: AreaDict = {
       "Langkah sudah dikira dalam tahap aktiviti anda, jadi ia tidak menambah kalori ke hari anda.",
     Water: "Air",
     "Goal {l} L": "Sasaran {l} L",
-    "Progress is saved on this phone and synced to your account if you have one.":
-      "Kemajuan disimpan pada telefon ini dan disegerakkan ke akaun anda jika ada.",
     "Water goal reached · nice!": "Sasaran air dicapai · bagus!",
     "{l} of {goal} L water": "{l} daripada {goal} L air",
     "Cup size {ml} ml, change": "Saiz cawan {ml} ml, tukar",
@@ -293,8 +254,6 @@ export const CORE: AreaDict = {
     "Use as cup size": "Jadikan saiz cawan",
     "Add once": "Tambah sekali",
     "Added {ml} ml of water": "{ml} ml air ditambah",
-    "Remove a glass of water": "Buang segelas air",
-    "Add a glass of water": "Tambah segelas air",
 
     // ── Charts ──
     Goal: "Sasaran",
@@ -305,8 +264,6 @@ export const CORE: AreaDict = {
     "No sign-up. Your data stays on your phone, and family members get their own profiles.": "无需注册。你的数据保存在手机上，家人也可以拥有自己的资料。",
     "Back up to move phones": "备份以便更换手机",
     "Tap ? to see this guide again": "点按 ? 可再次查看本指南",
-    "Private, and for the whole family": "私密，适合全家使用",
-    "No sign-up: just create your profile. Everything stays on your phone, and family members can add their own profiles.": "无需注册：只需创建你的个人资料。所有数据都保存在你的手机上，家庭成员也可以添加自己的资料。",
     "Back up to a file to move to a new phone": "备份到文件，方便转移到新手机",
     "How to do it": "动作要领",
     "USDA food database": "美国农业部食物数据库",
@@ -315,13 +272,8 @@ export const CORE: AreaDict = {
     "Soups & Sauces": "汤与酱料",
     "Baked goods": "烘焙食品",
     "Not suitable for you": "不适合你",
-    "Scan meal with the camera": "用相机扫描餐食",
     Camera: "相机",
-    "Calories · Training · Fitness": "卡路里 · 训练 · 健身",
-    "Camera or photo library": "拍照或从相册选择",
-    "Choose a meal photo from your library": "从相册选择餐食照片",
     "Photos": "相册",
-    "Photo library": "相册",
     // ── Tabs (App) ──
     Today: "今天",
     Food: "饮食",
@@ -412,9 +364,6 @@ export const CORE: AreaDict = {
     // ── API errors ──
     "Search failed ({status})": "搜索失败（{status}）",
     "Lookup failed ({status})": "查询失败（{status}）",
-    "Photo analysis needs a server. Rebuild the app with VITE_API_URL set to your deployed server.":
-      "照片分析需要服务器。请将 VITE_API_URL 设为已部署的服务器后重新构建应用。",
-    "Request failed ({status})": "请求失败（{status}）",
 
     // ── Notifications ──
     "Clock in": "开始打卡",
@@ -456,9 +405,6 @@ export const CORE: AreaDict = {
     "Your day at a glance": "一览今日概况",
     "The ring shows how many calories you have left. Eating fills it; workouts give calories back. Your protein, carbs and fat bars sit just below.":
       "圆环显示你还剩多少热量。进食会填满它，训练会返还热量。下方是蛋白质、碳水和脂肪进度条。",
-    "Snap your meal": "拍下你的餐食",
-    "Take a photo of your plate. The app recognises each food, estimates the grams and works out the calories. You can adjust the portions before saving.":
-      "给你的餐盘拍张照。应用会识别每种食物、估算克数并计算热量。保存前可以调整分量。",
     "Body check & BMI": "身体检测与 BMI",
     "Enter your height and weight to see your BMI and get a recommendation on how to train and what to eat. One tap applies it to your plan.":
       "输入身高和体重，查看 BMI 并获得训练和饮食建议。一键即可应用到你的计划。",
@@ -494,7 +440,6 @@ export const CORE: AreaDict = {
     "Get started": "开始",
     "You can replay the guide from the ? button any time.": "随时可通过 ? 按钮重新查看指南。",
     "Snap or search your food": "拍照或搜索食物",
-    "Take a photo of your plate and the app works out what's on it and how many calories it has.": "给餐盘拍张照，应用就能识别食物并算出热量。",
     "11,000+ foods from around the world": "11,000+ 种世界各地的食物",
     "Millions of packaged products online": "数百万种在线包装食品",
     "Build and save your own meals": "创建并保存自己的餐食",
@@ -515,31 +460,9 @@ export const CORE: AreaDict = {
     "Training plans for 2–6 days a week": "每周 2–6 天的训练计划",
     "Calorie and protein targets": "热量和蛋白质目标",
     "A sample day of meals you can log": "可直接记录的一日餐单示例",
-    "Your data, on every phone": "数据随时同步到每部手机",
-    "Sign in with Apple, Google or email to back up and sync. Or use the app without an account.":
-      "使用 Apple、Google 或邮箱登录以备份和同步，也可以不注册直接使用。",
     "Works offline": "支持离线使用",
-    "Delete your account any time": "可随时删除账户",
-    "Tap ? on any screen to see the guide again": "在任意页面点击 ? 再次查看指南",
 
     // ── Coach ──
-    Coach: "教练",
-    "Clear chat": "清空对话",
-    "Ask about food, portions, training or habits. The coach sees your targets, today's log and your plan.":
-      "可以询问饮食、分量、训练或习惯。教练能看到你的目标、今日记录和计划。",
-    "Coach is typing": "教练正在输入",
-    "Ask the coach…": "问教练…",
-    "Message the coach": "给教练发消息",
-    Send: "发送",
-    "AI answers can be wrong. Not medical advice.": "AI 回答可能有误，不构成医疗建议。",
-    "The coach needs the app's server. Rebuild the app with VITE_API_URL set to your deployed server.":
-      "教练需要应用服务器。请将 VITE_API_URL 设为已部署的服务器后重新构建应用。",
-    "The coach couldn't answer right now.": "教练暂时无法回答。",
-    "What should I eat for dinner with the calories I have left?": "用剩下的热量，晚餐该吃什么？",
-    "Is nasi lemak OK for my goal?": "nasi lemak 适合我的目标吗？",
-    "How much protein is in my day so far?": "我今天到目前为止摄入了多少蛋白质？",
-    "Plan my meals for tomorrow": "帮我规划明天的饮食",
-    "I'm stuck at the same weight. What should I change?": "体重一直没变化，我该调整什么？",
 
     // ── Progress ──
     Progress: "进度",
@@ -575,7 +498,6 @@ export const CORE: AreaDict = {
       "步数已计入你的活动水平，因此不会额外增加当天热量。",
     Water: "饮水",
     "Goal {l} L": "目标 {l} L",
-    "Progress is saved on this phone and synced to your account if you have one.": "进度保存在本机，如有账户会同步到账户。",
     "Water goal reached · nice!": "饮水目标已达成 · 真棒！",
     "{l} of {goal} L water": "已喝 {l} / {goal} 升",
     "Cup size {ml} ml, change": "杯子容量 {ml} 毫升，更改",
@@ -589,8 +511,6 @@ export const CORE: AreaDict = {
     "Use as cup size": "设为杯子容量",
     "Add once": "只加一次",
     "Added {ml} ml of water": "已加 {ml} 毫升水",
-    "Remove a glass of water": "减少一杯水",
-    "Add a glass of water": "增加一杯水",
 
     // ── Charts ──
     Goal: "目标",

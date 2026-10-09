@@ -10,14 +10,6 @@ import { t } from "../i18n";
 export const isNative = Capacitor.isNativePlatform();
 export const platform = Capacitor.getPlatform() as "ios" | "android" | "web";
 
-/**
- * Base URL of the API server. On the web the app and API share an origin, so it's empty.
- * Native apps load from capacitor://localhost (iOS) or https://localhost (Android),
- * so they need the deployed server's address baked in at build time via VITE_API_URL.
- */
-const API_BASE = (import.meta.env?.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "";
-export const apiUrl = (path: string) => `${API_BASE}${path}`;
-export const apiConfigured = !isNative || API_BASE !== "";
 
 // ── Appearance ──────────────────────────────────────────
 

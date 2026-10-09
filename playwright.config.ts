@@ -27,8 +27,8 @@ export default defineConfig({
     { name: "Pixel 7", use: { ...devices["Pixel 7"] } },
   ],
   webServer: {
-    command: `npm run build && PORT=${PORT} npm start`,
-    url: `http://localhost:${PORT}/api/health`,
+    command: `npm run build && npx vite preview --port ${PORT} --strictPort`,
+    url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

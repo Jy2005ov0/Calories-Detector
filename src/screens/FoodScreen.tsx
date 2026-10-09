@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Barcode, Camera, Images, Sparkles, ChevronRight, Globe, PencilLine, Plus, Search, Trash2, UtensilsCrossed, X } from "lucide-react";
+import { AlertTriangle, Barcode, ChevronRight, Globe, PencilLine, Plus, Search, Trash2, UtensilsCrossed, X } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { foodConflicts, hasRestrictions } from "../lib/allergens";
 import { useUsda } from "../lib/usda";
@@ -47,7 +47,6 @@ function FoodRow({ f, onClick }: { f: Food; onClick: () => void }) {
 
 export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void }) {
   useLanguage();
-  const openPhoto = () => openSheet("photo");
   const profile = useStore((s) => s.profile);
   const [hideAvoid, setHideAvoid] = useState(true);
   const restricted = hasRestrictions(profile);
@@ -134,18 +133,6 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
       {!q && (
         <>
           <div className="tiles three" data-tour="food-tools" style={{ marginTop: 14 }}>
-            <button className="tile" onClick={openPhoto}>
-              <div className="icon-tile" style={{ background: "var(--blue)" }}>
-                <Camera size={17} />
-              </div>
-              <div className="tile-title">{t("Take photo")}</div>
-            </button>
-            <button className="tile" onClick={() => openSheet("photoLibrary")}>
-              <div className="icon-tile" style={{ background: "var(--indigo)" }}>
-                <Images size={17} />
-              </div>
-              <div className="tile-title">{t("Photo library")}</div>
-            </button>
             <button className="tile" onClick={() => openSheet("barcode")}>
               <div className="icon-tile" style={{ background: "var(--purple)" }}>
                 <Barcode size={17} />
@@ -163,12 +150,6 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
                 <PencilLine size={17} />
               </div>
               <div className="tile-title">{t("New food")}</div>
-            </button>
-            <button className="tile" onClick={() => openSheet("coach")}>
-              <div className="icon-tile" style={{ background: "linear-gradient(135deg, var(--indigo), var(--purple))" }}>
-                <Sparkles size={17} />
-              </div>
-              <div className="tile-title">{t("Ask coach")}</div>
             </button>
           </div>
 
@@ -332,8 +313,8 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
               {t("Create a custom food")}
             </button>{" "}
             {t("or")}{" "}
-            <button className="link" onClick={openPhoto}>
-              {t("scan a photo")}
+            <button className="link" onClick={() => openSheet("barcode")}>
+              {t("scan its barcode")}
             </button>
             .
           </p>

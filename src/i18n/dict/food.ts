@@ -35,14 +35,10 @@ export const FOOD: AreaDict = {
     Eaten: "Dimakan",
     Burned: "Dibakar",
     "Daily target": "Sasaran harian",
-    "Scan meal": "Imbas hidangan",
-    "Calories from a photo": "Kalori daripada foto",
     "Search food": "Cari makanan",
     "Type to look it up": "Taip untuk mencari",
     "Scan barcode": "Imbas kod bar",
     "Packaged food": "Makanan berbungkus",
-    "Ask coach": "Tanya jurulatih",
-    "AI food & gym help": "Bantuan AI makanan & gim",
     "{n} of {goal} steps": "{n} daripada {goal} langkah",
     Progress: "Kemajuan",
     "Body check · BMI {bmi}": "Semakan badan · BMI {bmi}",
@@ -74,7 +70,6 @@ export const FOOD: AreaDict = {
     "Search nasi lemak, chicken breast, Milo…": "Cari nasi lemak, dada ayam, Milo…",
     "Search foods": "Cari makanan",
     "Clear search": "Kosongkan carian",
-    "Scan photo": "Imbas foto",
     Barcode: "Kod bar",
     "Build meal": "Bina hidangan",
     "New food": "Makanan baharu",
@@ -98,8 +93,12 @@ export const FOOD: AreaDict = {
     "No packaged products found": "Tiada produk berbungkus ditemui",
     "Can't find it?": "Tidak jumpa?",
     "Create a custom food": "Cipta makanan tersuai",
+    "scan its barcode": "imbas kod barnya",
+    "Scan a barcode": "Imbas kod bar",
+    "Point the camera at the barcode on packaged food to get its calories and nutrition. You can also type the number.": "Halakan kamera ke kod bar pada makanan berbungkus untuk melihat kalori dan nutrisinya. Anda juga boleh taip nombornya.",
+    "Search or scan your food": "Cari atau imbas makanan anda",
+    "Look up any food, or scan the barcode on a packet, to see its calories and whether it suits you.": "Cari apa-apa makanan, atau imbas kod bar pada bungkusan, untuk melihat kalorinya dan sama ada ia sesuai untuk anda.",
     or: "atau",
-    "scan a photo": "imbas foto",
 
     // Food categories
     Fruits: "Buah-buahan",
@@ -184,32 +183,7 @@ export const FOOD: AreaDict = {
 
     // PhotoSheet
     "Couldn't read that image. Try a JPEG or PNG.": "Tidak dapat membaca imej itu. Cuba JPEG atau PNG.",
-    "Couldn't open the camera. Check camera access in Settings.": "Tidak dapat membuka kamera. Semak akses kamera dalam Tetapan.",
-    "Couldn't open your photos. Check photo access in Settings.": "Tidak dapat membuka foto anda. Semak akses foto dalam Tetapan.",
-    "Scan a meal": "Imbas hidangan",
-    "Take a photo of your plate. AI identifies each food, estimates the portion and works out the calories.":
-      "Ambil foto pinggan anda. AI mengenal pasti setiap makanan, menganggar hidangan dan mengira kalorinya.",
-    "Take photo": "Ambil foto",
-    "Use the camera": "Guna kamera",
-    "Choose photo": "Pilih foto",
-    "From your library": "Daripada galeri anda",
-    "Tip: shoot from above in good light with the whole plate in frame for the best estimate.":
-      "Petua: ambil dari atas dalam cahaya yang baik dengan seluruh pinggan dalam bingkai untuk anggaran terbaik.",
     "Your meal": "Hidangan anda",
-    "Optional: add details (e.g. 'less rice, no sambal')": "Pilihan: tambah butiran (cth. 'kurang nasi, tanpa sambal')",
-    Retake: "Ambil semula",
-    "Analysing…": "Menganalisis…",
-    Analyse: "Analisis",
-    "That doesn't look like food. Try another photo, or search for the food instead.":
-      "Itu nampaknya bukan makanan. Cuba foto lain, atau cari makanan itu.",
-    "kcal total": "jumlah kcal",
-    "Detected foods — adjust the grams if needed": "Makanan dikesan — laraskan gram jika perlu",
-    "low confidence": "keyakinan rendah",
-    "medium confidence": "keyakinan sederhana",
-    "Log {n} item": "Rekod {n} item",
-    "Log {n} items": "Rekod {n} item",
-    "Photo estimates can be off by 20–30%, especially for oil and sauces. Weigh food when accuracy matters.":
-      "Anggaran foto boleh tersasar 20–30%, terutamanya untuk minyak dan sos. Timbang makanan jika ketepatan penting.",
 
     // BarcodeSheet
     "Couldn't reach the product database. Check your connection.": "Tidak dapat menghubungi pangkalan data produk. Semak sambungan anda.",
@@ -258,14 +232,10 @@ export const FOOD: AreaDict = {
     Eaten: "已摄入",
     Burned: "已消耗",
     "Daily target": "每日目标",
-    "Scan meal": "扫描餐食",
-    "Calories from a photo": "拍照算热量",
     "Search food": "搜索食物",
     "Type to look it up": "输入即可查找",
     "Scan barcode": "扫描条形码",
     "Packaged food": "包装食品",
-    "Ask coach": "问教练",
-    "AI food & gym help": "AI 饮食与健身助手",
     "{n} of {goal} steps": "{n} / {goal} 步",
     Progress: "进度",
     "Body check · BMI {bmi}": "身体检查 · BMI {bmi}",
@@ -297,7 +267,6 @@ export const FOOD: AreaDict = {
     "Search nasi lemak, chicken breast, Milo…": "搜索椰浆饭、鸡胸肉、Milo…",
     "Search foods": "搜索食物",
     "Clear search": "清除搜索",
-    "Scan photo": "拍照识别",
     Barcode: "条形码",
     "Build meal": "组合餐",
     "New food": "新食物",
@@ -321,8 +290,12 @@ export const FOOD: AreaDict = {
     "No packaged products found": "未找到包装食品",
     "Can't find it?": "找不到？",
     "Create a custom food": "创建自定义食物",
+    "scan its barcode": "扫描条形码",
+    "Scan a barcode": "扫描条形码",
+    "Point the camera at the barcode on packaged food to get its calories and nutrition. You can also type the number.": "将相机对准包装食品上的条形码，即可查看热量和营养。也可以手动输入号码。",
+    "Search or scan your food": "搜索或扫描食物",
+    "Look up any food, or scan the barcode on a packet, to see its calories and whether it suits you.": "搜索任何食物，或扫描包装上的条形码，查看热量以及是否适合你。",
     or: "或",
-    "scan a photo": "拍照识别",
 
     // Food categories
     Fruits: "水果",
@@ -407,32 +380,7 @@ export const FOOD: AreaDict = {
 
     // PhotoSheet
     "Couldn't read that image. Try a JPEG or PNG.": "无法读取该图片，请尝试 JPEG 或 PNG。",
-    "Couldn't open the camera. Check camera access in Settings.": "无法打开相机，请在设置中检查相机权限。",
-    "Couldn't open your photos. Check photo access in Settings.": "无法打开相册，请在设置中检查照片权限。",
-    "Scan a meal": "扫描餐食",
-    "Take a photo of your plate. AI identifies each food, estimates the portion and works out the calories.":
-      "给你的餐盘拍张照。AI 会识别每种食物、估算分量并算出热量。",
-    "Take photo": "拍照",
-    "Use the camera": "使用相机",
-    "Choose photo": "选择照片",
-    "From your library": "从相册选择",
-    "Tip: shoot from above in good light with the whole plate in frame for the best estimate.":
-      "提示：在光线充足处从上方拍摄，并把整个餐盘拍进画面，估算最准。",
     "Your meal": "你的餐食",
-    "Optional: add details (e.g. 'less rice, no sambal')": "可选：补充细节（例如“少饭、不要参巴”）",
-    Retake: "重拍",
-    "Analysing…": "分析中…",
-    Analyse: "分析",
-    "That doesn't look like food. Try another photo, or search for the food instead.":
-      "这看起来不像食物。请换一张照片，或直接搜索该食物。",
-    "kcal total": "kcal 合计",
-    "Detected foods — adjust the grams if needed": "识别到的食物 — 如有需要可调整克数",
-    "low confidence": "可信度低",
-    "medium confidence": "可信度中等",
-    "Log {n} item": "记录 {n} 项",
-    "Log {n} items": "记录 {n} 项",
-    "Photo estimates can be off by 20–30%, especially for oil and sauces. Weigh food when accuracy matters.":
-      "照片估算可能有 20–30% 的误差，油和酱汁尤甚。需要精确时请称重。",
 
     // BarcodeSheet
     "Couldn't reach the product database. Check your connection.": "无法连接产品数据库，请检查网络连接。",

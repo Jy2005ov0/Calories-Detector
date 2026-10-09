@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 
-// User journeys for barcode scanning, progress, fasting, allergies, the coach, rest timer and
+// User journeys for barcode scanning, progress, fasting, allergies, rest timer and
 // personal records, export, reminders and languages. Runs on iPhone 14, iPhone SE and Pixel 7.
 
 const MONDAY_8AM = new Date("2026-10-12T08:00:00+08:00");
@@ -166,32 +166,9 @@ test("Wei: scans a barcode, logs it, tracks water, steps and weight, and builds 
   await expect(page.getByLabel("Weight", { exact: true })).toHaveValue("80.9");
 });
 
-test("Arif: asks the coach, trains with a rest timer, beats a record, shares and exports", async ({ page }) => {
+test("Arif: trains with a rest timer, beats a record, shares and exports", async ({ page }) => {
   await start(page);
   await onboard(page, "Arif", { sex: "Male", weight: "75" });
-
-  // Coach (the AI service is mocked): suggestions, a streamed answer, history kept, clear.
-  let asked: { messages: { role: string; text: string }[]; context: { today: { kcalLeft: number } } } | null = null;
-  await page.route("**/api/coach", async (r) => {
-    asked = r.request().postDataJSON();
-    await r.fulfill({ status: 200, contentType: "text/plain; charset=utf-8", body: "Try **grilled fish** with rice:\n- 150 g fish\n- 1 cup rice" });
-  });
-  await page.getByRole("button", { name: /Ask coach/ }).click();
-  const coach = sheet(page, "Coach");
-  await coach.getByRole("button", { name: "What should I eat for dinner with the calories I have left?" }).click();
-  await expect(coach.locator(".bubble.assistant strong")).toHaveText("grilled fish");
-  await expect(coach.locator(".bubble.assistant li")).toHaveCount(2);
-  expect(asked!.messages.at(-1)!.text).toContain("dinner");
-  expect(asked!.context.today.kcalLeft).toBeGreaterThan(1000);
-  await coach.getByLabel("Message the coach").fill("And tomorrow?");
-  await coach.getByLabel("Message the coach").press("Enter");
-  await expect(coach.locator(".bubble.user")).toHaveCount(2);
-  await coach.getByRole("button", { name: "Close", exact: true }).click();
-  await page.getByRole("button", { name: /Ask coach/ }).click();
-  await expect(coach.locator(".bubble.user")).toHaveCount(2);
-  await coach.getByRole("button", { name: "Clear chat" }).click();
-  await expect(coach.getByRole("button", { name: /dinner/ })).toBeVisible();
-  await coach.getByRole("button", { name: "Close", exact: true }).click();
 
   // Week 1: chest day at 40 kg; finishing a set starts the rest timer.
   await tab(page, "Train");
@@ -250,44 +227,36 @@ test("Arif: asks the coach, trains with a rest timer, beats a record, shares and
   expect(fs.readFileSync((await pdf.path())!).subarray(0, 5).toString()).toBe("%PDF-");
 });
 
-test("Lina: picks a meal photo straight from her photo library on Today and Food", async ({ page }) => {
+test("Lina: doesn't eat vegetables or beef, so her meal plan leaves them out", async ({ page }) => {
   await start(page);
   await onboard(page, "Lina");
-  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
-  await page.route("**/api/analyze-photo", (r) =>
-    r.fulfill({
-      json: {
-        isFood: true,
-        mealName: "Chicken rice",
-        notes: "",
-        items: [{ name: "Chicken rice", grams: 350, calories: 600, protein: 30, carbs: 70, fat: 20, fiber: 1, sugar: 1, confidence: "high" }],
-      },
-    }),
-  );
+  await tab(page, "Plan");
+  await page.getByRole("tab", { name: "Nutrition" }).click();
+  await expect(page.locator(".card", { hasText: "Dinner" }).first()).toContainText(/vegetables/i);
 
-  // Today: the Photos shortcut on the Scan meal tile opens the library picker directly.
-  const chooser = page.waitForEvent("filechooser");
-  await page.getByRole("button", { name: "Choose a meal photo from your library" }).click();
-  const fc = await chooser;
-  // The library picker (not the camera) — no capture attribute.
-  expect(await fc.element().getAttribute("capture")).toBeNull();
-  await fc.setFiles({ name: "lunch.png", mimeType: "image/png", buffer: png });
-  const scan = sheet(page, "Scan a meal");
-  await expect(scan.getByRole("img", { name: "Your meal" })).toBeVisible();
-  await scan.getByRole("button", { name: "Analyse" }).click();
-  await expect(scan).toContainText("Chicken rice");
-  await scan.getByRole("button", { name: /^Log/ }).click();
-  await expect(page.locator(".row", { hasText: "Chicken rice" }).first()).toContainText("350 g");
+  // Profile: type it the way she'd say it, and tap a chip.
+  await tab(page, "Profile");
+  const other = page.getByLabel("Another food you don't eat");
+  await other.fill("I don't eat vege");
+  await other.press("Enter");
+  await expect(page.getByRole("button", { name: "Vegetables", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Beef", exact: true }).click();
+  await other.fill("durian");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Eat durian again" })).toBeVisible();
 
-  // Food tab: the Photo library tile does the same.
+  // Plan: no vegetables or beef; fruit instead, and it says so.
+  await tab(page, "Plan");
+  await page.getByRole("tab", { name: "Nutrition" }).click();
+  await expect(page.getByTestId("plan-without")).toContainText("Planned without vegetables, beef, durian.");
+  for (const meal of await page.locator(".card", { hasText: /kcal/ }).allTextContents()) expect(meal).not.toMatch(/vegetables|broccoli|spinach|beef/i);
+  await expect(page.getByText("Papaya").first()).toBeVisible();
+
+  // It's a preference, not an allergy: broccoli can still be found and logged without a warning.
   await tab(page, "Food");
-  const chooser2 = page.waitForEvent("filechooser");
-  await page.getByRole("button", { name: "Photo library" }).click();
-  await (await chooser2).setFiles({ name: "dinner.png", mimeType: "image/png", buffer: png });
-  await expect(sheet(page, "Scan a meal").getByRole("img", { name: "Your meal" })).toBeVisible();
-  // Retake goes back to the camera / library choice.
-  await sheet(page, "Scan a meal").getByRole("button", { name: "Retake" }).click();
-  await expect(sheet(page, "Scan a meal").getByRole("button", { name: /Choose photo/ })).toBeVisible();
+  await page.getByLabel("Search foods").fill("broccoli");
+  await page.locator(".row", { hasText: "Broccoli" }).first().click();
+  await expect(page.locator(".avoid-card")).toHaveCount(0);
 });
 
 test("Mei: reminders, step goal and switching language to Malay and Chinese", async ({ page }) => {

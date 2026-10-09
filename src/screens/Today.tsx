@@ -4,8 +4,6 @@ import {
   Barcode,
   CalendarDays,
   CalendarHeart,
-  Camera,
-  Images,
   ChevronRight,
   Dumbbell,
   Flame,
@@ -13,7 +11,6 @@ import {
   MoonStar,
   Scale,
   Search,
-  Sparkles,
   Trash2,
   Utensils,
 } from "lucide-react";
@@ -419,28 +416,6 @@ export function Today({
       <CycleCard today={today} />
 
       <div className="tiles" style={{ marginTop: 12 }}>
-        <div className="tile split" data-tour="scan">
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div className="icon-tile" style={{ background: "var(--blue)" }}>
-              <Camera size={18} />
-            </div>
-            <div className="tile-title">{t("Scan meal")}</div>
-          </div>
-          <div className="split-actions">
-            <button
-              onClick={() => openSheet("photo")}
-              aria-label={t("Scan meal with the camera")}
-            >
-              <Camera size={15} /> {t("Camera")}
-            </button>
-            <button
-              onClick={() => openSheet("photoLibrary")}
-              aria-label={t("Choose a meal photo from your library")}
-            >
-              <Images size={15} /> {t("Photos")}
-            </button>
-          </div>
-        </div>
         <button className="tile" onClick={() => go("food")}>
           <div className="icon-tile" style={{ background: "var(--orange)" }}>
             <Search size={18} />
@@ -461,25 +436,6 @@ export function Today({
           <div>
             <div className="tile-title">{t("Scan barcode")}</div>
             <div className="tile-sub">{t("Packaged food")}</div>
-          </div>
-        </button>
-        <button
-          className="tile"
-          onClick={() => openSheet("coach")}
-          data-tour="coach"
-        >
-          <div
-            className="icon-tile"
-            style={{
-              background:
-                "linear-gradient(135deg, var(--indigo), var(--purple))",
-            }}
-          >
-            <Sparkles size={18} />
-          </div>
-          <div>
-            <div className="tile-title">{t("Ask coach")}</div>
-            <div className="tile-sub">{t("AI food & gym help")}</div>
           </div>
         </button>
       </div>

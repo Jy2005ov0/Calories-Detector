@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronDown, Lightbulb, LogIn, Plus, Sparkles } from "lucide-react";
+import { ChevronDown, Lightbulb, LogIn, Plus } from "lucide-react";
 import { t as tr, useLanguage } from "../i18n";
 import { FOODS } from "../data/foods";
 import { FoodSheet } from "../components/FoodSheet";
@@ -11,7 +11,7 @@ import { SPLITS, WEEKDAYS, buildPlan, sessionFromPlan, type PlannedDay } from ".
 import { bmr, round, targets, tdee } from "../lib/nutrition";
 import { actions, todayKey, useStore, useTodayKey, weekdayOf } from "../lib/store";
 import type { Food, MealType } from "../lib/types";
-import type { SheetKind, Tab } from "../App";
+import type { Tab } from "../App";
 
 /** Two-letter badge for a training day: "Chest Day" → CH, "Hari Dada" → DA, "胸部日" → 胸. */
 function dayMark(title: string) {
@@ -19,7 +19,7 @@ function dayMark(title: string) {
   return /[\u4e00-\u9fff]/.test(core) ? core.slice(0, 1) : core.slice(0, 2).toUpperCase();
 }
 
-export function Plan({ go, openSheet }: { go: (t: Tab) => void; openSheet: (k: SheetKind) => void }) {
+export function Plan({ go }: { go: (t: Tab) => void }) {
   useLanguage();
   const [view, setView] = useState<"training" | "nutrition">("training");
   return (
@@ -38,7 +38,7 @@ export function Plan({ go, openSheet }: { go: (t: Tab) => void; openSheet: (k: S
           ]}
         />
       </div>
-      {view === "training" ? <TrainingPlan go={go} /> : <NutritionPlan openSheet={openSheet} />}
+      {view === "training" ? <TrainingPlan go={go} /> : <NutritionPlan />}
     </div>
   );
 }
@@ -185,7 +185,7 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
   );
 }
 
-function NutritionPlan({ openSheet }: { openSheet: (k: SheetKind) => void }) {
+function NutritionPlan() {
   const profile = useStore((s) => s.profile);
   const t = targets(profile);
   const [food, setFood] = useState<Food | null>(null);
@@ -330,15 +330,6 @@ function NutritionPlan({ openSheet }: { openSheet: (k: SheetKind) => void }) {
           </div>
         ))}
       </div>
-      <button className="card pressable coach-cta" onClick={() => openSheet("coach")}>
-        <div className="icon-tile" style={{ background: "linear-gradient(135deg, var(--indigo), var(--purple))" }}>
-          <Sparkles size={18} />
-        </div>
-        <div className="row-main">
-          <div className="tile-title">{tr("Ask the coach")}</div>
-          <div className="tile-sub">{tr("Swap a meal, plan tomorrow, or ask about a hawker dish")}</div>
-        </div>
-      </button>
       <p className="footnote">
         {tr("General guidance, not medical advice. If you have a medical condition, are pregnant, or under 18, check with a doctor or dietitian.")}
       </p>
