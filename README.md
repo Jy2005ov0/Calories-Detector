@@ -52,8 +52,8 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/01-intro-guide.jpg" width="190" alt="Welcome guide (with Skip)"><br><sub>Welcome guide (with Skip)</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/02-sign-in.jpg" width="190" alt="Sign in: Apple, Google or email"><br><sub>Sign in: Apple, Google or email</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/03-create-account.jpg" width="190" alt="Create an account"><br><sub>Create an account</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/02-onboarding-welcome.jpg" width="190" alt="No sign-up: start here"><br><sub>No sign-up: start here</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/03-onboarding-about-you.jpg" width="190" alt="Your profile, with a photo"><br><sub>Your profile, with a photo</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/04-onboarding-goal.jpg" width="190" alt="Set your goal"><br><sub>Set your goal</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/05-guided-tour.jpg" width="190" alt="Step-by-step tour (? button)"><br><sub>Step-by-step tour (? button)</sub></td>
 </tr></table>
@@ -117,7 +117,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/34-profile-reminders-language.jpg" width="190" alt="Reminders, goals, language, export"><br><sub>Reminders, goals, language, export</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/35-profile-cycle.jpg" width="190" alt="Cycle tracking settings"><br><sub>Cycle tracking settings</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/36-cycle-today.jpg" width="190" alt="Cycle day, phase and tips"><br><sub>Cycle day, phase and tips</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/37-switch-person.jpg" width="190" alt="Family members, one account"><br><sub>Family members, one account</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/37-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/38-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/39-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/40-language-malay.jpg" width="190" alt="Bahasa Melayu"><br><sub>Bahasa Melayu</sub></td>
@@ -131,8 +131,8 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/01-intro-guide.jpg" width="190" alt="Welcome guide (with Skip)"><br><sub>Welcome guide (with Skip)</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/02-sign-in.jpg" width="190" alt="Sign in: Apple, Google or email"><br><sub>Sign in: Apple, Google or email</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/03-create-account.jpg" width="190" alt="Create an account"><br><sub>Create an account</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/02-onboarding-welcome.jpg" width="190" alt="No sign-up: start here"><br><sub>No sign-up: start here</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/03-onboarding-about-you.jpg" width="190" alt="Your profile, with a photo"><br><sub>Your profile, with a photo</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/04-onboarding-goal.jpg" width="190" alt="Set your goal"><br><sub>Set your goal</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/05-guided-tour.jpg" width="190" alt="Step-by-step tour (? button)"><br><sub>Step-by-step tour (? button)</sub></td>
 </tr></table>
@@ -196,7 +196,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/34-profile-reminders-language.jpg" width="190" alt="Reminders, goals, language, export"><br><sub>Reminders, goals, language, export</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/35-profile-cycle.jpg" width="190" alt="Cycle tracking settings"><br><sub>Cycle tracking settings</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/36-cycle-today.jpg" width="190" alt="Cycle day, phase and tips"><br><sub>Cycle day, phase and tips</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/37-switch-person.jpg" width="190" alt="Family members, one account"><br><sub>Family members, one account</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/37-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/38-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/39-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/40-language-malay.jpg" width="190" alt="Bahasa Melayu"><br><sub>Bahasa Melayu</sub></td>
