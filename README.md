@@ -12,84 +12,28 @@ Runs on **iOS and Android** three ways:
 - **Installable web app (PWA)**. In Safari tap Share → *Add to Home Screen*; in Chrome tap ⋮ → *Install app*. It works offline.
 - **Any mobile or desktop browser.**
 
-## Install the app
+## Install
 
-### iPhone / iPad
+📖 **Full step-by-step guide, with troubleshooting: [docs/INSTALL.md](docs/INSTALL.md)**
 
-**Quickest: add it to your Home Screen (no App Store needed)**
+The short version:
 
-1. Open the app's web address in **Safari**.
-2. Tap the **Share** button (the square with an arrow pointing up).
-3. Scroll down and tap **Add to Home Screen**, then **Add**.
-4. Open **W** from your Home Screen. It runs full screen and works offline.
+| | Android | iPhone |
+|---|---|---|
+| **Get the file** | **[W.apk](https://github.com/Jy2005ov0/Calories-Detector/releases/latest/download/W.apk)** from the [latest release](https://github.com/Jy2005ov0/Calories-Detector/releases/latest) | **[W.ipa](https://github.com/Jy2005ov0/Calories-Detector/releases/latest/download/W.ipa)** from the [latest release](https://github.com/Jy2005ov0/Calories-Detector/releases/latest) |
+| **Install** | Open `W.apk` on the phone and allow **Install unknown apps** | **No Mac needed:** [Sideloadly](https://sideloadly.io) or [AltStore](https://altstore.io) on a Windows PC or Mac, with your Apple ID (or Xcode on a Mac). On Windows, iTunes and iCloud from Apple's website must be installed for the drivers, but they can't install the app by themselves. |
+| **First time** | Allow notifications, and set **Battery → Unrestricted** so reminders and the workout timer keep working | Turn on **Developer Mode** and trust your Apple ID under **VPN & Device Management** |
+| **Keep it** | Nothing to do — it doesn't expire | **Renew every 7 days** with a free Apple ID (Sideloadly or AltStore can do it automatically over Wi-Fi). Your data stays. |
+| **Update** | Open the new `W.apk` → **Update** | Install the new `W.ipa` with the same Apple ID |
+| **Not available** | — | Sign in with Apple and Apple Health (need a paid developer account); everything else works |
 
-**Native app from source (needs a Mac)**
+No install at all: open the web app and use **Add to Home Screen** (Safari) or **Install app** (Chrome). See the [guide](docs/INSTALL.md#no-install-web-app-on-the-home-screen).
 
-1. Install **Xcode** from the Mac App Store and **Node.js 22**.
-2. In Terminal:
-   ```bash
-   git clone https://github.com/jy2005ov0/calories-detector.git
-   cd calories-detector
-   npm install
-   npm run ios
-   ```
-3. Xcode opens. Plug in your iPhone, choose it at the top of the window, then select the **App** target → **Signing & Capabilities** → choose your **Team** (a free Apple ID works).
-4. Press **Run** (▶).
-5. The first time, on the iPhone go to **Settings → General → VPN & Device Management**, tap your Apple ID and tap **Trust**.
-
-With a free Apple ID the app has to be re-installed every 7 days. A paid Apple Developer account lets you share it through **TestFlight** or publish it on the App Store.
-
-**No Mac? Install the .ipa with Sideloadly (Windows or Mac)**
-
-GitHub builds an unsigned iPhone app (`.ipa`) for you. [Sideloadly](https://sideloadly.io) signs it with your own Apple ID while installing, so you don't need a Mac or a paid developer account.
-
-1. **Download the app file.** Open this repository's **[Releases](../../releases)** page and download `W-vX.Y.Z-unsigned.ipa`.
-   (No release yet? **Actions** tab → latest green **Mobile apps** run → **Artifacts** → `W-ios-unsigned-ipa`. You need to be signed in to GitHub, and the download is a zip with the `.ipa` inside.)
-2. **Install the tools on your computer.**
-   - **Windows:** install **iTunes** and **iCloud** from Apple's website (*not* the Microsoft Store versions — Sideloadly needs Apple's own drivers), then install **Sideloadly**.
-   - **Mac:** just install **Sideloadly**.
-3. **Connect your iPhone** with a cable, unlock it and tap **Trust This Computer**. Make sure iTunes (Windows) or Finder (Mac) can see the phone.
-4. **Open Sideloadly**, drag `W-…-unsigned.ipa` onto it, pick your iPhone, type your **Apple ID** email and press **Start**. Enter your Apple ID password (and the 2-factor code) when asked. The password is only sent to Apple. Using a spare Apple ID is a good idea.
-5. **Trust the app on the iPhone.** Go to **Settings → General → VPN & Device Management**, tap your Apple ID and tap **Trust**.
-6. **iOS 16 or later:** turn on **Settings → Privacy & Security → Developer Mode**, restart the phone and confirm.
-7. **Open W** from your Home Screen.
-
-Good to know:
-
-- **It expires after 7 days.** With a free Apple ID the app stops opening after 7 days. Your data stays on the phone; just install the same `.ipa` again with Sideloadly. Sideloadly can also refresh it automatically over Wi-Fi.
-- **The 3-app limit.** A free Apple ID can have up to 3 sideloaded apps at a time.
-- **What doesn't work.** Apple only allows **Sign in with Apple** and **Apple Health** for apps signed by a paid developer account. In a sideloaded build those two buttons won't work — use email or Google to sign in. Everything else works, including the camera, photo library, barcode scanner, reminders, rest timer and sync.
-- **Other installers.** [AltStore](https://altstore.io) works the same way and also refreshes the app for you.
-
-### Android
-
-**Install the APK**
-
-1. On your phone, open this repository's **[Releases](../../releases)** page and download the latest `W-vX.Y.Z.apk`.
-   (No release yet? Open the **Actions** tab → the latest green **Mobile apps** run → **Artifacts** → `W-android-apk`. This needs you to be signed in to GitHub, and it downloads as a zip with the APK inside.)
-2. Open the downloaded file. If Android asks, allow **Install unknown apps** for your browser or Files app.
-3. Tap **Install**, then **Open**.
-
-**Or add it to your Home Screen**
-
-1. Open the app's web address in **Chrome**.
-2. Tap **⋮** → **Install app** (or **Add to Home screen**).
-
-**Native app from source**
-
-1. Install **Android Studio** and **Node.js 22**.
-2. Run:
-   ```bash
-   git clone https://github.com/jy2005ov0/calories-detector.git
-   cd calories-detector
-   npm install
-   npm run android
-   ```
-3. Android Studio opens. Turn on **USB debugging** on your phone (Settings → About phone → tap **Build number** 7 times → Developer options → USB debugging), plug it in, choose it at the top and press **Run** (▶).
+Building from source instead: `npm install`, then `npm run ios` (Xcode) or `npm run android` (Android Studio) — see [iOS & Android apps](#ios--android-apps).
 
 ### For maintainers: publishing a download
 
-Either way, CI builds the Android APK and the unsigned iPhone IPA and attaches both to a GitHub Release:
+CI builds the Android APK and the unsigned iPhone IPA and attaches both to a GitHub Release, as `W.apk` / `W.ipa` (so the links above always point at the newest) and as versioned copies. The APK is always signed with the same key ([android/keystore](android/keystore/README.md)), so updates install over older versions.
 
 - **From GitHub (no command line):** **Actions** → **Mobile apps** → **Run workflow**, type a version such as `v1.0.1` in *Publish a GitHub Release*, and run it.
 - **From git:**
