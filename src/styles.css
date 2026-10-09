@@ -2278,3 +2278,6 @@ html[data-platform="android"] .sheet-cta {
 .ex-hero-icon .ex-pic {
   border-radius: 24px;
 }
+.sheet.full {
+  height: calc(100dvh - var(--safe-top) - 24px);
+}

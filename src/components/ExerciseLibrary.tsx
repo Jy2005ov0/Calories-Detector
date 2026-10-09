@@ -110,7 +110,7 @@ export function ExerciseLibrary({
         </div>
       </Sheet>
 
-      <Sheet open={!!detail} onClose={() => setDetail(null)} title={exLabel(detail?.category)}>
+      <Sheet open={!!detail} onClose={() => setDetail(null)} title={exLabel(detail?.category)} full>
         {detail && (
           <>
             <ExerciseHero name={detail.name} category={detail.category} />

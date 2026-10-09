@@ -91,9 +91,11 @@ interface SheetProps {
   left?: ReactNode;
   right?: ReactNode;
   children: ReactNode;
+  /** Open at full height, so a sheet stacked on another never lets the one below peek out above it. */
+  full?: boolean;
 }
 
-export function Sheet({ open, onClose, title, left, right, children }: SheetProps) {
+export function Sheet({ open, onClose, title, left, right, children, full }: SheetProps) {
   useLanguage();
   const reduce = useReducedMotion();
   const controls = useDragControls();
@@ -134,7 +136,7 @@ export function Sheet({ open, onClose, title, left, right, children }: SheetProp
           />
           <motion.div
             ref={ref}
-            className="sheet"
+            className={full ? "sheet full" : "sheet"}
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
