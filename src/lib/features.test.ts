@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FOOD_BY_NAME } from "../data/foods";
-import { conflicts, foodConflicts, foodTags } from "./allergens";
+import { conflicts, dislikesIn, foodConflicts, foodTags, parseDislike } from "./allergens";
 import { averageLength, cycleOf, cycleStatus, periodDays, periodDue, periodLength, phaseTip, predictedDays, togglePeriodDay } from "./cycle";
 import { recommendedFoods, sampleDay } from "./diet";
 import { fromBackup, toBackup, toCsv } from "./export";
@@ -67,6 +67,39 @@ describe("allergens and halal", () => {
     expect(items.some((n) => /egg|milk|yogurt/i.test(n))).toBe(false);
     // The rest still adds up to roughly the target.
     expect(Math.abs(day.total.kcal - targets(p).kcal)).toBeLessThan(targets(p).kcal * 0.12);
+  });
+});
+
+describe("foods someone doesn't eat", () => {
+  it("understands how people say it", () => {
+    expect(parseDislike("I don't eat vege")).toBe("vegetables");
+    expect(parseDislike("i dont eat veggies.")).toBe("vegetables");
+    expect(parseDislike("tak makan sayur")).toBe("vegetables");
+    expect(parseDislike("我不吃牛肉")).toBe("beef");
+    expect(parseDislike("no spicy")).toBe("spicy");
+    expect(parseDislike("  Durian ")).toBe("durian");
+    expect(parseDislike("I don't eat")).toBe("");
+  });
+
+  it("matches dish names, not garnishes", () => {
+    expect(dislikesIn("Stir-fried kangkung", ["vegetables"])).toEqual(["vegetables"]);
+    expect(dislikesIn("Nasi lemak (with egg)", ["vegetables"])).toEqual([]);
+    expect(dislikesIn("Carrot cake (fried)", ["vegetables"])).toEqual([]);
+    expect(dislikesIn("Beef rendang", ["beef", "spicy"])).toEqual(["beef", "spicy"]);
+    expect(dislikesIn("Durian", ["durian"])).toEqual(["durian"]);
+    // A preference, not an allergy: no warning on the food itself.
+    expect(foodConflicts(food("Broccoli"), { allergies: [], diet: "anything" })).toEqual([]);
+  });
+
+  it("swaps vegetables for fruit in the meal plan", () => {
+    const p = { ...DEFAULT_PROFILE, weightKg: 70 };
+    const day = sampleDay(targets(p), "anything", { dislikes: ["vegetables", "beef"] });
+    const items = day.meals.flatMap((m) => m.items.map((i) => i.food.name));
+    expect(items.some((n) => dislikesIn(n, ["vegetables", "beef"]).length > 0)).toBe(false);
+    expect(items).toContain("Papaya");
+    expect(Math.abs(day.total.kcal - targets(p).kcal)).toBeLessThan(targets(p).kcal * 0.12);
+    const groups = recommendedFoods("lose", "anything", [], ["vegetables"]);
+    expect(groups.flatMap((g) => (g.title === "Limit" ? [] : g.foods))).not.toContain("Broccoli");
   });
 });
 

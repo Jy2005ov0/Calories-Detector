@@ -2200,3 +2200,18 @@ button.row:active,
 .cal-dot.today {
   box-shadow: inset 0 0 0 2px var(--label);
 }
+
+/* Water cup sizes */
+.cup-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cup-grid .chip {
+  height: 40px;
+  min-width: 72px;
+}
+.water-cup {
+  font-size: 0.8125rem;
+  text-align: left;
+}

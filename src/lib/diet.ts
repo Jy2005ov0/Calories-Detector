@@ -1,6 +1,6 @@
 import { FOODS } from "../data/foods";
 import { t as tr } from "../i18n";
-import { foodConflicts } from "./allergens";
+import { dislikesIn, foodConflicts } from "./allergens";
 import { scale, sum, type Targets } from "./nutrition";
 import type { Allergen, Food, Goal, Nutrients, Profile } from "./types";
 
@@ -19,10 +19,10 @@ export interface FoodGroupAdvice {
 
 type Diet = Profile["diet"];
 
-/** Foods to suggest, without anything the person is allergic to or avoids (halal, vegetarian…). */
-export function recommendedFoods(goal: Goal, diet: Diet, allergies: Allergen[] = []): FoodGroupAdvice[] {
+/** Foods to suggest, without anything the person is allergic to, avoids (halal, vegetarian…) or just doesn't eat. */
+export function recommendedFoods(goal: Goal, diet: Diet, allergies: Allergen[] = [], dislikes: string[] = []): FoodGroupAdvice[] {
   return baseRecommendations(goal, diet).map((g) =>
-    g.title === "Limit" ? g : { ...g, foods: g.foods.filter((n) => foodConflicts(food(n), { diet, allergies }).length === 0) },
+    g.title === "Limit" ? g : { ...g, foods: g.foods.filter((n) => foodConflicts(food(n), { diet, allergies }).length === 0 && dislikesIn(n, dislikes).length === 0) },
   );
 }
 
@@ -113,11 +113,21 @@ const VEGAN: Template = [
 export function sampleDay(
   t: Targets,
   diet: Diet,
-  opts: { allergies?: Allergen[]; fasting?: Profile["fasting"] } = {},
+  opts: { allergies?: Allergen[]; dislikes?: string[]; fasting?: Profile["fasting"] } = {},
 ): { meals: PlannedMeal[]; total: Nutrients } {
   const base = diet === "vegan" ? VEGAN : diet === "vegetarian" ? VEGETARIAN : OMNI;
   // Leave out anything the person is allergic to; the other portions grow to make up the calories.
-  const safe = (items: [string, number][]) => items.filter(([n]) => foodConflicts(food(n), { diet, allergies: opts.allergies ?? [] }).length === 0);
+  // Leave out allergens and foods the person doesn't eat; the other portions grow to make up the calories.
+  const ok = (n: string) => foodConflicts(food(n), { diet, allergies: opts.allergies ?? [] }).length === 0 && dislikesIn(n, opts.dislikes).length === 0;
+  // Someone who doesn't eat vegetables still needs fibre and vitamins: fruit takes their place.
+  const noVeg = opts.dislikes?.includes("vegetables");
+  const fruit = ["Papaya", "Apple", "Banana"].find(ok);
+  const safe = (items: [string, number][]): [string, number][] =>
+    items.flatMap(([n, g]): [string, number][] => {
+      if (ok(n)) return [[n, g]];
+      if (noVeg && fruit && dislikesIn(n, ["vegetables"]).length) return [[fruit, Math.min(g, 150)]];
+      return [];
+    });
   const template = withFasting(base, opts.fasting ?? "off")
     .map((m) => ({ ...m, items: safe(m.items) }))
     .filter((m) => m.items.length > 0);

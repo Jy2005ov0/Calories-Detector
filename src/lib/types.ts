@@ -64,6 +64,8 @@ export interface Profile {
   diet: "anything" | "halal" | "vegetarian" | "vegan";
   /** Foods to warn about and leave out of plans. */
   allergies: Allergen[];
+  /** Foods the person just doesn't eat: a food group ("vegetables", "beef"…) or a word they typed ("durian"). */
+  dislikes?: string[];
   /** Ramadan (sahur / iftar) or 16:8 intermittent fasting. */
   fasting: "off" | "ramadan" | "16:8";
   /** Ramadan sahur end and iftar ("HH:MM", they change with location), and the 16:8 window start. */
@@ -72,6 +74,8 @@ export interface Profile {
   stepGoal: number;
   /** Menstrual cycle tracking (off unless turned on). */
   cycle: CycleSettings;
+  /** Water added per tap, in ml (250 when unset). */
+  waterServingMl?: number;
   /** Profile picture: a small square JPEG as a data URL. */
   photo?: string;
   onboarded: boolean;

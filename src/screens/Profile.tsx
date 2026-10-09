@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Activity, Bell, CalendarDays, CalendarHeart, ChevronRight, Dumbbell, FileDown, FileText, Flame, Languages, Leaf, LineChart, Moon, MoonStar, Save, Upload, Scale, Sun, SunMoon, Target, Trash2, TrendingDown, TrendingUp, User } from "lucide-react";
 import { NumberInput, Segmented, SPRING, Stepper, Switch, showToast } from "../components/ui";
 import { LANGUAGES, locale, t, useLanguage } from "../i18n";
-import { ALLERGENS } from "../lib/allergens";
+import { ALLERGENS, DISLIKES, dislikeLabel, isPresetDislike, parseDislike } from "../lib/allergens";
 import { averageLength, cycleStatus } from "../lib/cycle";
 import { fromBackup, toBackup, toCsv, toPdf } from "../lib/export";
 import { shareFile } from "../lib/native";
@@ -30,6 +30,57 @@ const GOALS: { value: P["goal"]; label: string; sub: string; icon: typeof Target
   { value: "maintain", label: "Maintain & tone", sub: "Stay at your weight, recompose", icon: Target, color: "var(--blue)" },
   { value: "gain", label: "Build muscle", sub: "Small calorie surplus", icon: TrendingUp, color: "var(--green)" },
 ];
+
+/** Foods someone just doesn't eat: tap a group, or type anything ("I don't eat vege", "durian"). */
+function DislikesSection({ p }: { p: P }) {
+  const [text, setText] = useState("");
+  const list = p.dislikes ?? [];
+  const toggle = (d: string) => actions.updateProfile({ dislikes: list.includes(d) ? list.filter((x) => x !== d) : [...list, d] });
+  const add = () => {
+    const d = parseDislike(text);
+    setText("");
+    if (!d) return;
+    if (!list.includes(d)) actions.updateProfile({ dislikes: [...list, d] });
+    showToast(t("Leaving out {food}", { food: dislikeLabel(d).toLowerCase() }));
+  };
+  const custom = list.filter((d) => !isPresetDislike(d));
+  return (
+    <>
+      <div className="section-header">{t("Foods I don't eat")}</div>
+      <div className="cup-grid" role="group" aria-label={t("Foods I don't eat")}>
+        {DISLIKES.map((d) => {
+          const on = list.includes(d.value);
+          return (
+            <button key={d.value} className={`chip ${on ? "active" : ""}`} aria-pressed={on} onClick={() => toggle(d.value)}>
+              {t(d.label)}
+            </button>
+          );
+        })}
+        {custom.map((d) => (
+          <button key={d} className="chip active" aria-label={t("Eat {food} again", { food: d })} onClick={() => toggle(d)}>
+            {d} ✕
+          </button>
+        ))}
+      </div>
+      <form
+        className="group"
+        style={{ marginTop: 10 }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          add();
+        }}
+      >
+        <div className="field">
+          <input value={text} onChange={(e) => setText(e.target.value)} placeholder={t("e.g. I don't eat vege, durian")} aria-label={t("Another food you don't eat")} enterKeyHint="done" />
+          <button type="submit" className="link bold tap" disabled={!text.trim()}>
+            {t("Add")}
+          </button>
+        </div>
+      </form>
+      <p className="footnote">{t("Your meal plan and food suggestions leave these out and make up the calories with other foods. You can still log them.")}</p>
+    </>
+  );
+}
 
 const DIETS: { value: P["diet"]; label: string }[] = [
   { value: "anything", label: "Anything" },
@@ -394,6 +445,8 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           halal: p.diet === "halal" ? t(", pork or alcohol") : "",
         })}
       </p>
+
+      <DislikesSection p={p} />
 
       <div className="section-header">
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>

@@ -144,7 +144,7 @@ export function bodyCheck(p: Profile, heightCm: number, weightKg: number): BodyC
               };
 
   const t = targets({ ...p, heightCm, weightKg, goal });
-  const groups = recommendedFoods(goal, p.diet, p.allergies);
+  const groups = recommendedFoods(goal, p.diet, p.allergies, p.dislikes);
   const strip = (n: string) => n.replace(/ \(.*\)$/, "");
   const eat = groups.filter((g) => g.title !== "Limit").flatMap((g) => g.foods.slice(0, 3).map(strip));
   const limit = groups.find((g) => g.title === "Limit")!.foods.map(strip);

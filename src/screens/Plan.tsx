@@ -6,6 +6,7 @@ import { FOODS } from "../data/foods";
 import { FoodSheet } from "../components/FoodSheet";
 import { SPRING, Segmented, Stepper, haptic, showToast } from "../components/ui";
 import { mealTiming, recommendedFoods, sampleDay } from "../lib/diet";
+import { dislikeLabel } from "../lib/allergens";
 import { SPLITS, WEEKDAYS, buildPlan, sessionFromPlan, type PlannedDay } from "../lib/fitness";
 import { bmr, round, targets, tdee } from "../lib/nutrition";
 import { actions, todayKey, useStore, useTodayKey, weekdayOf } from "../lib/store";
@@ -188,11 +189,11 @@ function NutritionPlan({ openSheet }: { openSheet: (k: SheetKind) => void }) {
   const profile = useStore((s) => s.profile);
   const t = targets(profile);
   const [food, setFood] = useState<Food | null>(null);
-  const groups = recommendedFoods(profile.goal, profile.diet, profile.allergies);
+  const groups = recommendedFoods(profile.goal, profile.diet, profile.allergies, profile.dislikes);
   const day = useMemo(
-    () => sampleDay(t, profile.diet, { allergies: profile.allergies, fasting: profile.fasting }),
+    () => sampleDay(t, profile.diet, { allergies: profile.allergies, dislikes: profile.dislikes, fasting: profile.fasting }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t.kcal, t.protein, profile.diet, profile.allergies, profile.fasting],
+    [t.kcal, t.protein, profile.diet, profile.allergies, profile.dislikes, profile.fasting],
   );
   const byName = useMemo(() => new Map(FOODS.map((f) => [f.name, f])), []);
   const pct = (g: number, k: number) => Math.round(((g * k) / t.kcal) * 100);
@@ -264,7 +265,7 @@ function NutritionPlan({ openSheet }: { openSheet: (k: SheetKind) => void }) {
       </div>
 
       <div className="section-header">{tr("What to eat")}</div>
-      {groups.map((g) => (
+      {groups.filter((g) => g.foods.length > 0).map((g) => (
         <div className="card" key={g.title} style={{ marginTop: 10 }}>
           <div style={{ fontWeight: 700, color: g.title === "Limit" ? "var(--red)" : undefined }}>{tr(g.title)}</div>
           <div className="row-sub" style={{ whiteSpace: "normal" }}>
@@ -283,6 +284,12 @@ function NutritionPlan({ openSheet }: { openSheet: (k: SheetKind) => void }) {
       <div className="section-header">
         {tr("Sample day · {kcal} kcal · P {protein} g", { kcal: round(day.total.kcal), protein: round(day.total.protein) })}
       </div>
+      {(profile.dislikes?.length ?? 0) > 0 && (
+        <p className="footnote" style={{ margin: "4px 0 0" }} data-testid="plan-without">
+          {tr("Planned without {foods}.", { foods: profile.dislikes!.map((d) => dislikeLabel(d).toLowerCase()).join(", ") })}
+          {profile.dislikes!.includes("vegetables") ? ` ${tr("Fruit takes the place of vegetables for fibre and vitamins.")}` : ""}
+        </p>
+      )}
       {day.meals.map((m) => (
         <div className="card" key={m.name} style={{ marginTop: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

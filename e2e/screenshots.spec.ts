@@ -249,7 +249,7 @@ for (const set of SETS) {
     await closeSheet();
 
     // Progress, water and steps
-    await page.getByRole("button", { name: "Add a glass of water" }).click();
+    await page.getByRole("button", { name: /^Add \d+ ml of water$/ }).click();
     await page.getByRole("button", { name: /steps Progress$/ }).click();
     await shot("progress-weight");
     await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, 640));

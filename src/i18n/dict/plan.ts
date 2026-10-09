@@ -3,6 +3,8 @@ import type { AreaDict } from "./index";
 // Translations for the plan area. Keys are the exact English strings passed to t().
 export const PLAN: AreaDict = {
   ms: {
+    "Planned without {foods}.": "Dirancang tanpa {foods}.",
+    "Fruit takes the place of vegetables for fibre and vitamins.": "Buah-buahan menggantikan sayur untuk serat dan vitamin.",
     // Plan screen
     Plan: "Pelan",
     "Built from your profile and goal. Change your profile to update it.": "Dibina daripada profil dan matlamat anda. Tukar profil anda untuk mengemas kininya.",
@@ -220,6 +222,8 @@ export const PLAN: AreaDict = {
       "Menggunakan julat BMI Asia-Pasifik (sihat 18.5–22.9). Kalori juga menggunakan umur ({age}) dan jantina anda daripada Profil.",
   },
   zh: {
+    "Planned without {foods}.": "计划已避开：{foods}。",
+    "Fruit takes the place of vegetables for fibre and vitamins.": "用水果代替蔬菜，补充纤维和维生素。",
     // Plan screen
     Plan: "计划",
     "Built from your profile and goal. Change your profile to update it.": "根据你的个人资料和目标制定。修改个人资料即可更新。",

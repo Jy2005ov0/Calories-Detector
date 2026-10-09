@@ -7,7 +7,7 @@ import { GLASS_ML, addDays, logStreak, waterGoalMl, weightTrend, workoutWeekStre
 import { bmiBand } from "../lib/recommend";
 import { actions, useStore, useTodayKey } from "../lib/store";
 import { DayBars, WeightChart } from "./Charts";
-import { Sheet, haptic, showToast } from "./ui";
+import { NumberInput, Sheet, haptic, showToast } from "./ui";
 
 /** Healthy weight at the top of the normal BMI band for this height (Asia-Pacific cut-off 23). */
 function goalWeight(heightCm: number, weightKg: number, goal: string) {
@@ -208,18 +208,22 @@ export function ProgressSheet({ open, onClose }: { open: boolean; onClose: () =>
   );
 }
 
-/** + / − a glass of water for today. Also used on the Today screen. */
+const CUP_SIZES = [100, 150, 200, 250, 330, 350, 500, 600, 750, 1000];
+const litres = (ml: number) => String(Math.round(ml / 10) / 100);
+
+/** + / − one cup of water for today, with a cup size the person picks. Also used on the Today screen. */
 export function WaterControl({ compact = false }: { compact?: boolean }) {
   useLanguage();
   const today = useTodayKey();
   const profile = useStore((s) => s.profile);
   const ml = useStore((s) => s.days.find((d) => d.id === today)?.waterMl ?? 0);
   const goal = waterGoalMl(profile);
-  const glasses = Math.round(ml / GLASS_ML);
-  const add = (n: number) => {
-    actions.updateDay(today, (d) => ({ ...d, waterMl: Math.max(0, d.waterMl + n * GLASS_ML) }));
-    if (n > 0) haptic("light");
-    if (n > 0 && ml < goal && ml + GLASS_ML >= goal) {
+  const cup = profile.waterServingMl || GLASS_ML;
+  const [picking, setPicking] = useState(false);
+  const add = (amount: number) => {
+    actions.updateDay(today, (d) => ({ ...d, waterMl: Math.max(0, d.waterMl + amount) }));
+    if (amount > 0) haptic("light");
+    if (amount > 0 && ml < goal && ml + amount >= goal) {
       haptic("success");
       showToast(t("Water goal reached · nice!"));
     }
@@ -228,18 +232,71 @@ export function WaterControl({ compact = false }: { compact?: boolean }) {
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: compact ? 0 : 10 }}>
       <div className="row-main">
         <div style={{ fontWeight: 600 }} className="tabular">
-          {t("{n} of {goal} glasses", { n: glasses, goal: Math.round(goal / GLASS_ML) })}
+          {t("{l} of {goal} L water", { l: litres(ml), goal: litres(goal) })}
         </div>
-        <div className="row-sub tabular">
-          {(ml / 1000).toFixed(2)} / {(goal / 1000).toFixed(1)} L
-        </div>
+        <button className="link tap water-cup" onClick={() => setPicking(true)} aria-label={t("Cup size {ml} ml, change", { ml: cup })}>
+          {t("{ml} ml a cup", { ml: cup })} · {t("Change")}
+        </button>
       </div>
-      <button className="round-btn" aria-label={t("Remove a glass of water")} onClick={() => add(-1)} disabled={ml <= 0}>
+      <button className="round-btn" aria-label={t("Remove {ml} ml of water", { ml: Math.min(cup, ml) || cup })} onClick={() => add(-Math.min(cup, ml))} disabled={ml <= 0}>
         <Minus size={16} />
       </button>
-      <button className="round-btn primary" aria-label={t("Add a glass of water")} onClick={() => add(1)}>
+      <button className="round-btn primary" aria-label={t("Add {ml} ml of water", { ml: cup })} onClick={() => add(cup)}>
         <Plus size={16} />
       </button>
+      <CupSheet open={picking} onClose={() => setPicking(false)} cup={cup} onAddOnce={add} />
     </div>
+  );
+}
+
+/** Pick the usual cup or bottle size, or add a one-off amount. */
+function CupSheet({ open, onClose, cup, onAddOnce }: { open: boolean; onClose: () => void; cup: number; onAddOnce: (ml: number) => void }) {
+  useLanguage();
+  const [custom, setCustom] = useState(0);
+  const valid = custom >= 20 && custom <= 3000;
+  const choose = (ml: number) => {
+    haptic("light");
+    actions.updateProfile({ waterServingMl: ml });
+    onClose();
+  };
+  return (
+    <Sheet open={open} onClose={onClose} title={t("Cup size")}>
+      <p className="footnote" style={{ margin: "0 0 12px" }}>
+        {t("Each tap on + adds this much water. Pick the cup or bottle you usually drink from.")}
+      </p>
+      <div className="cup-grid" role="group" aria-label={t("Cup size")}>
+        {CUP_SIZES.map((ml) => (
+          <button key={ml} className={`chip${ml === cup ? " active" : ""}`} aria-pressed={ml === cup} onClick={() => choose(ml)}>
+            {ml >= 1000 ? `${litres(ml)} L` : `${ml} ml`}
+          </button>
+        ))}
+      </div>
+      <div className="group" style={{ marginTop: 18 }}>
+        <div className="field">
+          <label htmlFor="cup-ml">{t("Other amount")}</label>
+          <NumberInput id="cup-ml" integer max={3000} value={custom} onChange={setCustom} placeholder="330" />
+          <span className="muted" style={{ width: 28 }}>
+            ml
+          </span>
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+        <button className="btn secondary" style={{ flex: 1 }} disabled={!valid} onClick={() => choose(custom)}>
+          {t("Use as cup size")}
+        </button>
+        <button
+          className="btn primary"
+          style={{ flex: 1 }}
+          disabled={!valid}
+          onClick={() => {
+            onAddOnce(custom);
+            showToast(t("Added {ml} ml of water", { ml: custom }));
+            onClose();
+          }}
+        >
+          {t("Add once")}
+        </button>
+      </div>
+    </Sheet>
   );
 }

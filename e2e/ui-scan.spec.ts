@@ -302,7 +302,7 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await close();
 
   // Water, progress and coach
-  await page.getByRole("button", { name: "Add a glass of water" }).click();
+  await page.getByRole("button", { name: /^Add \d+ ml of water$/ }).click();
   await page.getByRole("button", { name: /steps Progress$/ }).click();
   await audit(page, "Progress · weight", issues);
   await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, el.scrollHeight));

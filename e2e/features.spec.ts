@@ -124,9 +124,19 @@ test("Wei: scans a barcode, logs it, tracks water, steps and weight, and builds 
   // Logging food starts a streak.
   await expect(page.getByRole("button", { name: "1-day logging streak" })).toBeVisible();
 
-  // Water: three glasses.
-  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Add a glass of water" }).click();
-  await expect(page.getByText(/^3 of 11 glasses$/)).toBeVisible();
+  // Water: three 250 ml cups, then a 500 ml bottle as the cup size, and a one-off 330 ml can.
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Add 250 ml of water" }).click();
+  await expect(page.getByText(/^0\.75 of 2\.75 L water$/)).toBeVisible();
+  await page.getByRole("button", { name: "Cup size 250 ml, change" }).click();
+  await sheet(page, "Cup size").getByRole("button", { name: "500 ml" }).click();
+  await page.getByRole("button", { name: "Add 500 ml of water" }).click();
+  await expect(page.getByText(/^1\.25 of 2\.75 L water$/)).toBeVisible();
+  await page.getByRole("button", { name: "Cup size 500 ml, change" }).click();
+  await sheet(page, "Cup size").getByLabel("Other amount").fill("330");
+  await sheet(page, "Cup size").getByRole("button", { name: "Add once" }).click();
+  await expect(page.getByText(/^1\.58 of 2\.75 L water$/)).toBeVisible();
+  await page.getByRole("button", { name: "Remove 500 ml of water" }).click();
+  await expect(page.getByText(/^1\.08 of 2\.75 L water$/)).toBeVisible();
 
   // Progress: steps and a few weigh-ins over two weeks draw the chart and the trend.
   await page.getByRole("button", { name: /steps Progress$/ }).click();

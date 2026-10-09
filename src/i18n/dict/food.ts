@@ -3,6 +3,19 @@ import type { AreaDict } from "./index";
 // Translations for the food area. Keys are the exact English strings passed to t().
 export const FOOD: AreaDict = {
   ms: {
+    // Foods I don't eat
+    "Foods I don't eat": "Makanan yang saya tak makan",
+    "Beef": "Daging lembu",
+    "Chicken": "Ayam",
+    "Pork": "Daging babi",
+    "Lamb & mutton": "Kambing & biri-biri",
+    "Mushrooms": "Cendawan",
+    "Spicy food": "Makanan pedas",
+    "Eat {food} again": "Makan {food} semula",
+    "e.g. I don't eat vege, durian": "cth. saya tak makan sayur, durian",
+    "Another food you don't eat": "Makanan lain yang anda tak makan",
+    "Leaving out {food}": "{food} tidak dimasukkan",
+    "Your meal plan and food suggestions leave these out and make up the calories with other foods. You can still log them.": "Pelan makan dan cadangan makanan anda tidak memasukkan makanan ini dan menggantikan kalorinya dengan makanan lain. Anda masih boleh merekodnya.",
     // Today
     "Sahur ends in {time}": "Sahur tamat dalam {time}",
     "Eating window closes in {time}": "Waktu makan tamat dalam {time}",
@@ -213,6 +226,19 @@ export const FOOD: AreaDict = {
       "Data produk daripada Open Food Facts, pangkalan data percuma berjuta-juta makanan.",
   },
   zh: {
+    // Foods I don't eat
+    "Foods I don't eat": "我不吃的食物",
+    "Beef": "牛肉",
+    "Chicken": "鸡肉",
+    "Pork": "猪肉",
+    "Lamb & mutton": "羊肉",
+    "Mushrooms": "蘑菇",
+    "Spicy food": "辣的食物",
+    "Eat {food} again": "重新吃{food}",
+    "e.g. I don't eat vege, durian": "例如：我不吃蔬菜、榴莲",
+    "Another food you don't eat": "其他你不吃的食物",
+    "Leaving out {food}": "已排除{food}",
+    "Your meal plan and food suggestions leave these out and make up the calories with other foods. You can still log them.": "你的饮食计划和食物推荐会避开这些食物，并用其他食物补足热量。你仍然可以记录它们。",
     // Today
     "Sahur ends in {time}": "封斋饭将在 {time} 后结束",
     "Eating window closes in {time}": "进食时段将在 {time} 后结束",

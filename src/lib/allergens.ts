@@ -69,6 +69,90 @@ const RULES: Record<Tag, { include: RegExp; exclude?: RegExp }> = {
 
 const TAGS = Object.keys(RULES) as Tag[];
 
+/** Foods someone just doesn't eat (not allergies): matched on the dish name only, so a few slices of
+ *  cucumber in nasi lemak don't rule it out, but "Stir-fried kangkung" does. */
+export type Dislike = "vegetables" | "beef" | "chicken" | "pork" | "lamb" | "seafood" | "mushrooms" | "spicy";
+
+const DISLIKE_RULES: Record<Exclude<Dislike, "pork" | "seafood">, { include: RegExp; exclude?: RegExp }> = {
+  vegetables: {
+    include:
+      /vegetable|\bveg(e|gie)?s?\b|sayur|salad|broccoli|spinach|bayam|kangkung|cabbage|kubis|lettuce|kale|bok choy|pak choy|choy sum|kai ?lan|carrot|eggplant|brinjal|terung|okra|bendi|bean ?sprouts|taugeh|tauge|cucumber|timun|tomato|capsicum|bell pepper|green beans|long beans|kacang panjang|french beans|asparagus|cauliflower|zucchini|courgette|pumpkin|labu|celery|\bpeas\b|ulam|pegaga|petai|bitter gourd|peria|gado-gado|rojak|ratatouille|coleslaw|kimchi|leek|beetroot|radish|lobak|sweet potato leaves|pucuk|cendawan|mushroom|onion|corn on the cob|edamame|seaweed|nori|ladyfinger/i,
+    exclude: /carrot cake|vegetable oil|tomato sauce|ketchup|onion rings|veggie burger|plant protein|seaweed snack|tomato juice|carrot juice|beetroot juice|abc juice|pumpkin seeds|sweet potato(?! leaves)/i,
+  },
+  beef: { include: /\bbeef|daging|steak|bulgogi|gyudon|galbi|brisket|wagyu|pho bo|bolognese|cheeseburger|hamburger|corned|pastrami|bak kwa|meatball|chili con carne|philly|cheesesteak|beef rendang|sup tulang|oxtail/i, exclude: /chicken (steak|meatball)|pork meatball|chicken bak kwa/i },
+  chicken: { include: /chicken|\bayam\b|nuggets|wings|yakitori|oyakodon|karaage|tandoori|tikka|hainanese|dakgalbi|kfc|popcorn chicken|lo mai kai|chicken rice|turkey/i },
+  lamb: { include: /\blamb|mutton|kambing|rogan josh|mansaf|souvlaki \(lamb/i },
+  mushrooms: { include: /mushroom|shiitake|enoki|cendawan|truffle|portobello|oyster mushroom|king oyster/i },
+  spicy: {
+    include:
+      /sambal|chil(l)?i|cili|spicy|pedas|curry|\bkari\b|tom yum|rendang|vindaloo|kimchi|tteokbokki|gochujang|\bmala\b|jalape|buffalo|laksa|pad kra pao|kung pao|mapo|sriracha|\bjerk\b|harissa|asam pedas|masak merah|phaal|nasi lemak|mee siam|mee rebus|som tam|larb|buldak|ramyeon|maggi kari|szechuan|sichuan/i,
+    exclude: /sweet chilli sauce|chili-free|mild/i,
+  },
+};
+
+export const DISLIKES: { value: Dislike; label: string }[] = [
+  { value: "vegetables", label: "Vegetables" },
+  { value: "beef", label: "Beef" },
+  { value: "chicken", label: "Chicken" },
+  { value: "pork", label: "Pork" },
+  { value: "lamb", label: "Lamb & mutton" },
+  { value: "seafood", label: "Seafood" },
+  { value: "mushrooms", label: "Mushrooms" },
+  { value: "spicy", label: "Spicy food" },
+];
+
+const DISLIKE_VALUES = new Set<string>(DISLIKES.map((d) => d.value));
+
+/** Everyday ways people say a food group, in the three languages, so "vege" or "sayur" becomes the Vegetables chip. */
+const DISLIKE_WORDS: Record<string, Dislike> = {
+  vege: "vegetables", veg: "vegetables", veges: "vegetables", veggie: "vegetables", veggies: "vegetables", vegetable: "vegetables", vegetables: "vegetables", greens: "vegetables", sayur: "vegetables", "sayur-sayuran": "vegetables", sayuran: "vegetables", 蔬菜: "vegetables", 青菜: "vegetables", 菜: "vegetables",
+  beef: "beef", "daging lembu": "beef", lembu: "beef", 牛肉: "beef", 牛: "beef",
+  chicken: "chicken", ayam: "chicken", 鸡肉: "chicken", 鸡: "chicken",
+  pork: "pork", babi: "pork", 猪肉: "pork", 猪: "pork",
+  lamb: "lamb", mutton: "lamb", kambing: "lamb", 羊肉: "lamb", 羊: "lamb",
+  seafood: "seafood", fish: "seafood", "makanan laut": "seafood", 海鲜: "seafood",
+  mushroom: "mushrooms", mushrooms: "mushrooms", cendawan: "mushrooms", 蘑菇: "mushrooms", 菇: "mushrooms",
+  spicy: "spicy", pedas: "spicy", chilli: "spicy", chili: "spicy", 辣: "spicy", 辣的: "spicy",
+};
+
+/**
+ * Turn what someone typed ("I don't eat vege", "tak makan sayur", "不吃蔬菜", "durian")
+ * into a food group or a plain word to avoid. Empty when nothing is left.
+ */
+export function parseDislike(text: string): string {
+  const cleaned = text
+    .trim()
+    .toLowerCase()
+    .replace(/^(i\s+)?(don'?t|do not|dont|never|can'?t|cannot|won'?t)\s+(eat|like|have)(\s+any)?(\s+|$)/, "")
+    .replace(/^(no|without|avoid)\s+/, "")
+    .replace(/^(saya\s+)?(tak|tidak|x)\s+(makan|suka)(\s+|$)/, "")
+    .replace(/^(我)?(不吃|不喝|不要|不爱吃|不喜欢吃?)/, "")
+    .replace(/[.!。！]+$/, "")
+    .trim();
+  return DISLIKE_WORDS[cleaned] ?? cleaned;
+}
+
+export function dislikeLabel(d: string) {
+  const preset = DISLIKES.find((x) => x.value === d);
+  return preset ? t(preset.label) : d;
+}
+
+function dislikeHit(d: string, name: string): boolean {
+  if (d === "pork") return tagsOfText(name).has("pork");
+  if (d === "seafood") return tagsOfText(name).has("seafood");
+  const rule = DISLIKE_RULES[d as keyof typeof DISLIKE_RULES];
+  if (rule) return rule.include.test(name) && !(rule.exclude && rule.exclude.test(name));
+  // A word the person typed, e.g. "durian" or "bitter gourd".
+  return d.length > 1 && name.toLowerCase().includes(d.toLowerCase());
+}
+
+/** The foods this person doesn't eat that are in this dish (by name). */
+export function dislikesIn(name: string, dislikes: readonly string[] = []): string[] {
+  return dislikes.filter((d) => dislikeHit(d, name));
+}
+
+export const isPresetDislike = (d: string) => DISLIKE_VALUES.has(d);
+
 function tagsOfText(text: string): Set<Tag> {
   const out = new Set<Tag>();
   for (const t of TAGS) {
@@ -139,7 +223,7 @@ export function conflicts(tags: Set<Tag>, p: Pick<Profile, "allergies" | "diet">
   return out;
 }
 
-export function foodConflicts(f: Food, p: Pick<Profile, "allergies" | "diet">) {
+export function foodConflicts(f: Pick<Food, "id" | "name" | "aliases" | "recipe">, p: Pick<Profile, "allergies" | "diet">) {
   return conflicts(foodTags(f), p);
 }
 
