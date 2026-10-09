@@ -22,8 +22,9 @@ import {
 } from "lucide-react";
 import { EXERCISE_BY_NAME } from "../data/exercises";
 
-// Pictures of exercises from free-exercise-db (public domain): a start and an end position,
-// 240 px WebP files in public/exercises. Sports and activities without a photo get an icon.
+// Lists show an icon for each exercise's category. An exercise's own page shows its photos from
+// free-exercise-db (public domain): a start and an end position, 240 px WebP files in public/exercises.
+// Sports and activities without a photo show their icon there too.
 // The name → picture map is loaded on first use so it isn't part of app start-up.
 
 let images: Record<string, string> | null = null;
@@ -85,12 +86,9 @@ function Icon({ category, size }: { category: string; size: number }) {
   );
 }
 
-/** Small square picture for an exercise list row. */
+/** The icon for an exercise's category, used in every list. The photos are on the exercise's own page. */
 export function ExerciseThumb({ name, category = EXERCISE_BY_NAME.get(name)?.category ?? "", size = 44 }: { name: string; category?: string; size?: number }) {
-  const id = useImageId(name);
-  const [broken, setBroken] = useState(false);
-  if (!id || broken) return <Icon category={category} size={size} />;
-  return <img className="ex-pic" src={src(id, 0)} alt="" aria-hidden width={size} height={size} loading="lazy" decoding="async" onError={() => setBroken(true)} style={{ width: size, height: size }} />;
+  return <Icon category={category} size={size} />;
 }
 
 /** Large picture for an exercise's page: start and end positions, shown one after the other. */

@@ -438,3 +438,26 @@ test("Family: Aina adds her mum, each gets their own plan and log, and they swit
   await expect(page.locator(".stat", { hasText: "Eaten" }).locator(".stat-value")).toHaveText(ainaEaten);
   await expect(page.getByRole("button", { name: "Switch person" })).toHaveCount(0);
 });
+
+test("Exercise library: a category icon on every row, the real photos on the exercise's page", async ({ page }) => {
+  await start(page);
+  await onboard(page, "Rina");
+  await tab(page, "Train");
+  await page.locator("[data-tour=log-activity]").click();
+  const library = page.getByRole("dialog", { name: "Exercises" });
+  await library.getByRole("radio", { name: "Strength" }).or(library.getByRole("tab", { name: "Strength" })).first().click();
+  const rows = library.locator(".row");
+  await expect(rows.first().locator(".ex-pic-icon")).toBeVisible();
+  await expect(library.locator(".row img")).toHaveCount(0);
+  await rows.filter({ hasText: "Barbell bench press" }).first().click();
+  const picture = page.getByTestId("exercise-picture");
+  await expect(picture).toBeVisible();
+  // Start and end positions, both loaded.
+  await expect(picture.locator("img")).toHaveCount(2);
+  await expect.poll(() => picture.locator("img").first().evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBe(240);
+  // A sport without a photo shows its icon instead.
+  await page.getByRole("dialog", { name: "Chest" }).getByRole("button", { name: "Close", exact: true }).click();
+  await library.getByRole("searchbox").or(library.locator("input")).first().fill("futsal");
+  await rows.first().click();
+  await expect(page.locator(".ex-hero-icon")).toBeVisible();
+});

@@ -92,8 +92,8 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/20-train.jpg" width="190" alt="Train and personal records"><br><sub>Train and personal records</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/21-exercise-library.jpg" width="190" alt="1,900+ exercises, with pictures"><br><sub>1,900+ exercises, with pictures</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/22-exercise-detail.jpg" width="190" alt="Start and end position, calories"><br><sub>Start and end position, calories</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/21-exercise-library.jpg" width="190" alt="1,900+ exercises, an icon per category"><br><sub>1,900+ exercises, an icon per category</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/22-exercise-detail.jpg" width="190" alt="Real photos: start and end position"><br><sub>Real photos: start and end position</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/23-workout-rest-timer-record.jpg" width="190" alt="Rest timer, last time and a new record"><br><sub>Rest timer, last time and a new record</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/24-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/25-workout-done-records.jpg" width="190" alt="Share a workout"><br><sub>Share a workout</sub></td>
@@ -173,8 +173,8 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/20-train.jpg" width="190" alt="Train and personal records"><br><sub>Train and personal records</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/21-exercise-library.jpg" width="190" alt="1,900+ exercises, with pictures"><br><sub>1,900+ exercises, with pictures</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/22-exercise-detail.jpg" width="190" alt="Start and end position, calories"><br><sub>Start and end position, calories</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/21-exercise-library.jpg" width="190" alt="1,900+ exercises, an icon per category"><br><sub>1,900+ exercises, an icon per category</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/22-exercise-detail.jpg" width="190" alt="Real photos: start and end position"><br><sub>Real photos: start and end position</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/23-workout-rest-timer-record.jpg" width="190" alt="Rest timer, last time and a new record"><br><sub>Rest timer, last time and a new record</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/24-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/25-workout-done-records.jpg" width="190" alt="Share a workout"><br><sub>Share a workout</sub></td>
@@ -234,7 +234,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 | **Ramadan & 16:8 fasting** | Ramadan mode turns meals into Sahur, Iftar and Moreh, counts down to iftar or the end of sahur, uses a gentler 15% deficit, and builds a sample day around dates at iftar. 16:8 mode shows when your eating window opens and closes. |
 | **Cycle tracking** | For women, off until turned on in Profile. Tap the days of each period on a **period calendar** (past ones too); W learns your cycle and period length, shows the cycle day and phase on Today with a training and food tip for that phase (e.g. heavier lifts in the follicular phase, iron-rich food during your period, a little extra appetite and water weight in the luteal phase), predicts the next period, shows the predicted days on the calendar, and offers a one-tap *Started today* when it's due or late. Optional reminder two days before and on the day. Estimates only — not medical advice or contraception. |
 | **Family members** | Several people can share one phone (Profile → People → *Add a person*). Each person has their own profile and photo, plan, food log, workouts, weight, water and cycle; theme and language are shared. Switch from Profile or the avatar on Today. |
-| **Exercise pictures** | Every exercise in the library, plan and workout has a picture: photos of the start and end position for 1,000+ gym exercises (from the public-domain [free-exercise-db](https://github.com/yuhonas/free-exercise-db)), and an icon for each kind of sport and activity. Names, form tips and step-by-step instructions follow the app language (English, Malay, Chinese). |
+| **Exercise pictures** | Lists show an icon for each exercise's category (chest, back, legs, running, swimming, racket sports…). Tap an exercise to see real photos of its start and end position, fading into each other, for 1,000+ gym exercises (from the public-domain [free-exercise-db](https://github.com/yuhonas/free-exercise-db)). Names, form tips and step-by-step instructions follow the app language (English, Malay, Chinese). |
 | **Foods I don't eat** | Tap a group (vegetables, beef, chicken, pork, lamb, seafood, mushrooms, spicy food) or type it your way — "I don't eat vege", "tak makan sayur", "不吃牛肉", "durian". The meal plan and food suggestions leave them out and make up the calories with other foods (fruit takes the place of vegetables). It's a preference, not an allergy, so those foods can still be searched and logged. |
 | **Water your way** | Each tap adds your own cup or bottle size (100 ml to 1 L, or any amount you type), and a one-off amount can be added too. |
 | **No sign-up** | Create a profile (with an optional picture from your photo library) and start — no email or password. Data stays on the phone. |
