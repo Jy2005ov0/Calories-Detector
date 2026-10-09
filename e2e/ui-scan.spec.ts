@@ -404,7 +404,7 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
 
   // ── Profile ────────────────────────────────────────
   await tab("Profile");
-  await audit(page, "Profile · signed in", issues);
+  await audit(page, "Profile", issues);
   for (const section of ["Allergies", "Reminders", "Language", "Data"]) {
     await page.locator(".section-header", { hasText: section }).first().scrollIntoViewIfNeeded();
     await audit(page, `Profile · ${section}`, issues);

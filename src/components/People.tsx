@@ -53,7 +53,8 @@ export function PhotoPicker({ id, name, photo, onChange }: { id: string; name: s
           {busy ? <div className="spinner" style={{ width: 12, height: 12 }} /> : <Camera size={13} />}
         </span>
       </button>
-      <div style={{ display: "grid", gap: 4, justifyItems: "start" }}>
+      {/* Side by side, far enough apart that their 44 pt tap areas don't overlap. */}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: 24, rowGap: 24 }}>
         <button className="link bold tap" onClick={choose} disabled={busy}>
           {photo ? t("Change photo") : t("Add a photo")}
         </button>
