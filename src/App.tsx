@@ -77,6 +77,13 @@ export default function App() {
   };
   const reduce = useReducedMotion();
 
+  // A different person (switched, or just added) starts on their own Today screen.
+  const personId = useStore((s) => s.personId);
+  useEffect(() => {
+    setTab("today");
+    setSheet(null);
+  }, [personId]);
+
   useEffect(() => window.scrollTo(0, 0), [tab]);
 
   // Android back: close the top sheet, else return to Today, else leave the app.

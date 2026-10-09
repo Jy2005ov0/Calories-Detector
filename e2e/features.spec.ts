@@ -382,7 +382,8 @@ test("Family: Aina adds her mum, each gets their own plan and log, and they swit
   await page.getByRole("button", { name: /Add a person/ }).click();
   await expect(page.getByText("New person")).toBeVisible();
   await page.getByRole("button", { name: "Cancel" }).click();
-  await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Good \w+, Aina/ })).toBeVisible();
+  await tab(page, "Profile");
   await expect(page.getByRole("group", { name: "People" }).getByRole("button", { name: /Switch to/ })).toHaveCount(0);
 
   // Now for real: Mum, 55, 152 cm, 70 kg, wants to lose fat, halal.
@@ -412,9 +413,6 @@ test("Family: Aina adds her mum, each gets their own plan and log, and they swit
   await expect(page.getByRole("heading", { name: /Good \w+, Aina/ })).toBeVisible();
   await expect(page.locator(".stat", { hasText: "Eaten" }).locator(".stat-value")).toHaveText(ainaEaten);
 
-  // Everything survives closing the app.
-  await page.reload();
-  await expect(page.getByRole("heading", { name: /Good \w+, Aina/ })).toBeVisible();
   await tab(page, "Profile");
   const people = page.getByRole("group", { name: "People" });
   await expect(people).toContainText("Mum");
@@ -423,4 +421,10 @@ test("Family: Aina adds her mum, each gets their own plan and log, and they swit
   page.once("dialog", (d) => d.accept());
   await people.getByRole("button", { name: "Remove Mum" }).click();
   await expect(people).not.toContainText("Mum");
+
+  // Closing and reopening the app: Aina's data is there, and Mum stays removed.
+  await page.reload();
+  await expect(page.getByRole("heading", { name: /Good \w+, Aina/ })).toBeVisible();
+  await expect(page.locator(".stat", { hasText: "Eaten" }).locator(".stat-value")).toHaveText(ainaEaten);
+  await expect(page.getByRole("button", { name: "Switch person" })).toHaveCount(0);
 });
