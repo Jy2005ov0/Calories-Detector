@@ -148,7 +148,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/21-train.jpg" width="190" alt="Train and personal records"><br><sub>Train and personal records</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/22-exercise-library.jpg" width="190" alt="650+ exercises and sports"><br><sub>650+ exercises and sports</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/22-exercise-library.jpg" width="190" alt="1,900+ exercises and sports"><br><sub>1,900+ exercises and sports</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/23-exercise-detail.jpg" width="190" alt="Calories per exercise"><br><sub>Calories per exercise</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/24-workout-rest-timer-record.jpg" width="190" alt="Rest timer, last time and a new record"><br><sub>Rest timer, last time and a new record</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/25-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
@@ -224,7 +224,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/21-train.jpg" width="190" alt="Train and personal records"><br><sub>Train and personal records</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/22-exercise-library.jpg" width="190" alt="650+ exercises and sports"><br><sub>650+ exercises and sports</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/22-exercise-library.jpg" width="190" alt="1,900+ exercises and sports"><br><sub>1,900+ exercises and sports</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/23-exercise-detail.jpg" width="190" alt="Calories per exercise"><br><sub>Calories per exercise</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/24-workout-rest-timer-record.jpg" width="190" alt="Rest timer, last time and a new record"><br><sub>Rest timer, last time and a new record</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/25-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
