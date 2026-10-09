@@ -12,6 +12,7 @@
   --separator: rgba(60, 60, 67, 0.18);
   --material: rgba(249, 249, 249, 0.78);
   --material-thick: rgba(255, 255, 255, 0.9);
+  --material-bar: rgba(250, 250, 250, 0.94);
   --material-edge: rgba(255, 255, 255, 0.5);
   --scrim: rgba(0, 0, 0, 0.32);
 
@@ -64,6 +65,7 @@
     --separator: rgba(84, 84, 88, 0.6);
     --material: rgba(30, 30, 30, 0.72);
     --material-thick: rgba(44, 44, 46, 0.92);
+    --material-bar: rgba(20, 20, 22, 0.94);
     --material-edge: rgba(255, 255, 255, 0.08);
     --scrim: rgba(0, 0, 0, 0.5);
     --blue: #409cff;
@@ -97,6 +99,7 @@
     --separator: rgba(84, 84, 88, 0.6);
     --material: rgba(30, 30, 30, 0.72);
     --material-thick: rgba(44, 44, 46, 0.92);
+    --material-bar: rgba(20, 20, 22, 0.94);
     --material-edge: rgba(255, 255, 255, 0.08);
     --scrim: rgba(0, 0, 0, 0.5);
     --blue: #409cff;
@@ -846,7 +849,8 @@ button.row:active,
   z-index: 40;
   height: var(--tabbar-h);
   padding-bottom: var(--safe-bottom);
-  background: var(--material);
+  /* Thick material so tab labels stay readable over colourful content scrolling beneath. */
+  background: var(--material-bar);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   backdrop-filter: blur(24px) saturate(180%);
   border-top: 0.5px solid var(--separator);
@@ -975,7 +979,7 @@ button.row:active,
   gap: 14px;
   padding: 12px 16px;
   border-radius: 16px;
-  background: var(--material-thick);
+  background: var(--material-bar);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   backdrop-filter: blur(24px) saturate(180%);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
@@ -1609,34 +1613,35 @@ button.row:active,
   line-height: 1.2;
 }
 
-/* A tile with a small shortcut button in its corner (Scan meal → Photos). */
-.tile-wrap {
-  position: relative;
-  display: grid;
+/* Scan meal: a card with two separate actions, Camera and Photos. */
+.tile.split {
+  gap: 8px;
 }
-.tile-corner {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+.split-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: auto;
+}
+.split-actions button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  min-height: 32px;
-  padding: 0 10px;
-  border-radius: 999px;
+  min-height: 44px;
+  padding: 0 4px;
+  border-radius: 12px;
   background: var(--bg-fill);
   color: var(--blue);
   font-size: 13px;
   font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.tile-corner::after {
-  /* 44pt touch target around the pill */
-  content: "";
-  position: absolute;
-  inset: -6px;
-}
-.tile-corner:active {
-  transform: scale(0.95);
+.split-actions button:active {
+  transform: scale(0.96);
 }
 
 .tiles.four {
@@ -1779,7 +1784,8 @@ button.row:active,
   padding: 12px 14px;
   margin-bottom: 10px;
   border-radius: var(--radius);
-  background: var(--red-fill);
+  /* A light red tint (not the solid red fill) so red text stays readable. */
+  background: color-mix(in srgb, var(--red) 12%, var(--bg-elev));
   color: var(--red);
   font-size: 15px;
 }
@@ -1849,6 +1855,9 @@ button.row:active,
   box-shadow: var(--shadow-sheet);
   max-width: 560px;
   margin: 0 auto;
+}
+.rest-bar .btn.secondary {
+  color: var(--label);
 }
 .rest-track {
   height: 4px;
