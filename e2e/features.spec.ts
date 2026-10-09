@@ -227,7 +227,7 @@ test("Arif: asks the coach, trains with a rest timer, beats a record, shares and
   const csvDownload = page.waitForEvent("download");
   await page.getByRole("button", { name: /Export data \(CSV\)/ }).click();
   const csv = await csvDownload;
-  expect(csv.suggestedFilename()).toBe("calories-2026-10-19.csv");
+  expect(csv.suggestedFilename()).toBe("W-2026-10-19.csv");
   const text = fs.readFileSync((await csv.path())!, "utf8");
   expect(text).toContain("# Food log");
   expect(text).toContain("Barbell bench press,1,40,10");
@@ -235,7 +235,7 @@ test("Arif: asks the coach, trains with a rest timer, beats a record, shares and
   const pdfDownload = page.waitForEvent("download");
   await page.getByRole("button", { name: /30-day report \(PDF\)/ }).click();
   const pdf = await pdfDownload;
-  expect(pdf.suggestedFilename()).toBe("calories-2026-10-19.pdf");
+  expect(pdf.suggestedFilename()).toBe("W-2026-10-19.pdf");
   expect(fs.readFileSync((await pdf.path())!).subarray(0, 5).toString()).toBe("%PDF-");
 });
 

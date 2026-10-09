@@ -105,6 +105,17 @@ describe("nutrition", () => {
     expect(searchFoods(FOODS, "nasi lemak").length).toBeGreaterThan(0);
   });
 
+  it("puts the everyday food first, not a regional variation", () => {
+    const top = (q: string) => searchFoods(FOODS, q)[0].name;
+    expect(top("rice")).toBe("White rice (cooked)");
+    expect(top("bread")).toBe("White bread");
+    expect(top("coffee")).toBe("Black coffee");
+    expect(top("egg")).toBe("Egg (boiled)");
+    expect(top("nasi lemak")).toBe("Nasi lemak (with sambal, egg, anchovies, peanuts)");
+    expect(top("chicken rice")).toBe("Chicken rice (rice only)");
+    expect(top("curry")).not.toMatch(/^Curry (pan|puff)/);
+  });
+
   it("scales the sample day close to the target", () => {
     for (const goal of ["lose", "maintain", "gain"] as const) {
       const t = targets({ ...profile, goal });

@@ -211,15 +211,20 @@ export function searchFoods(foods: Food[], query: string, limit = 60): Food[] {
     if (!terms.every((t) => hay.includes(t))) continue;
     let s = 0;
     if (name === q) s += 100;
-    if (name.startsWith(q)) s += 50;
+    if (name.startsWith(q)) s += 35;
     if (name.includes(q)) s += 20;
     // Whole words beat word fragments: "salmon" → "Salmon, raw" before "Salmonberries".
     if (new RegExp(`\\b${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(name)) s += 25;
     if (terms.every((t) => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(name))) s += 10;
-    if ((f.aliases ?? "").toLowerCase().split(" ").includes(q)) s += 30;
-    // Reference-style names ("Salmon, sockeye, cooked"): the head word matching the query is the food itself.
-    const head = name.split(",")[0].trim();
-    if (head === q || head === `${q}s` || head === `${q}es`) s += 30;
+    // An alias only counts when it's why the food matched ("roti prata" → Roti canai).
+    if (!name.includes(q) && (f.aliases ?? "").toLowerCase().split(" ").includes(q)) s += 30;
+    // The name before any comma or bracket is the food itself: "Salmon, sockeye, cooked", "Nasi lemak (with sambal…)".
+    const head = name.split(/[,(]/)[0].trim();
+    if (head === q || head === `${q}s` || head === `${q}es`) s += 60;
+    // English puts the main noun last: "rice" → "White rice" before "Rice vermicelli".
+    else if (head.endsWith(` ${q}`) || head.endsWith(` ${q}s`)) s += 45;
+    // Everyday staples before regional variations.
+    if (f.staple) s += 20;
     // Everyday forms before processed ones.
     if (/\b(raw|cooked|boiled|steamed|roasted|grilled|baked|whole)\b/.test(name)) s += 6;
     if (/\b(dried|dehydrated|dry mix|powder|concentrate|babyfood|baby food|infant|freeze-dried|imitation)\b/.test(name) && !q.includes("dried") && !q.includes("powder")) s -= 25;

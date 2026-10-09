@@ -470,6 +470,7 @@ const BASE: Food[] = [...rows, ...WORLD_ROWS, ...COMPONENT_ROWS, ...MORE_ROWS, .
   servings: [{ label: r[10], grams: r[11] }],
   aliases: r[12],
   source: "db",
+  ...(i < rows.length ? { staple: true } : {}),
 }));
 
 const BY_NAME = new Map(BASE.map((f) => [f.name, f]));

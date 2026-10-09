@@ -26,6 +26,8 @@ export interface Food {
   source: "db" | "custom" | "online" | "photo";
   /** Reference database the food comes from (USDA SR28), shown as a small label. */
   dataset?: "usda";
+  /** An everyday staple from the core list; ranked first in search. */
+  staple?: boolean;
   /** Parts of a mixed dish (rice, sambal, egg…) the user can adjust. */
   recipe?: import("../data/dishes").RecipePart[];
 }

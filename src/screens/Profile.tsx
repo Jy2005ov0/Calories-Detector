@@ -125,7 +125,7 @@ function TimeField({ id, label, value, onChange }: { id: string; label: string; 
 }
 
 function exportName(ext: string) {
-  return `calories-${todayKey()}.${ext}`;
+  return `W-${todayKey()}.${ext}`;
 }
 
 export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void }) {
