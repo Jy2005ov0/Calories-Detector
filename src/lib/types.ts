@@ -24,6 +24,8 @@ export interface Food {
   aliases?: string;
   brand?: string;
   source: "db" | "custom" | "online" | "photo";
+  /** Reference database the food comes from (USDA SR28), shown as a small label. */
+  dataset?: "usda";
   /** Parts of a mixed dish (rice, sambal, egg…) the user can adjust. */
   recipe?: import("../data/dishes").RecipePart[];
 }

@@ -16,7 +16,8 @@
     "ios": "npm run build && cap sync ios && cap open ios",
     "android:apk": "npm run build && cap sync android && cd android && ./gradlew assembleDebug",
     "test:e2e": "playwright test",
-    "screenshots": "rm -rf docs/screenshots && SCREENSHOTS=1 playwright test e2e/screenshots.spec.ts --project='iPhone 14' --retries=0"
+    "screenshots": "rm -rf docs/screenshots && SCREENSHOTS=1 playwright test e2e/screenshots.spec.ts --project='iPhone 14' --retries=0",
+    "data:usda": "node scripts/import-usda.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",
@@ -57,6 +58,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "concurrently": "^10.0.5",
+    "fda-nutrient-database": "^1.0.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.3",

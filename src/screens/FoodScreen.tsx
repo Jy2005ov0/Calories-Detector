@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Barcode, Camera, Images, Sparkles, ChevronRight, Globe, PencilLine, Plus, Search, Trash2, UtensilsCrossed, X } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { foodConflicts, hasRestrictions } from "../lib/allergens";
+import { useUsda } from "../lib/usda";
 import type { SheetKind } from "../App";
 import { FOODS, FOOD_CATEGORIES } from "../data/foods";
 import { defaultMeal, mealLabel, searchOnline } from "../lib/api";
@@ -27,6 +28,7 @@ function FoodRow({ f, onClick }: { f: Food; onClick: () => void }) {
         <div className="row-title">{f.name}</div>
         <div className="row-sub">
           {f.brand ? `${f.brand} · ` : ""}
+          {f.dataset === "usda" ? "USDA · " : ""}
           {s.label} · {kcal} kcal
         </div>
       </div>
@@ -63,11 +65,15 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
   const [newFood, setNewFood] = useState(false);
   const [online, setOnline] = useState<{ loading: boolean; items: Food[]; error?: string }>({ loading: false, items: [] });
 
+  const usda = useUsda();
   const all = useMemo(() => [...customFoods, ...FOODS], [customFoods]);
-  const byId = useMemo(() => new Map(all.map((f) => [f.id, f])), [all]);
+  const byId = useMemo(() => new Map([...all, ...usda].map((f) => [f.id, f])), [all, usda]);
   const allLocal = useMemo(() => (q.trim() ? searchFoods(all, q) : []), [all, q]);
   const local = fits(allLocal);
-  const hiddenCount = allLocal.length - local.length;
+  // The USDA reference database (~8,800 foods) gets its own section so it doesn't crowd out dishes.
+  const allUsda = useMemo(() => (q.trim().length >= 2 ? searchFoods(usda, q, 40) : []), [usda, q]);
+  const usdaHits = fits(allUsda);
+  const hiddenCount = allLocal.length - local.length + allUsda.length - usdaHits.length;
 
   useEffect(() => {
     const term = q.trim();
@@ -107,7 +113,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
       <h1 className="large-title" style={{ marginTop: 14 }}>
         {t("Food")}
       </h1>
-      <p className="subtitle">{t("{foods} foods from {groups} cuisines and groups, plus millions of packaged products online.", { foods: FOODS.length.toLocaleString(locale()), groups: FOOD_CATEGORIES.length })}</p>
+      <p className="subtitle">{t("{foods} foods from {groups} cuisines and groups, plus millions of packaged products online.", { foods: (FOODS.length + usda.length).toLocaleString(locale()), groups: FOOD_CATEGORIES.length })}</p>
 
       <div className="search" data-tour="food-search">
         <Search size={17} />
@@ -286,6 +292,19 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
               </div>
             )}
           </div>
+
+          {usdaHits.length > 0 && (
+            <>
+              <div className="section-header">
+                {t("USDA food database")} · {usdaHits.length}
+              </div>
+              <div className="group" data-testid="usda-results">
+                {usdaHits.map((f) => (
+                  <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />
+                ))}
+              </div>
+            </>
+          )}
 
           {q.trim().length >= 3 && (
             <>
