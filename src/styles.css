@@ -496,7 +496,9 @@ button.row:active,
 .segmented {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  /* Equal segments that may shrink below their text (long translations get an ellipsis
+     instead of widening the page). */
+  grid-auto-columns: minmax(0, 1fr);
   background: var(--bg-fill);
   border-radius: 9px;
   padding: 2px;
@@ -505,6 +507,11 @@ button.row:active,
 }
 
 .segmented button {
+  min-width: 0;
+  padding: 0 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   height: 30px;
   font-size: 0.8125rem;
   font-weight: 500;
@@ -1810,6 +1817,11 @@ button.row:active,
 .check-mark {
   color: var(--blue);
   font-weight: 700;
+}
+
+/* Rest timer: leave room so the last set can scroll clear of the floating bar. */
+.screen.resting {
+  padding-bottom: calc(var(--tabbar-h) + 112px);
 }
 
 /* Rest timer */

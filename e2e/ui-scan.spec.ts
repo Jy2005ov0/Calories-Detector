@@ -45,9 +45,19 @@ function seedState() {
     recentFoodIds: ["db-0", "db-150", "db-300"],
     tourDone: true,
     introDone: true,
+    weights: [64.2, 63.8, 63.1, 62.6, 62.0, 61.4, 61.0].map((kg, i) => ({ id: `w${i}`, date: dayKey(-(6 - i) * 5), kg, createdAt: i })),
+    days: [8200, 10400, 6100, 12850, 7300, 9900, 4300].map((steps, i) => ({ id: dayKey(i - 6), steps, waterMl: 250 * (4 + i) })),
+    reminders: { meals: true, water: true, gym: true, breakfast: "08:00", lunch: "12:30", dinner: "19:00", gymTime: "18:00" },
+    coach: [],
+    language: "en",
     deleted: [],
     stamps: {},
   };
+}
+
+function dayKey(offset: number) {
+  const d = new Date(Date.now() + offset * 86400000);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 async function audit(page: Page, screen: string, issues: Issue[]) {
@@ -124,7 +134,8 @@ async function audit(page: Page, screen: string, issues: Issue[]) {
         const a = interactive[i], b = interactive[j];
         if (a.contains(b) || b.contains(a)) continue;
         // Content scrolling under the floating tab bar or ? button is by design.
-        const chrome = (el: Element) => !!el.closest(".tabbar, .help-btn, .sheet-cta");
+        // Floating bars that content scrolls under by design (and can scroll clear of).
+        const chrome = (el: Element) => !!el.closest(".tabbar, .help-btn, .sheet-cta, .coach-input, .rest-bar");
         if (chrome(a) !== chrome(b)) continue;
         const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
         const ox = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left);
@@ -269,6 +280,51 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await audit(page, "Scan a meal · result", issues);
   await close();
 
+  // Barcode (no camera in the test browser → the typed-number fallback)
+  await page.route("https://world.openfoodfacts.org/api/v2/product/**", (r) =>
+    r.fulfill({
+      json: {
+        status: 1,
+        product: {
+          code: "9556001234567",
+          product_name: "Milo 3in1 Activ-Go Kurang Manis with an extra long product name",
+          brands: "Nestlé",
+          serving_quantity: 33,
+          serving_size: "1 sachet (33 g)",
+          nutriments: { "energy-kcal_100g": 412, proteins_100g: 7.5, carbohydrates_100g: 74, fat_100g: 9, sugars_100g: 50, fiber_100g: 3, "saturated-fat_100g": 5, sodium_100g: 0.2 },
+        },
+      },
+    }),
+  );
+  await page.getByRole("button", { name: /Scan barcode/ }).click();
+  await audit(page, "Barcode scanner", issues);
+  await dialog().getByLabel("Barcode number").fill("9556001234567");
+  await dialog().getByRole("button", { name: "Look up" }).click();
+  await expect(dialog()).toContainText("Milo 3in1");
+  await audit(page, "Barcode · product", issues);
+  await close();
+
+  // Water, progress and coach
+  await page.getByRole("button", { name: "Add a glass of water" }).click();
+  await page.getByRole("button", { name: /steps Progress$/ }).click();
+  await audit(page, "Progress · weight", issues);
+  await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, el.scrollHeight));
+  await audit(page, "Progress · steps & water", issues);
+  await close();
+  await page.route("**/api/coach", (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: "text/plain; charset=utf-8",
+      body: "You have about **490 kcal** left:\n\n- **Ikan bakar** with ½ cup rice and ulam — about 420 kcal, 38 g protein\n- Or chicken soup with bihun and extra vegetables\n- Skip the sweet drink; https://example.com/a-very-long-link-that-should-wrap-inside-the-bubble-and-not-overflow",
+    }),
+  );
+  await page.getByRole("button", { name: /Ask coach/ }).click();
+  await audit(page, "Coach · empty", issues);
+  await dialog().getByRole("button", { name: /dinner/ }).click();
+  await expect(dialog().locator(".bubble.assistant li")).toHaveCount(3);
+  await audit(page, "Coach · answer", issues);
+  await close();
+
   // ── Food ───────────────────────────────────────────
   await tab("Food");
   await audit(page, "Food · recent", issues);
@@ -292,6 +348,15 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await page.getByRole("dialog", { name: "Add food" }).locator(".row").first().click();
   await audit(page, "Dish editor · customised", issues);
   await close();
+  // Halal: pork dishes are hidden until shown, then flagged
+  await page.getByLabel("Search foods").fill("pork");
+  await audit(page, "Food · avoid filter", issues);
+  await page.getByRole("button", { name: /Hiding foods you avoid/ }).click();
+  await audit(page, "Food · avoid flags", issues);
+  await page.locator(".row", { hasText: "Char siu" }).first().click();
+  await audit(page, "Food detail · not halal", issues);
+  await close();
+  await page.getByRole("button", { name: /Showing all foods/ }).click();
   await page.getByLabel("Clear search").click();
   await page.getByRole("button", { name: "Build meal" }).click();
   await page.getByRole("button", { name: "Add food" }).first().click();
@@ -319,9 +384,13 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await dialog().locator(".row", { hasText: "Barbell squat" }).or(dialog().locator(".row").first()).first().click();
   await dialog().getByRole("button", { name: /Add to workout/ }).click();
   await audit(page, "Workout · live", issues);
+  await page.getByRole("button", { name: "Mark set done" }).first().click();
+  await audit(page, "Workout · rest timer", issues);
+  await page.getByRole("timer", { name: "Rest timer" }).getByRole("button", { name: "Skip" }).click();
   await page.getByRole("button", { name: "Clock out" }).click();
   await audit(page, "Clock out", issues);
   await page.getByRole("button", { name: "Finish workout" }).click();
+  await audit(page, "Train · done, records", issues);
 
   // ── Plan ───────────────────────────────────────────
   await tab("Plan");
@@ -334,6 +403,33 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   // ── Profile ────────────────────────────────────────
   await tab("Profile");
   await audit(page, "Profile · signed in", issues);
+  for (const section of ["Allergies", "Reminders", "Language", "Data"]) {
+    await page.locator(".section-header", { hasText: section }).first().scrollIntoViewIfNeeded();
+    await audit(page, `Profile · ${section}`, issues);
+  }
+  await page.getByRole("tab", { name: "Ramadan" }).click();
+  await audit(page, "Profile · Ramadan times", issues);
+  await tab("Today");
+  await audit(page, "Today · Ramadan", issues);
+  await tab("Plan");
+  await page.getByRole("tab", { name: "Nutrition" }).click();
+  await audit(page, "Plan · Ramadan nutrition", issues);
+
+  // Other languages: longer words must still fit
+  const nav = page.getByRole("navigation").getByRole("button");
+  for (const [lang, label] of [["Malay", "Bahasa Melayu"], ["Chinese", "中文"]] as const) {
+    await nav.last().click();
+    await page.getByRole("button", { name: label }).click();
+    await audit(page, `${lang} · Profile`, issues);
+    for (let i = 0; i < 4; i++) {
+      await nav.nth(i).click();
+      await audit(page, `${lang} · tab ${i + 1}`, issues);
+    }
+  }
+  await nav.last().click();
+  await page.getByRole("button", { name: "English" }).click();
+  await page.getByRole("tab", { name: "Off" }).click();
+
   await page.getByRole("button", { name: "Sign out" }).click();
   await audit(page, "Profile · guest", issues);
 
@@ -345,7 +441,7 @@ for (const device of DEVICES) {
   for (const scheme of SCHEMES) {
     test(`UI scan · ${device} · ${scheme}`, async ({ browser }, info) => {
       test.skip(info.project.name !== "iPhone 14", "the scan covers every device itself");
-      test.setTimeout(240_000);
+      test.setTimeout(600_000);
       const issues = await scan(browser, device, scheme);
       const blocking = issues.filter((i) => i.kind !== "tap-target-small");
       await info.attach("ui-issues.json", { body: JSON.stringify(issues, null, 2), contentType: "application/json" });

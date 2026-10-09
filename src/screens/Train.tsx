@@ -139,7 +139,7 @@ export function Train() {
     const kcal = sessionKcal(active, profile.weightKg, now);
     const doneSets = active.exercises.reduce((a, e) => a + (e.sets ?? []).filter((x) => x.done).length, 0);
     return (
-      <div className="screen">
+      <div className={`screen ${rest ? "resting" : ""}`}>
         <div className="title-row" style={{ marginTop: 14 }}>
           <h1 className="large-title">{active.title}</h1>
           <span className="badge" style={{ background: "var(--green-fill)", color: "#fff", marginBottom: 8 }}>
