@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Clock, Dumbbell, Flame, History, LogIn, LogOut, Plus, Share, Timer, Trash2, Trophy, Weight } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
+import { exName, useExerciseNames } from "../i18n/exercises";
 import { workoutCard } from "../lib/export";
 import { scheduleRestEnd, shareFile } from "../lib/native";
 import { isNewRecord, lastPerformance, personalRecords, suggestNext } from "../lib/records";
@@ -74,6 +75,7 @@ function RestBar({ rest, onChange }: { rest: { endsAt: number; total: number }; 
 
 export function Train() {
   const lang = useLanguage();
+  useExerciseNames();
   const profile = useStore((s) => s.profile);
   const sessions = useStore((s) => s.sessions);
   const activeId = useStore((s) => s.activeSessionId);
@@ -128,7 +130,7 @@ export function Train() {
         kcal: Math.round(kcalFor(ex.met, profile.weightKg, m)),
       };
       actions.addSession(session);
-      showToast(t("Logged {name} · {kcal} kcal", { name: ex.name, kcal: session.kcal }));
+      showToast(t("Logged {name} · {kcal} kcal", { name: exName(ex.name), kcal: session.kcal }));
       return;
     }
     if (!active) {
@@ -145,7 +147,7 @@ export function Train() {
     return (
       <div className={`screen ${rest ? "resting" : ""}`}>
         <div className="title-row" style={{ marginTop: 14 }}>
-          <h1 className="large-title">{active.title}</h1>
+          <h1 className="large-title">{exName(active.title)}</h1>
           <span className="badge" style={{ background: "var(--green-fill)", color: "#fff", marginBottom: 8 }}>
             <span className="pulse" style={{ width: 7, height: 7 }} /> {t("LIVE")}
           </span>
@@ -195,7 +197,7 @@ export function Train() {
             >
               <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
                 <div className="row-main">
-                  <div style={{ fontWeight: 600 }}>{ex.name}</div>
+                  <div style={{ fontWeight: 600 }}>{exName(ex.name)}</div>
                   <div className="row-sub">
                     {ex.targetReps ? `${t("Target")} ${ex.sets?.length} × ${ex.targetReps} · ` : ""}
                     {round(exerciseKcal(ex, profile.weightKg))} kcal
@@ -204,7 +206,7 @@ export function Train() {
                 </div>
                 <button
                   className="icon-btn"
-                  aria-label={t("Remove {name}", { name: ex.name })}
+                  aria-label={t("Remove {name}", { name: exName(ex.name) })}
                   onClick={() => update((s) => ({ ...s, exercises: s.exercises.filter((e) => e.id !== ex.id) }))}
                 >
                   <Trash2 size={15} />
@@ -235,7 +237,7 @@ export function Train() {
                           if (next.done && !set.done) {
                             if (record) {
                               haptic("success");
-                              showToast(t("New personal record · {name} {kg} kg × {reps}", { name: ex.name, kg: next.weightKg, reps: next.reps }));
+                              showToast(t("New personal record · {name} {kg} kg × {reps}", { name: exName(ex.name), kg: next.weightKg, reps: next.reps }));
                             }
                             const secs = ex.restSec ?? 90;
                             setRest({ endsAt: Date.now() + secs * 1000, total: secs });
@@ -281,7 +283,7 @@ export function Train() {
 
         <Sheet open={finishing} onClose={() => setFinishing(false)} title={t("Clock out")}>
           <div className="card" style={{ textAlign: "center" }}>
-            <div className="muted">{active.title}</div>
+            <div className="muted">{exName(active.title)}</div>
             <div className="big-number" style={{ margin: "8px 0" }}>
               {round(kcal)}
             </div>
@@ -462,7 +464,7 @@ export function Train() {
       {justFinished && (
         <div className="card done-card" style={{ marginTop: 12 }}>
           <div className="row-main">
-            <div className="tile-title">{t("Nice work! {title} saved", { title: justFinished.title })}</div>
+            <div className="tile-title">{t("Nice work! {title} saved", { title: exName(justFinished.title) })}</div>
             <div className="tile-sub">{t("{kcal} kcal burned. Share it with friends?", { kcal: justFinished.kcal })}</div>
           </div>
           <button className="btn small tinted" onClick={() => shareWorkout(justFinished)}>
@@ -481,7 +483,7 @@ export function Train() {
                   <Trophy size={16} />
                 </div>
                 <div className="row-main">
-                  <div className="row-title">{r.name}</div>
+                  <div className="row-title">{exName(r.name)}</div>
                   <div className="row-sub">
                     {r.weightKg} kg × {r.reps} · {t("est. 1-rep max {kg} kg", { kg: round(r.e1rm) })}
                   </div>
@@ -503,7 +505,7 @@ export function Train() {
                 <Dumbbell size={17} />
               </div>
               <div className="row-main">
-                <div className="row-title">{s.title}</div>
+                <div className="row-title">{exName(s.title)}</div>
                 <div className="row-sub">
                   {new Date(s.startedAt).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" })} ·{" "}
                   {formatDuration(sessionMinutes(s))} · {plural(s.exercises.length, "exercise")}

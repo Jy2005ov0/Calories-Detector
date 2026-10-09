@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, Lightbulb, LogIn, Plus } from "lucide-react";
 import { t as tr, useLanguage } from "../i18n";
+import { exName, exTip, useExerciseNames } from "../i18n/exercises";
 import { FOODS } from "../data/foods";
 import { FoodSheet } from "../components/FoodSheet";
 import { SPRING, Segmented, Stepper, haptic, showToast } from "../components/ui";
@@ -45,6 +46,7 @@ export function Plan({ go }: { go: (t: Tab) => void }) {
 
 function TrainingPlan({ go }: { go: (t: Tab) => void }) {
   const lang = useLanguage();
+  useExerciseNames();
   const profile = useStore((s) => s.profile);
   const split = useStore((s) => s.split);
   const activeId = useStore((s) => s.activeSessionId);
@@ -139,7 +141,7 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
                           {i + 1}
                         </span>
                         <div className="row-main">
-                          <div style={{ fontWeight: 600 }}>{e.name}</div>
+                          <div style={{ fontWeight: 600 }}>{exName(e.name)}</div>
                           <div className="row-sub" style={{ whiteSpace: "normal" }}>
                             {tr("{sets} sets × {reps} reps · rest {rest} · RIR {rir}", {
                               sets: e.sets,
@@ -150,7 +152,7 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
                           </div>
                           {e.tip && (
                             <div className="row-sub" style={{ whiteSpace: "normal", marginTop: 2, fontStyle: "italic" }}>
-                              {tr(e.tip)}
+                              {exTip(e.tip)}
                             </div>
                           )}
                         </div>

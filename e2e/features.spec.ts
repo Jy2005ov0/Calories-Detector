@@ -289,6 +289,14 @@ test("Mei: reminders, step goal and switching language to Malay and Chinese", as
   await expect(nav.getByRole("button").first()).toContainText(/[一-鿿]/);
   await nav.getByRole("button").first().click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText(/[一-鿿]/);
+  // Exercises are in Chinese too: open the first training day on Plan.
+  await nav.getByRole("button").nth(3).click();
+  const day = page.locator(".card", { has: page.locator("[aria-expanded]") }).first();
+  if ((await day.locator("[aria-expanded]").getAttribute("aria-expanded")) !== "true") await day.locator("[aria-expanded]").click();
+  await expect(day.locator("[aria-expanded]")).toHaveAttribute("aria-expanded", "true");
+  // No English exercise names (long runs of Latin letters) left in the open day.
+  await expect.poll(async () => (await day.innerText()).match(/[A-Za-z]{6,}/g)).toBeNull();
+  await nav.getByRole("button").last().click();
   // Back to English
   await nav.getByRole("button").last().click();
   await page.getByRole("button", { name: "English" }).click();

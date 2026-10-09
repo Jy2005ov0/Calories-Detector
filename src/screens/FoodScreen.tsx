@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Barcode, ChevronRight, Globe, PencilLine, Plus, Search, Trash2, UtensilsCrossed, X } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { foodConflicts, hasRestrictions } from "../lib/allergens";
@@ -12,18 +12,19 @@ import { actions, todayKey, useStore } from "../lib/store";
 import type { CustomMeal, Food } from "../lib/types";
 import { FoodSheet } from "../components/FoodSheet";
 import { CustomFoodSheet, MealBuilder } from "../components/MealBuilder";
-import { Empty, GRADE_COLORS, GRADE_TEXT, Segmented, haptic, showToast } from "../components/ui";
+import { Empty, GRADE_COLORS, GRADE_TEXT, Segmented, haptic, showToast, useShowMore } from "../components/ui";
 
 type View = "recent" | "meals" | "mine" | "browse";
 
-function FoodRow({ f, onClick }: { f: Food; onClick: () => void }) {
+/** One food in a list. Memoised: its grade and warnings only change when the food or the person's diet does. */
+const FoodRow = memo(function FoodRow({ f, onClick }: { f: Food; onClick: (f: Food) => void }) {
   const profile = useStore((st) => st.profile);
   const avoid = foodConflicts(f, profile);
   const s = f.servings[0];
   const kcal = round((f.per100.kcal * s.grams) / 100);
   const grade = healthReport(scale(f.per100, s.grams), { intrinsicSugar: isWholeProduce(f) }).grade;
   return (
-    <button className="row" onClick={onClick}>
+    <button className="row" onClick={() => onClick(f)}>
       <div className="row-main">
         <div className="row-title">{f.name}</div>
         <div className="row-sub">
@@ -43,7 +44,7 @@ function FoodRow({ f, onClick }: { f: Food; onClick: () => void }) {
       <ChevronRight size={16} className="chev" />
     </button>
   );
-}
+});
 
 export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void }) {
   useLanguage();
@@ -67,10 +68,17 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
   const usda = useUsda();
   const all = useMemo(() => [...customFoods, ...FOODS], [customFoods]);
   const byId = useMemo(() => new Map([...all, ...usda].map((f) => [f.id, f])), [all, usda]);
-  const allLocal = useMemo(() => (q.trim() ? searchFoods(all, q) : []), [all, q]);
-  const local = fits(allLocal);
+  // Results catch up with the search box a moment later, so typing never stutters.
+  const query = useDeferredValue(q);
+  const allLocal = useMemo(() => (query.trim() ? searchFoods(all, query) : []), [all, query]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const local = useMemo(() => fits(allLocal), [allLocal, restricted, hideAvoid, profile.allergies, profile.diet]);
+  const [localShown, localMore] = useShowMore(local);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const browse = useMemo(() => fits(FOODS.filter((f) => f.category === category)), [category, restricted, hideAvoid, profile.allergies, profile.diet]);
+  const [browseShown, browseMore] = useShowMore(browse);
   // The USDA reference database (~8,800 foods) gets its own section so it doesn't crowd out dishes.
-  const allUsda = useMemo(() => (q.trim().length >= 2 ? searchFoods(usda, q, 40) : []), [usda, q]);
+  const allUsda = useMemo(() => (query.trim().length >= 2 ? searchFoods(usda, query, 40) : []), [usda, query]);
   const usdaHits = fits(allUsda);
   const hiddenCount = allLocal.length - local.length + allUsda.length - usdaHits.length;
 
@@ -169,7 +177,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
           {view === "recent" && (
             <div className="group" style={{ marginTop: 12 }}>
               {recent.length ? (
-                recent.map((f) => <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />)
+                recent.map((f) => <FoodRow key={f.id} f={f} onClick={setSelected} />)
               ) : (
                 <Empty icon={<Search size={28} />}>{t("Foods you log will show up here for one-tap adding.")}</Empty>
               )}
@@ -221,7 +229,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
             <>
               <div className="group" style={{ marginTop: 12 }}>
                 {customFoods.length ? (
-                  customFoods.map((f) => <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />)
+                  customFoods.map((f) => <FoodRow key={f.id} f={f} onClick={setSelected} />)
                 ) : (
                   <Empty icon={<PencilLine size={28} />}>{t("Add your own foods or recipes with their nutrition label.")}</Empty>
                 )}
@@ -243,9 +251,10 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
                 ))}
               </div>
               <div className="group" style={{ marginTop: 10 }}>
-                {fits(FOODS.filter((f) => f.category === category)).map((f) => (
-                  <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />
+                {browseShown.map((f) => (
+                  <FoodRow key={f.id} f={f} onClick={setSelected} />
                 ))}
+                {browseMore}
               </div>
             </>
           )}
@@ -266,7 +275,12 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
           </div>
           <div className="group">
             {local.length ? (
-              local.map((f) => <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />)
+              <>
+                {localShown.map((f) => (
+                  <FoodRow key={f.id} f={f} onClick={setSelected} />
+                ))}
+                {localMore}
+              </>
             ) : (
               <div className="row muted" style={{ fontSize: 15 }}>
                 {t("No built-in matches")}
@@ -281,7 +295,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
               </div>
               <div className="group" data-testid="usda-results">
                 {usdaHits.map((f) => (
-                  <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />
+                  <FoodRow key={f.id} f={f} onClick={setSelected} />
                 ))}
               </div>
             </>
@@ -297,7 +311,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
               </div>
               <div className="group">
                 {fits(online.items).map((f) => (
-                  <FoodRow key={f.id} f={f} onClick={() => setSelected(f)} />
+                  <FoodRow key={f.id} f={f} onClick={setSelected} />
                 ))}
                 {!online.loading && online.items.length === 0 && (
                   <div className="row muted" style={{ fontSize: 15 }}>

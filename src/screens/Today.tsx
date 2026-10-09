@@ -15,6 +15,7 @@ import {
   Utensils,
 } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
+import { exName, useExerciseNames } from "../i18n/exercises";
 import { mealLabel, mealOptions } from "../lib/api";
 import {
   formatDuration,
@@ -221,6 +222,7 @@ export function Today({
   openSheet: (k: SheetKind) => void;
 }) {
   useLanguage();
+  useExerciseNames();
   const profile = useStore((s) => s.profile);
   const log = useStore((s) => s.log);
   const sessions = useStore((s) => s.sessions);
@@ -343,7 +345,7 @@ export function Today({
           <span className="pulse" />
           <div className="row-main">
             <div style={{ fontWeight: 600 }}>
-              {t("{title} · clocked in", { title: active.title })}
+              {t("{title} · clocked in", { title: exName(active.title) })}
             </div>
             <div style={{ fontSize: 14, opacity: 0.85 }} className="tabular">
               {formatDuration(sessionMinutes(active, now))} ·{" "}
@@ -620,7 +622,7 @@ export function Today({
                 <Dumbbell size={17} />
               </div>
               <div className="row-main">
-                <div className="row-title">{s.title}</div>
+                <div className="row-title">{exName(s.title)}</div>
                 <div className="row-sub">
                   {formatDuration(sessionMinutes(s, now))} ·{" "}
                   {plural(s.exercises.length, "exercise")}{" "}

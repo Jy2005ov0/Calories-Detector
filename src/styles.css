@@ -2215,3 +2215,16 @@ button.row:active,
   font-size: 0.8125rem;
   text-align: left;
 }
+
+/* ── Performance ────────────────────────────────────── */
+/* Android WebViews redraw a blurred background on every scrolled frame, which made scrolling
+   stutter. There the bars use a plain, nearly opaque material instead. */
+html[data-platform="android"] :is(.nav-bar, .tabbar, .toast, .help-btn, .sheet-cta, .rest-bar) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: color-mix(in srgb, var(--bg-elev) 97%, transparent);
+}
+html[data-platform="android"] .nav-bar,
+html[data-platform="android"] .sheet-cta {
+  background: color-mix(in srgb, var(--bg) 97%, transparent);
+}

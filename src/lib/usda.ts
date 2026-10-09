@@ -53,26 +53,31 @@ export function useUsda(): Food[] {
 
 // ── Exercise instructions (free-exercise-db, public domain) ─────────────
 
-let steps: Record<string, string[]> | null = null;
-let stepsPending: Promise<Record<string, string[]>> | null = null;
+const steps: Record<string, Record<string, string[]>> = {};
+const stepsPending: Record<string, Promise<Record<string, string[]>> | undefined> = {};
 
-/** Step-by-step instructions for an exercise, loaded on first use. Empty if none. */
-export function useExerciseSteps(name: string | undefined): string[] {
-  const [map, setMap] = useState(steps);
+function loadSteps(lang: string) {
+  const file = lang === "en" ? "exercise-instructions.json" : `exercise-instructions.${lang}.json`;
+  return (stepsPending[lang] ??= fetch(`${import.meta.env.BASE_URL}data/${file}`)
+    .then((r) => (r.ok ? r.json() : {}))
+    .then((d: Record<string, string[]>) => (steps[lang] = d))
+    .catch(() => {
+      stepsPending[lang] = undefined;
+      return {};
+    }));
+}
+
+/** Step-by-step instructions for an exercise in the app's language (English if not translated), loaded on first use. Empty if none. */
+export function useExerciseSteps(name: string | undefined, lang = "en"): string[] {
+  const [, setLoaded] = useState(0);
   useEffect(() => {
-    if (steps || !name) return;
-    stepsPending ??= fetch(`${import.meta.env.BASE_URL}data/exercise-instructions.json`)
-      .then((r) => (r.ok ? r.json() : {}))
-      .then((d) => (steps = d))
-      .catch(() => {
-        stepsPending = null;
-        return {};
-      });
+    if (!name) return;
     let alive = true;
-    stepsPending.then((d) => alive && setMap(d));
+    for (const l of new Set([lang, "en"])) if (!steps[l]) void loadSteps(l).then(() => alive && setLoaded((n) => n + 1));
     return () => {
       alive = false;
     };
-  }, [name]);
-  return (name && map?.[name]) || [];
+  }, [name, lang]);
+  if (!name) return [];
+  return steps[lang]?.[name] ?? steps.en?.[name] ?? [];
 }

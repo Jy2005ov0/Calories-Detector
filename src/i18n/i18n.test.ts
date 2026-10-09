@@ -52,3 +52,24 @@ describe("translations", () => {
     });
   }
 });
+
+describe("exercise names", () => {
+  it("every exercise, category, muscle and equipment has a Malay and Chinese name", async () => {
+    const { EXERCISES } = await import("../data/exercises");
+    const { buildPlan, SPLITS } = await import("../lib/fitness");
+    const PLAN_EXERCISE_NAMES = SPLITS.flatMap((sp) =>
+      (["beginner", "intermediate", "advanced"] as const).flatMap((experience) =>
+        [2, 3, 4, 5, 6].flatMap((trainingDays) =>
+          (["lose", "maintain", "gain"] as const).flatMap((goal) => buildPlan({ goal, experience, trainingDays }, sp.id).days.flatMap((d) => (d ? d.exercises.map((e) => e.name) : []))),
+        ),
+      ),
+    );
+    for (const lang of ["ms", "zh"] as const) {
+      const pack = (await import(`./exercises/${lang}.json`)).default as { names: Record<string, string>; labels: Record<string, string> };
+      const missing = [...new Set([...EXERCISES.map((e) => e.name), ...PLAN_EXERCISE_NAMES])].filter((n) => !pack.names[n]);
+      expect(missing, `${lang} names`).toEqual([]);
+      const labels = [...new Set(EXERCISES.flatMap((e) => [e.category, ...(e.muscles ?? []), e.equipment ?? ""]).filter(Boolean))];
+      expect(labels.filter((l) => !pack.labels[l]), `${lang} labels`).toEqual([]);
+    }
+  });
+});

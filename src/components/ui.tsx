@@ -540,3 +540,22 @@ export function AvoidCard({ conflicts }: { conflicts: { kind: string; text: stri
     </div>
   );
 }
+
+/**
+ * Long lists (hundreds of exercises or foods) render a page at a time; the next page is added
+ * when the end of the list scrolls into view, so opening a list and typing in search stay fast.
+ */
+export function useShowMore<T>(list: T[], page = 60): [T[], ReactNode] {
+  const [count, setCount] = useState(page);
+  const sentinel = useRef<HTMLDivElement>(null);
+  // Start again from the top when the list changes (a new search or category).
+  useEffect(() => setCount(page), [list, page]);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || count >= list.length) return;
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && setCount((c) => c + page), { rootMargin: "600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [count, list.length, page]);
+  return [list.slice(0, count), count < list.length ? <div ref={sentinel} aria-hidden style={{ height: 1 }} /> : null];
+}

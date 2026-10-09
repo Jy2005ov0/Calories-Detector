@@ -240,8 +240,20 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await page.getByRole("button", { name: "Skip" }).click();
 
   // ── A real user's data ─────────────────────────────
-  await page.evaluate((state) => localStorage.setItem("calories-detector:v1", JSON.stringify(state)), seedState());
-  await page.reload();
+  // Seeded before the app starts: the app saves its own state when the page is left, which would
+  // overwrite anything written into storage behind its back.
+  await page.addInitScript((state) => {
+    try {
+      if (location.protocol.startsWith("http") && !sessionStorage.getItem("seeded")) {
+        localStorage.setItem("calories-detector:v1", state);
+        sessionStorage.setItem("seeded", "1");
+      }
+    } catch {
+      // about:blank has no storage
+    }
+  }, JSON.stringify(seedState()));
+  await page.goto("about:blank");
+  await page.goto("/");
 
   // ── Today ──────────────────────────────────────────
   await audit(page, "Today", issues);

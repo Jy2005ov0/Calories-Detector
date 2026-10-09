@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { CalendarCheck, Dumbbell, Flame, Search, UserRound } from "lucide-react";
 import { IntroGuide } from "./components/IntroGuide";
 import { BodyCheckSheet } from "./components/BodyCheckSheet";
@@ -104,21 +104,19 @@ export default function App() {
 
   return (
     <div className="app">
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.main
-          key={`${tab}-${lang}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduce ? 0.1 : 0.15 }}
-        >
-          {tab === "today" && <Today go={setTab} openSheet={setSheet} />}
-          {tab === "food" && <FoodScreen openSheet={setSheet} />}
-          {tab === "train" && <Train />}
-          {tab === "plan" && <Plan go={setTab} />}
-          {tab === "profile" && <ProfileScreen openSheet={setSheet} />}
-        </motion.main>
-      </AnimatePresence>
+      {/* The new tab shows at once (no waiting for the old one to fade out) with a quick fade-in. */}
+      <motion.main
+        key={`${tab}-${lang}`}
+        initial={{ opacity: 0.4 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: reduce ? 0 : 0.12, ease: "easeOut" }}
+      >
+        {tab === "today" && <Today go={setTab} openSheet={setSheet} />}
+        {tab === "food" && <FoodScreen openSheet={setSheet} />}
+        {tab === "train" && <Train />}
+        {tab === "plan" && <Plan go={setTab} />}
+        {tab === "profile" && <ProfileScreen openSheet={setSheet} />}
+      </motion.main>
 
       <nav className="tabbar" aria-label={t("Main")}>
         <div className="tabbar-inner">

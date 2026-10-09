@@ -1,24 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { ChevronRight, Flame, Plus, Search } from "lucide-react";
 import { CARDIO_GROUPS, EXERCISES, STRENGTH_GROUPS } from "../data/exercises";
 import { useExerciseSteps } from "../lib/usda";
 import { t, useLanguage } from "../i18n";
+import { exLabel, exName, exTip, useExerciseNames } from "../i18n/exercises";
 import { kcalFor } from "../lib/fitness";
 import { round } from "../lib/nutrition";
 import { useStore } from "../lib/store";
 import type { Exercise } from "../lib/types";
-import { Segmented, Sheet, Stepper } from "./ui";
-
-/**
- * Translate an exercise category or equipment label. Keys are prefixed because plain words
- * like "Back" mean something else elsewhere in the app.
- */
-const label = (kind: "Category" | "Equipment", v: string | undefined) => {
-  if (!v) return v;
-  const key = `${kind}: ${v}`;
-  const out = t(key);
-  return out === key ? v : out;
-};
+import { Segmented, Sheet, Stepper, useShowMore } from "./ui";
 
 export function ExerciseLibrary({
   open,
@@ -32,12 +22,13 @@ export function ExerciseLibrary({
   pickLabel?: string;
 }) {
   useLanguage();
+  const lang = useExerciseNames();
   const weight = useStore((s) => s.profile.weightKg);
   const [kind, setKind] = useState<"strength" | "cardio">("strength");
   const [group, setGroup] = useState("All");
   const [q, setQ] = useState("");
   const [detail, setDetail] = useState<Exercise | null>(null);
-  const howTo = useExerciseSteps(detail?.name);
+  const howTo = useExerciseSteps(detail?.name, lang);
   const [minutes, setMinutes] = useState(30);
 
   useEffect(() => {
@@ -48,16 +39,22 @@ export function ExerciseLibrary({
   }, [open]);
   useEffect(() => setGroup("All"), [kind]);
 
+  // Search finds an exercise by its English name and by its name in the app's language.
+  const haystack = (e: Exercise) =>
+    `${e.name} ${exName(e.name)} ${e.category} ${exLabel(e.category)} ${e.aliases ?? ""} ${e.muscles?.map((m) => `${m} ${exLabel(m)}`).join(" ") ?? ""} ${e.equipment ?? ""} ${exLabel(e.equipment)}`.toLowerCase();
   const groups = ["All", ...(kind === "strength" ? STRENGTH_GROUPS : CARDIO_GROUPS)];
+  // Typing stays responsive: the list catches up with the search box a moment later.
+  const query = useDeferredValue(q);
   const list = useMemo(() => {
-    const term = q.trim().toLowerCase();
+    const term = query.trim().toLowerCase();
     return EXERCISES.filter(
       (e) =>
         (term ? true : e.kind === kind) &&
         (term || group === "All" || e.category === group) &&
-        (!term || `${e.name} ${e.category} ${e.aliases ?? ""} ${e.muscles?.join(" ") ?? ""} ${e.equipment ?? ""}`.toLowerCase().includes(term)),
+        (!term || haystack(e).includes(term)),
     );
-  }, [kind, group, q]);
+  }, [kind, group, query, lang]);
+  const [shown, more] = useShowMore(list);
 
   return (
     <>
@@ -81,14 +78,14 @@ export function ExerciseLibrary({
             <div className="chips" style={{ marginTop: 12 }}>
               {groups.map((g) => (
                 <button key={g} className={`chip ${g === group ? "active" : ""}`} onClick={() => setGroup(g)}>
-                  {g === "All" ? t("All") : label("Category", g)}
+                  {g === "All" ? t("All") : exLabel(g)}
                 </button>
               ))}
             </div>
           </>
         )}
         <div className="group" style={{ marginTop: 12 }}>
-          {list.map((e) => (
+          {shown.map((e) => (
             <button
               className="row"
               key={e.id}
@@ -98,23 +95,24 @@ export function ExerciseLibrary({
               }}
             >
               <div className="row-main">
-                <div className="row-title">{e.name}</div>
+                <div className="row-title">{exName(e.name)}</div>
                 <div className="row-sub">
-                  {e.kind === "strength" ? `${e.muscles?.join(", ")} · ${label("Equipment", e.equipment)}` : `${label("Category", e.category)} · ${round(kcalFor(e.met, weight, 30))} kcal / 30 min`}
+                  {e.kind === "strength" ? `${e.muscles?.map(exLabel).join(", ")} · ${exLabel(e.equipment)}` : `${exLabel(e.category)} · ${round(kcalFor(e.met, weight, 30))} kcal / 30 min`}
                 </div>
               </div>
               <ChevronRight size={16} className="chev" />
             </button>
           ))}
+          {more}
           {list.length === 0 && <div className="empty">{t("No exercises match.")}</div>}
         </div>
       </Sheet>
 
-      <Sheet open={!!detail} onClose={() => setDetail(null)} title={label("Category", detail?.category)}>
+      <Sheet open={!!detail} onClose={() => setDetail(null)} title={exLabel(detail?.category)}>
         {detail && (
           <>
             <h2 className="h2" style={{ marginTop: 4 }}>
-              {detail.name}
+              {exName(detail.name)}
             </h2>
             <div className="card">
               <div className="stat-grid">
@@ -148,12 +146,12 @@ export function ExerciseLibrary({
                 <div className="row">
                   <div className="row-main">{t("Muscles")}</div>
                   <div className="row-value" style={{ whiteSpace: "normal", textAlign: "right" }}>
-                    {detail.muscles?.join(", ")}
+                    {detail.muscles?.map(exLabel).join(", ")}
                   </div>
                 </div>
                 <div className="row">
                   <div className="row-main">{t("Equipment")}</div>
-                  <div className="row-value">{label("Equipment", detail.equipment)}</div>
+                  <div className="row-value">{exLabel(detail.equipment)}</div>
                 </div>
                 {detail.tip && !howTo.length && (
                   <div className="row">
@@ -161,7 +159,7 @@ export function ExerciseLibrary({
                       <div className="muted" style={{ fontSize: 13, marginBottom: 2 }}>
                         {t("Form cue")}
                       </div>
-                      {detail.tip}
+                      {exTip(detail.tip)}
                     </div>
                   </div>
                 )}
