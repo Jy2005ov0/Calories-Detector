@@ -556,7 +556,7 @@ test("First launch: the step-by-step guide comes first and can be swiped, steppe
   await expect(guide.getByRole("button", { name: "Skip" })).toBeVisible();
   await expectNoHorizontalScroll(page);
 
-  const titles = ["Snap or search your food", "Know if it's good for you", "Clock in at the gym", "A plan made for your body", "Private, and for the whole family"];
+  const titles = ["Snap or search your food", "Know if it's good for you", "Clock in at the gym", "A plan made for your body", "For you and your family"];
   const current = (i: number) => guide.getByRole("heading", { name: titles[i] });
 
   // Next walks through every page; the visible page is fully on screen.

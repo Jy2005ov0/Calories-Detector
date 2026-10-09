@@ -44,9 +44,9 @@ export const INTRO_SLIDES: Slide[] = [
   {
     Icon: Users,
     colors: ["#64d2ff", "#0a84ff"],
-    title: "Private, and for the whole family",
-    body: "No sign-up: just create your profile. Everything stays on your phone, and family members can add their own profiles.",
-    points: ["Works offline", "Back up to a file to move to a new phone", "Tap ? on any screen to see the guide again"],
+    title: "For you and your family",
+    body: "No sign-up. Your data stays on your phone, and family members get their own profiles.",
+    points: ["Works offline", "Back up to move phones", "Tap ? to see this guide again"],
   },
 ];
 

@@ -3,6 +3,10 @@ import type { AreaDict } from "./index";
 // Translations for the core area. Keys are the exact English strings passed to t().
 export const CORE: AreaDict = {
   ms: {
+    "For you and your family": "Untuk anda dan keluarga",
+    "No sign-up. Your data stays on your phone, and family members get their own profiles.": "Tiada pendaftaran. Data anda kekal dalam telefon, dan ahli keluarga mendapat profil sendiri.",
+    "Back up to move phones": "Sandarkan untuk tukar telefon",
+    "Tap ? to see this guide again": "Ketik ? untuk melihat panduan ini semula",
     "Private, and for the whole family": "Peribadi, dan untuk seluruh keluarga",
     "No sign-up: just create your profile. Everything stays on your phone, and family members can add their own profiles.": "Tiada pendaftaran: hanya cipta profil anda. Semua data kekal dalam telefon anda, dan ahli keluarga boleh menambah profil mereka sendiri.",
     "Back up to a file to move to a new phone": "Sandarkan ke fail untuk berpindah ke telefon baharu",
@@ -286,6 +290,10 @@ export const CORE: AreaDict = {
     "Weight from {from} kg on {d1} to {to} kg on {d2}": "Berat daripada {from} kg pada {d1} kepada {to} kg pada {d2}",
   },
   zh: {
+    "For you and your family": "为你和家人而设",
+    "No sign-up. Your data stays on your phone, and family members get their own profiles.": "无需注册。你的数据保存在手机上，家人也可以拥有自己的资料。",
+    "Back up to move phones": "备份以便更换手机",
+    "Tap ? to see this guide again": "点按 ? 可再次查看本指南",
     "Private, and for the whole family": "私密，适合全家使用",
     "No sign-up: just create your profile. Everything stays on your phone, and family members can add their own profiles.": "无需注册：只需创建你的个人资料。所有数据都保存在你的手机上，家庭成员也可以添加自己的资料。",
     "Back up to a file to move to a new phone": "备份到文件，方便转移到新手机",
