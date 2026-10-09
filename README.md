@@ -89,12 +89,14 @@ Good to know:
 
 ### For maintainers: publishing a download
 
-Push a version tag and CI builds the Android APK and the unsigned iPhone IPA and attaches both to a new GitHub Release:
+Either way, CI builds the Android APK and the unsigned iPhone IPA and attaches both to a GitHub Release:
 
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+- **From GitHub (no command line):** **Actions** → **Mobile apps** → **Run workflow**, type a version such as `v1.0.1` in *Publish a GitHub Release*, and run it.
+- **From git:**
+  ```bash
+  git tag v1.0.1
+  git push origin v1.0.1
+  ```
 
 Photo recognition and accounts need the server running somewhere (see [Run it](#run-it)). Set the repository variable `API_URL` before tagging so the APK knows where your server is.
 
