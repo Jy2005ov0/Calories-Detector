@@ -257,6 +257,36 @@ textarea {
   gap: 12px;
 }
 
+.title-row > .large-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.title-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  max-width: 50%;
+}
+
+/* Too narrow for both side by side: avatar above the streak. */
+@media (max-width: 380px) {
+  .title-actions {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+}
+
+.title-actions .streak-chip {
+  margin-bottom: 0;
+}
+
+.title-row > .title-actions {
+  margin-bottom: 8px;
+}
+
 .section-header {
   font-size: 0.8125rem;
   text-transform: uppercase;

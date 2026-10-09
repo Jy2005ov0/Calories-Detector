@@ -68,6 +68,11 @@ function dayKey(offset: number) {
 
 async function audit(page: Page, screen: string, issues: Issue[]) {
   await page.waitForTimeout(800); // let springs and page transitions settle
+  // The greeting depends on the time of day; check the longest one ("Good afternoon") whenever the scan runs.
+  await page.evaluate(() => {
+    const greet = document.querySelector(".title-row .large-title")?.firstChild;
+    if (greet && /^Good (morning|evening)$/.test(greet.textContent ?? "")) greet.textContent = "Good afternoon";
+  });
   // Don't judge a toast mid-fade.
   await page
     .waitForFunction(() => Array.from(document.querySelectorAll(".toast")).every((t) => getComputedStyle(t).opacity === "1"), null, { timeout: 3000 })

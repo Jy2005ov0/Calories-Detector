@@ -162,15 +162,20 @@ export function Today({ go, openSheet }: { go: (t: Tab) => void; openSheet: (k: 
           {greet}
           {profile.name ? `, ${profile.name}` : ""}
         </h1>
-        {household > 1 && (
-          <button className="pressable" style={{ background: "none", border: 0, padding: 0, marginLeft: "auto" }} onClick={() => setPeopleOpen(true)} aria-label={t("Switch person")}>
-            <PersonAvatar id={personId} name={profile.name} size={36} />
-          </button>
-        )}
-        {streak > 0 && (
-          <button className="streak-chip pressable" onClick={() => openSheet("progress")} aria-label={t("{n}-day logging streak", { n: streak })}>
-            <Flame size={15} /> {streak}
-          </button>
+        {(household > 1 || streak > 0) && (
+          // Stacked on the right, so a long name and "Good afternoon" never push them off a small screen.
+          <div className="title-actions">
+            {household > 1 && (
+              <button className="pressable" style={{ background: "none", border: 0, padding: 0 }} onClick={() => setPeopleOpen(true)} aria-label={t("Switch person")}>
+                <PersonAvatar id={personId} name={profile.name} size={36} />
+              </button>
+            )}
+            {streak > 0 && (
+              <button className="streak-chip pressable" onClick={() => openSheet("progress")} aria-label={t("{n}-day logging streak", { n: streak })}>
+                <Flame size={15} /> {streak}
+              </button>
+            )}
+          </div>
         )}
       </div>
       <div className="spacer" />
