@@ -3,6 +3,9 @@ import type { AreaDict } from "./index";
 // Translations for cycle tracking. Keys are the exact English strings passed to t().
 export const CYCLE: AreaDict = {
   ms: {
+    "Track my period?": "Jejak haid saya?",
+    "First day of your last period": "Hari pertama haid terakhir anda",
+    "Optional. See your cycle phase with training and food tips, and get a reminder before your period. You can change this in Profile.": "Pilihan. Lihat fasa kitaran anda dengan tip latihan dan makanan, serta dapatkan peringatan sebelum haid. Anda boleh mengubahnya dalam Profil.",
     // People (family members)
     "No name": "Tiada nama",
     "Clock out of the current workout first": "Daftar keluar daripada latihan semasa dahulu",
@@ -68,6 +71,9 @@ export const CYCLE: AreaDict = {
     "Expected {date}": "Dijangka {date}",
   },
   zh: {
+    "Track my period?": "记录我的经期？",
+    "First day of your last period": "上次经期的第一天",
+    "Optional. See your cycle phase with training and food tips, and get a reminder before your period. You can change this in Profile.": "可选。查看你的周期阶段及训练和饮食建议，并在经期前收到提醒。你可以在个人资料中更改。",
     // People (family members)
     "No name": "未命名",
     "Clock out of the current workout first": "请先结束当前训练",

@@ -30,6 +30,8 @@ async function onboard(page: Page, name: string, opts: { sex?: "Male" | "Female"
   await page.getByLabel("Age").fill("28");
   await page.getByLabel("Height").fill("160");
   await page.getByLabel("Weight").fill(opts.weight ?? "64");
+  // Only women are asked about period tracking.
+  await expect(page.getByRole("switch", { name: "Track my period?" })).toHaveCount(opts.sex === "Male" ? 0 : 1);
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: /Lose fat/ }).click();
   await page.getByRole("button", { name: "Continue" }).click();
@@ -367,6 +369,8 @@ test("Family: Aina adds her mum, each gets their own plan and log, and they swit
   await start(page);
   await onboard(page, "Aina", { weight: "58" });
 
+  await expect(page.getByTestId("cycle-card")).toHaveCount(0);
+
   // Aina logs breakfast.
   await tab(page, "Food");
   await page.getByLabel("Search foods").fill("roti canai");
@@ -393,6 +397,9 @@ test("Family: Aina adds her mum, each gets their own plan and log, and they swit
   await page.getByLabel("Age").fill("55");
   await page.getByLabel("Height").fill("152");
   await page.getByLabel("Weight").fill("70");
+  // Women are asked (optionally) about period tracking during setup.
+  await page.getByRole("switch", { name: "Track my period?" }).click();
+  await page.getByLabel("First day of your last period").fill("2026-09-20");
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: /Lose fat/ }).click();
   await page.getByRole("button", { name: "Continue" }).click();
@@ -406,6 +413,8 @@ test("Family: Aina adds her mum, each gets their own plan and log, and they swit
   await expect(page.getByRole("heading", { name: /Good \w+, Mum/ })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   expect(Number((await page.locator(".stat", { hasText: "Eaten" }).locator(".stat-value").innerText()).replace(/\D/g, ""))).toBe(0);
+  // Her cycle from setup: 20 September → day 23 on 12 October.
+  await expect(page.getByTestId("cycle-card")).toContainText("Day 23 · Luteal phase");
 
   // Switch back to Aina from the avatar on Today; her breakfast is still there.
   await page.getByRole("button", { name: "Switch person" }).click();

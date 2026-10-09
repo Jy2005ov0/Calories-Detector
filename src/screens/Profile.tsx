@@ -532,6 +532,7 @@ export function Onboarding() {
   // Signed in with Google/Apple/email? Start with the account's first name (not for someone being added).
   const [p, setP] = useState<P>(() => ({ ...stored, name: stored.name || (adding ? "" : getAccount().user?.name?.split(" ")[0]) || "" }));
   const [step, setStep] = useState(adding ? 1 : 0);
+  const [lastPeriod, setLastPeriod] = useState("");
   const set = (x: Partial<P>) => setP((o) => ({ ...o, ...x }));
   const within = (v: number, [lo, hi]: [number, number]) => v >= lo && v <= hi;
   const valid = within(p.age, AGE) && within(p.heightCm, HEIGHT) && within(p.weightKg, WEIGHT);
@@ -564,7 +565,33 @@ export function Onboarding() {
       ),
       ok: true,
     },
-    { title: t("About you"), sub: t("Used to calculate how many calories your body needs."), body: <ProfileFields p={p} set={set} draft />, ok: valid },
+    {
+      title: t("About you"),
+      sub: t("Used to calculate how many calories your body needs."),
+      body: (
+        <>
+          <ProfileFields p={p} set={set} draft />
+          {p.sex === "female" && (
+            <>
+              <div className="group" style={{ marginTop: 12 }}>
+                <div className="field">
+                  <label>{t("Track my period?")}</label>
+                  <Switch checked={p.cycle.on} onChange={(on) => set({ cycle: { ...p.cycle, on } })} label={t("Track my period?")} />
+                </div>
+                {p.cycle.on && (
+                  <div className="field">
+                    <label htmlFor="ob-period">{t("First day of your last period")}</label>
+                    <input id="ob-period" type="date" value={lastPeriod} max={todayKey()} onChange={(e) => setLastPeriod(e.target.value)} style={{ width: "auto", minWidth: 140, flex: "none" }} />
+                  </div>
+                )}
+              </div>
+              <p className="footnote">{t("Optional. See your cycle phase with training and food tips, and get a reminder before your period. You can change this in Profile.")}</p>
+            </>
+          )}
+        </>
+      ),
+      ok: valid,
+    },
     { title: t("Your goal"), sub: t("You can change this any time."), body: <OptionList options={GOALS} value={p.goal} onChange={(goal) => set({ goal })} />, ok: true },
     { title: t("How active are you?"), sub: t("Outside of the workouts you'll log here."), body: <OptionList options={ACTIVITY} value={p.activity} onChange={(activity) => set({ activity })} />, ok: true },
     {
@@ -644,7 +671,12 @@ export function Onboarding() {
           className="btn"
           disabled={!s.ok}
           onClick={() => {
-            if (last) actions.updateProfile({ ...p, onboarded: true });
+            if (last) {
+              // Cycle tracking only applies to women; the last period date is optional.
+              const cycleOn = p.sex === "female" && p.cycle.on;
+              actions.updateProfile({ ...p, cycle: { ...p.cycle, on: cycleOn }, onboarded: true });
+              if (cycleOn && lastPeriod) actions.logPeriod(lastPeriod);
+            }
             else setStep(step + 1);
           }}
         >
