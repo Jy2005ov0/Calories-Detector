@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import { SocialLogin } from "@capgo/capacitor-social-login";
 import { t } from "../i18n";
 import { mergeStates } from "./merge";
-import { apiUrl, isNative, platform, readDurable, writeDurable } from "./platform";
+import { apiConfigured, apiUrl, isNative, platform, readDurable, writeDurable } from "./platform";
 import { getState, INITIAL_STATE, parseState, replaceState, subscribe } from "./store";
 
 export type Provider = "password" | "google" | "apple";
@@ -95,7 +95,11 @@ class ApiError extends Error {
   }
 }
 
+/** Shown when this copy of the app was built without the address of a W server. */
+export const NO_SERVER = () => t("Accounts need the W server, and this copy of the app isn't connected to one yet. You can use W without an account.");
+
 async function api<T>(method: string, path: string, body?: unknown): Promise<T> {
+  if (!apiConfigured) throw new ApiError(503, NO_SERVER());
   let res: Response;
   try {
     res = await fetch(apiUrl(path), {
@@ -106,6 +110,8 @@ async function api<T>(method: string, path: string, body?: unknown): Promise<T> 
   } catch {
     throw new ApiError(0, t("You're offline. Check your connection and try again."));
   }
+  // Anything but JSON (e.g. the app's own page) means the server address is wrong.
+  if (!(res.headers.get("content-type") ?? "").includes("json")) throw new ApiError(503, t("Couldn't reach the W server. Check the server address the app was built with."));
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) throw new ApiError(res.status, (data.error as string) ?? t("Something went wrong ({status}).", { status: res.status }), data);
   return data as T;
@@ -114,6 +120,7 @@ async function api<T>(method: string, path: string, body?: unknown): Promise<T> 
 interface AuthConfig {
   google: boolean;
   apple: boolean;
+  appleWeb?: boolean;
   googleWebClientId?: string;
   googleIosClientId?: string;
   appleServiceId?: string;
@@ -151,11 +158,26 @@ export async function logIn(email: string, password: string) {
 let socialReady: Promise<void> | null = null;
 
 /** Native Google/Apple sheet on iOS and Android, popup on the web. Returns false if the user cancels. */
+/**
+ * The iPhone file on GitHub is installed with Sideloadly/AltStore and signed with a free Apple ID,
+ * which Apple doesn't allow to use Sign in with Apple. CI marks that build so the button is hidden.
+ */
+export const SIDELOADED = import.meta.env.VITE_SIDELOAD === "1";
+
+/** Whether this sign-in method can work here (server set up, and allowed for this kind of install). */
+export function providerAvailable(cfg: AuthConfig, provider: "google" | "apple") {
+  if (provider === "google") return cfg.google;
+  if (platform === "ios") return cfg.apple && !SIDELOADED;
+  return !!cfg.appleWeb;
+}
+
 export async function signInWith(provider: "google" | "apple"): Promise<boolean> {
   const cfg = await authConfig();
   const label = provider === "google" ? "Google" : "Apple";
-  const appleAvailable = cfg.apple && (platform === "ios" || !!cfg.appleRedirectUrl);
-  if ((provider === "google" && !cfg.google) || (provider === "apple" && !appleAvailable)) {
+  if (provider === "apple" && platform === "ios" && SIDELOADED) {
+    throw new Error(t("Sign in with Apple only works in the App Store or TestFlight version. Use email or Google instead."));
+  }
+  if (!providerAvailable(cfg, provider)) {
     throw new Error(t("{provider} sign-in isn't set up on this server yet. Use email for now.", { provider: label }));
   }
   socialReady ??= SocialLogin.initialize({

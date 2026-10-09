@@ -183,6 +183,8 @@ for (const set of SETS) {
       await pg.route("https://world.openfoodfacts.org/**", (r) => r.fulfill({ json: { products: [] } }));
       await pg.route("**/api/analyze-photo", (r) => r.fulfill({ json: PHOTO_RESULT }));
       await pg.route("https://world.openfoodfacts.org/api/v2/product/**", (r) => r.fulfill({ json: MILO }));
+      // Shown as the App Store / TestFlight version, where Apple and Google sign-in are set up.
+      await pg.route("**/api/auth/config", (r) => r.fulfill({ json: { google: true, apple: true, appleWeb: true } }));
       await pg.route("**/api/coach", (r) => r.fulfill({ status: 200, contentType: "text/plain; charset=utf-8", body: COACH_REPLY }));
       await pg.goto("/");
       return pg;

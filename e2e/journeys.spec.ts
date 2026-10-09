@@ -495,15 +495,13 @@ test("Nadia: creates an account, switches phones, and her data follows her", asy
   const password = "kopi-o-kosong-2026";
   await start(page, { fakeClock: false });
 
-  // 1. Welcome offers Apple, Google, email, or no account.
-  await expect(page.getByRole("button", { name: "Continue with Apple" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
+  // 1. Welcome offers email or no account. Google and Apple aren't set up on the test server,
+  //    so their buttons aren't shown (rather than failing when tapped).
+  await expect(page.getByRole("button", { name: "Sign up with email" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Continue without an account" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue with Google" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Continue with Apple" })).toHaveCount(0);
   await expectNoHorizontalScroll(page);
-
-  // Google isn't configured on the test server → a clear explanation, not a dead button.
-  await page.getByRole("button", { name: "Continue with Google" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Google sign-in isn't set up" })).toBeVisible();
 
   // 2. Sign up with email. Weak passwords are explained inline.
   await page.getByRole("button", { name: "Sign up with email" }).click();
@@ -622,10 +620,10 @@ test("First launch: the step-by-step guide comes first and can be swiped, steppe
   // Finishing goes to sign-in; the guide doesn't come back after a reload.
   await guide.getByRole("tab", { name: /Page 5:/ }).click();
   await guide.getByRole("button", { name: "Get started" }).click();
-  await expect(page.getByRole("button", { name: "Continue with Apple" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue without an account" })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("region", { name: "Welcome guide" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Continue with Apple" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue without an account" })).toBeVisible();
 });
 
 test("First launch: Skip goes straight to sign-in", async ({ page }) => {
@@ -740,4 +738,18 @@ test("A dish can take your own custom food as an extra (regression: used to cras
   await expect(page.getByTestId("dish-parts")).toContainText("Mak's sambal sotong");
   await expect(page.getByRole("dialog").first().locator(".big-number")).toHaveText("686"); // 506 + 180
   expect(errors).toEqual([]);
+});
+
+test("Sign in with Apple and Google are offered once the server is set up for them", async ({ page }) => {
+  await page.route("**/api/auth/config", (r) => r.fulfill({ json: { google: true, apple: true, appleWeb: true, googleWebClientId: "x.apps.googleusercontent.com" } }));
+  await start(page, { fakeClock: false });
+  await expect(page.getByRole("button", { name: "Continue with Apple" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
+});
+
+test("Apple isn't offered on the website or Android until a Services ID is set up (the iPhone app only needs the bundle ID)", async ({ page }) => {
+  await page.route("**/api/auth/config", (r) => r.fulfill({ json: { google: true, apple: true, appleWeb: false } }));
+  await start(page, { fakeClock: false });
+  await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue with Apple" })).toHaveCount(0);
 });

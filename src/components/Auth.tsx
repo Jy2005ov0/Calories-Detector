@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { motion } from "motion/react";
 import { Eye, EyeOff, Mail } from "lucide-react";
-import { continueAsGuest, logIn, register, signInWith } from "../lib/account";
+import { authConfig, continueAsGuest, logIn, NO_SERVER, providerAvailable, register, signInWith } from "../lib/account";
+import { apiConfigured } from "../lib/platform";
 import { t, useLanguage } from "../i18n";
 import { haptic, Segmented, Sheet, showToast, SPRING } from "./ui";
 
@@ -23,6 +24,17 @@ const GoogleLogo = () => (
 export function SocialButtons({ onDone }: { onDone?: () => void }) {
   useLanguage();
   const [busy, setBusy] = useState<null | "google" | "apple">(null);
+  // Only offer what works here; until the server answers, show both.
+  const [shown, setShown] = useState({ apple: true, google: true });
+  useEffect(() => {
+    let live = true;
+    authConfig()
+      .then((cfg) => live && setShown({ apple: providerAvailable(cfg, "apple"), google: providerAvailable(cfg, "google") }))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
   const go = async (p: "google" | "apple") => {
     setBusy(p);
     try {
@@ -38,12 +50,16 @@ export function SocialButtons({ onDone }: { onDone?: () => void }) {
   };
   return (
     <div style={{ display: "grid", gap: 10 }}>
-      <button className="btn auth-apple" onClick={() => go("apple")} disabled={busy !== null}>
-        {busy === "apple" ? <div className="spinner" /> : <AppleLogo />} {t("Continue with Apple")}
-      </button>
-      <button className="btn auth-google" onClick={() => go("google")} disabled={busy !== null}>
-        {busy === "google" ? <div className="spinner" /> : <GoogleLogo />} {t("Continue with Google")}
-      </button>
+      {shown.apple && (
+        <button className="btn auth-apple" onClick={() => go("apple")} disabled={busy !== null}>
+          {busy === "apple" ? <div className="spinner" /> : <AppleLogo />} {t("Continue with Apple")}
+        </button>
+      )}
+      {shown.google && (
+        <button className="btn auth-google" onClick={() => go("google")} disabled={busy !== null}>
+          {busy === "google" ? <div className="spinner" /> : <GoogleLogo />} {t("Continue with Google")}
+        </button>
+      )}
     </div>
   );
 }
@@ -193,22 +209,36 @@ export function Welcome() {
           </p>
         </div>
       </div>
-      <SocialButtons />
-      <div className="spacer" />
-      <button className="btn secondary" onClick={() => setSheet("signup")}>
-        <Mail size={18} /> {t("Sign up with email")}
-      </button>
-      <p style={{ textAlign: "center", margin: "22px 0 0", fontSize: 15 }}>
-        <span className="muted">{t("Already have an account?")} </span>
-        <button className="link bold tap" onClick={() => setSheet("login")}>
-          {t("Log in")}
-        </button>
-      </p>
-      <p style={{ textAlign: "center", margin: "26px 0 0" }}>
-        <button className="link tap" onClick={continueAsGuest} style={{ fontSize: 15 }}>
-          {t("Continue without an account")}
-        </button>
-      </p>
+      {apiConfigured ? (
+        <>
+          <SocialButtons />
+          <div className="spacer" />
+          <button className="btn secondary" onClick={() => setSheet("signup")}>
+            <Mail size={18} /> {t("Sign up with email")}
+          </button>
+          <p style={{ textAlign: "center", margin: "22px 0 0", fontSize: 15 }}>
+            <span className="muted">{t("Already have an account?")} </span>
+            <button className="link bold tap" onClick={() => setSheet("login")}>
+              {t("Log in")}
+            </button>
+          </p>
+          <p style={{ textAlign: "center", margin: "26px 0 0" }}>
+            <button className="link tap" onClick={continueAsGuest} style={{ fontSize: 15 }}>
+              {t("Continue without an account")}
+            </button>
+          </p>
+        </>
+      ) : (
+        // Built without a server address: accounts can't work, so don't offer them.
+        <>
+          <p className="footnote" style={{ textAlign: "center", margin: "0 8px 14px" }}>
+            {NO_SERVER()}
+          </p>
+          <button className="btn" onClick={continueAsGuest}>
+            {t("Continue without an account")}
+          </button>
+        </>
+      )}
       <p className="footnote" style={{ textAlign: "center", margin: "14px 8px 0" }}>
         {t("Without an account, your data stays only on this phone.")}
       </p>

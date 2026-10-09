@@ -191,7 +191,9 @@ export function authRouter(db: DB, cfg: AuthConfig) {
   r.get("/config", (_req, res) => {
     res.json({
       google: cfg.googleClientIds.length > 0,
-      apple: cfg.appleClientIds.length > 0 && !!cfg.publicConfig.appleServiceId,
+      // The iPhone app only needs the bundle ID; the website and Android also need a Services ID and redirect URL.
+      apple: cfg.appleClientIds.length > 0,
+      appleWeb: cfg.appleClientIds.length > 0 && !!cfg.publicConfig.appleServiceId && !!cfg.publicConfig.appleRedirectUrl,
       ...cfg.publicConfig,
     });
   });

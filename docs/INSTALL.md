@@ -174,7 +174,7 @@ With an account (Profile → *Back up & sync*), your data is also in the cloud, 
 | **Sideloadly doesn't see the iPhone** (Windows) | Use iTunes and iCloud from **Apple's website**, not the Microsoft Store; unlock the phone and tap **Trust**; try another cable or USB port. |
 | **Login or "Guru Meditation" errors in Sideloadly** | Check the Apple ID email and password, approve the two-factor prompt on the phone, and update Sideloadly. A spare Apple ID often helps. |
 | **"Maximum number of apps"** | A free Apple ID allows 3 sideloaded apps at once. Remove one under **Settings → General → VPN & Device Management**, or delete an old sideloaded app. |
-| **Sign in with Apple or Apple Health doesn't work** | Expected in sideloaded builds (see [What works](#what-works-in-a-sideloaded-build)). Use email or Google to sign in. |
+| **No "Continue with Apple" button, or Apple Health doesn't work** | Expected in sideloaded builds: Apple only allows these for apps signed by a paid developer account (see [What works](#what-works-in-a-sideloaded-build)). Use email or Google to sign in. |
 
 ### Both
 

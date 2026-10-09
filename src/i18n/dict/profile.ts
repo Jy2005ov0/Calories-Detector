@@ -3,6 +3,9 @@ import type { AreaDict } from "./index";
 // Translations for the profile area. Keys are the exact English strings passed to t().
 export const PROFILE: AreaDict = {
   ms: {
+    "Accounts need the W server, and this copy of the app isn't connected to one yet. You can use W without an account.": "Akaun memerlukan pelayan W, dan salinan aplikasi ini belum disambungkan kepadanya. Anda boleh menggunakan W tanpa akaun.",
+    "Couldn't reach the W server. Check the server address the app was built with.": "Tidak dapat menghubungi pelayan W. Semak alamat pelayan yang digunakan semasa membina aplikasi.",
+    "Sign in with Apple only works in the App Store or TestFlight version. Use email or Google instead.": "Log masuk dengan Apple hanya berfungsi dalam versi App Store atau TestFlight. Gunakan e-mel atau Google.",
     // Account card & sync
     "Syncing…": "Menyegerak…",
     "Offline · will sync when you're back online": "Luar talian · akan disegerakkan apabila dalam talian",
@@ -202,6 +205,9 @@ export const PROFILE: AreaDict = {
     Continue: "Teruskan",
   },
   zh: {
+    "Accounts need the W server, and this copy of the app isn't connected to one yet. You can use W without an account.": "账户功能需要 W 服务器，而此版本的应用尚未连接到服务器。你可以不登录直接使用 W。",
+    "Couldn't reach the W server. Check the server address the app was built with.": "无法连接 W 服务器。请检查构建应用时设置的服务器地址。",
+    "Sign in with Apple only works in the App Store or TestFlight version. Use email or Google instead.": "通过 Apple 登录仅适用于 App Store 或 TestFlight 版本。请改用电子邮件或 Google。",
     // Account card & sync
     "Syncing…": "同步中…",
     "Offline · will sync when you're back online": "离线 · 恢复联网后将同步",

@@ -175,6 +175,15 @@ describe("Google and Apple", () => {
   it("publishes which providers are available", async () => {
     const c = await call("GET", "/api/auth/config");
     expect(c.body).toMatchObject({ google: true, apple: true, googleWebClientId: "web-client.apps.googleusercontent.com" });
+    // No redirect URL configured, so Apple on the website/Android isn't offered.
+    expect(c.body.appleWeb).toBe(false);
+  });
+
+  it("offers Sign in with Apple to the iPhone app with just the bundle ID (no web Services ID)", async () => {
+    const iosOnly = createApp(openDb(":memory:"), { googleClientIds: [], appleClientIds: ["com.caloriesdetector.app"], publicConfig: {} }).listen(0);
+    const res = await fetch(`http://127.0.0.1:${(iosOnly.address() as AddressInfo).port}/api/auth/config`);
+    expect(await res.json()).toMatchObject({ google: false, apple: true, appleWeb: false });
+    iosOnly.close();
   });
 });
 

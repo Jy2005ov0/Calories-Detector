@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Cloud, CloudOff, LogOut, RefreshCw, Trash2 } from "lucide-react";
-import { deleteAccount, signOut, useAccount, type Provider } from "../lib/account";
+import { deleteAccount, NO_SERVER, signOut, useAccount, type Provider } from "../lib/account";
 import { t, useLanguage } from "../i18n";
-import { confirmDialog } from "../lib/platform";
+import { apiConfigured, confirmDialog } from "../lib/platform";
 import { EmailAuthSheet } from "./Auth";
 import { showToast, useNow } from "./ui";
 
@@ -41,14 +41,20 @@ export function AccountCard() {
               </div>
             </div>
           </div>
-          <div className="btn-row" style={{ marginTop: 14 }}>
-            <button className="btn secondary" onClick={() => setSheet("login")}>
-              {t("Log in")}
-            </button>
-            <button className="btn" onClick={() => setSheet("signup")}>
-              {t("Create account")}
-            </button>
-          </div>
+          {apiConfigured ? (
+            <div className="btn-row" style={{ marginTop: 14 }}>
+              <button className="btn secondary" onClick={() => setSheet("login")}>
+                {t("Log in")}
+              </button>
+              <button className="btn" onClick={() => setSheet("signup")}>
+                {t("Create account")}
+              </button>
+            </div>
+          ) : (
+            <p className="footnote" style={{ margin: "12px 0 0" }}>
+              {NO_SERVER()}
+            </p>
+          )}
         </div>
         <EmailAuthSheet open={sheet !== null} mode={sheet ?? "signup"} onClose={() => setSheet(null)} />
       </>

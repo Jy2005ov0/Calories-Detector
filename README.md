@@ -259,10 +259,26 @@ Users can **Continue with Apple**, **Continue with Google**, **sign up with emai
 
 ### Setting up Google and Apple sign-in
 
-Fill in the variables in `.env.example` on the server. The app reads them from `/api/auth/config` at runtime, so no rebuild is needed.
+Both need accounts only you can create, so they're off until you set them up. Until then the app hides their buttons and offers email sign-in, which works out of the box. Set the variables from `.env.example` on your server; the app reads them from `/api/auth/config` when it opens. The phone apps must also know where your server is: set the GitHub repository variable `API_URL` (e.g. `https://w.example.com`) before publishing a release.
 
-- **Google:** in Google Cloud Console create OAuth clients: *Web* (set `GOOGLE_WEB_CLIENT_ID`), *iOS* with bundle ID `com.caloriesdetector.app` (set `GOOGLE_IOS_CLIENT_ID`), and *Android* with your signing key's SHA-1 (add it to `GOOGLE_EXTRA_CLIENT_IDS`). For iOS, also add the iOS client's *reversed client ID* as a URL scheme in Xcode (Target → Info → URL Types).
-- **Apple:** enable *Sign in with Apple* for the App ID (the Xcode project already has the entitlement). For the website and Android, create a *Services ID* and register `APPLE_REDIRECT_URL`. Apple sign-in on Android needs that redirect; without it the Android app offers Google and email.
+- **Google** (free, about 15 minutes). In [Google Cloud Console](https://console.cloud.google.com):
+  1. Create a project, then **APIs & Services → OAuth consent screen**: choose *External*, fill in the app name (W) and your email, and add yourself as a test user (or publish the app).
+  2. **APIs & Services → Credentials → Create credentials → OAuth client ID**, three times:
+     | Type | Settings | Put the client ID in |
+     |---|---|---|
+     | **Web application** | Authorised JavaScript origins: your server's address, e.g. `https://w.example.com` | `GOOGLE_WEB_CLIENT_ID` on the server |
+     | **Android** | Package name `com.caloriesdetector.app`, SHA-1 `4F:6F:9A:31:A1:0D:48:DF:27:95:78:F7:06:A3:38:BC:0E:68:68:49` (the key the release APK is signed with, see [android/keystore](android/keystore/README.md)) | `GOOGLE_EXTRA_CLIENT_IDS` on the server |
+     | **iOS** | Bundle ID `com.caloriesdetector.app` | `GOOGLE_IOS_CLIENT_ID` on the server **and** as a GitHub repository variable `GOOGLE_IOS_CLIENT_ID` (Settings → Secrets and variables → Actions → Variables), so CI adds the URL scheme the iPhone app needs |
+  3. Restart the server, then publish a new release (Actions → Mobile apps → Run workflow) so the iPhone app gets the URL scheme. **Continue with Google** appears as soon as the server has the IDs.
+
+  Building on a Mac instead of CI? Add the iOS client's *reversed client ID* (`com.googleusercontent.apps.…`) as a URL scheme in Xcode (Target → Info → URL Types).
+- **Apple:** needs a paid **Apple Developer Program** membership ($99/year) — Apple doesn't allow Sign in with Apple in apps signed with a free Apple ID.
+  1. In Certificates, Identifiers & Profiles, open the App ID `com.caloriesdetector.app` (or yours) and tick **Sign in with Apple**. The Xcode project already has the entitlement.
+  2. On the server set `APPLE_BUNDLE_ID` to that bundle ID (it defaults to `com.caloriesdetector.app`). That's all the **iPhone app** needs.
+  3. Install the iPhone app signed by that team: from Xcode, **TestFlight** or the App Store.
+  4. Optional, for the **website and Android:** create a *Services ID* (`APPLE_SERVICE_ID`) with your domain and return URL (`APPLE_REDIRECT_URL`).
+
+  The app only shows **Continue with Apple** where it can work. It's hidden in the sideloaded `W.ipa` from Releases (free Apple ID), and on Android and the web until the Services ID is set up. Email and Google work everywhere.
 
 ## iOS & Android apps
 
