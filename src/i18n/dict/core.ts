@@ -158,8 +158,8 @@ export const CORE: AreaDict = {
     "Tap Clock in when you start. A live timer counts your time and calories. Log sets and weights, then clock out to save the workout.":
       "Ketik Daftar masuk apabila anda mula. Pemasa langsung mengira masa dan kalori anda. Catat set dan berat, kemudian daftar keluar untuk menyimpan latihan.",
     "Log other activities": "Catat aktiviti lain",
-    "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 230+ exercises and sports.":
-      "Main futsal atau pergi berlari? Catat di sini bersama tempohnya dan kalori ditambah ke hari anda. Terdapat 230+ senaman dan sukan.",
+    "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 650+ exercises and sports.":
+      "Main futsal atau pergi berlari? Catat di sini bersama tempohnya dan kalori ditambah ke hari anda. Terdapat 650+ senaman dan sukan.",
     "Your training plan": "Pelan latihan anda",
     "Choose a split (Chest, Back, Legs, Shoulders, Arms, or others) and your days per week. Open a day to see sets, reps and form tips, then start it.":
       "Pilih pembahagian (Dada, Belakang, Kaki, Bahu, Lengan, atau lain-lain) dan bilangan hari seminggu. Buka satu hari untuk melihat set, ulangan dan tip teknik, kemudian mulakan.",
@@ -182,7 +182,7 @@ export const CORE: AreaDict = {
     "Snap or search your food": "Snap atau cari makanan anda",
     "Take a photo of your plate and the app works out what's on it and how many calories it has.":
       "Ambil foto pinggan anda dan aplikasi akan kenal pasti isinya serta jumlah kalorinya.",
-    "700+ foods from around the world": "700+ makanan dari seluruh dunia",
+    "1,700+ foods from around the world": "1,700+ makanan dari seluruh dunia",
     "Millions of packaged products online": "Berjuta-juta produk berbungkus dalam talian",
     "Build and save your own meals": "Bina dan simpan hidangan anda sendiri",
     "Know if it's good for you": "Ketahui sama ada ia baik untuk anda",
@@ -193,7 +193,7 @@ export const CORE: AreaDict = {
     "Daily limits on the Today screen": "Had harian pada skrin Hari ini",
     "Start a workout with one tap. A live timer counts your time and calories while you log sets and weights.":
       "Mulakan latihan dengan satu ketikan. Pemasa langsung mengira masa dan kalori semasa anda mencatat set dan berat.",
-    "230+ exercises and sports": "230+ senaman dan sukan",
+    "650+ exercises and sports": "650+ senaman dan sukan",
     "Calories from real activity data": "Kalori daripada data aktiviti sebenar",
     "Workouts add calories back to your day": "Latihan menambah semula kalori ke hari anda",
     "A plan made for your body": "Pelan yang dibuat untuk badan anda",
@@ -429,8 +429,8 @@ export const CORE: AreaDict = {
     "Tap Clock in when you start. A live timer counts your time and calories. Log sets and weights, then clock out to save the workout.":
       "开始时点击开始打卡，实时计时器会记录时间和热量。记录组数和重量，结束打卡即可保存训练。",
     "Log other activities": "记录其他活动",
-    "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 230+ exercises and sports.":
-      "踢了五人足球或去跑步了？在这里记录时长，热量会计入当天。共有 230+ 种运动项目。",
+    "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 650+ exercises and sports.":
+      "踢了五人足球或去跑步了？在这里记录时长，热量会计入当天。共有 650+ 种运动项目。",
     "Your training plan": "你的训练计划",
     "Choose a split (Chest, Back, Legs, Shoulders, Arms, or others) and your days per week. Open a day to see sets, reps and form tips, then start it.":
       "选择训练分化（胸、背、腿、肩、手臂等）和每周天数。打开某一天查看组数、次数和动作要点，然后开始训练。",
@@ -452,7 +452,7 @@ export const CORE: AreaDict = {
     "You can replay the guide from the ? button any time.": "随时可通过 ? 按钮重新查看指南。",
     "Snap or search your food": "拍照或搜索食物",
     "Take a photo of your plate and the app works out what's on it and how many calories it has.": "给餐盘拍张照，应用就能识别食物并算出热量。",
-    "700+ foods from around the world": "700+ 种世界各地的食物",
+    "1,700+ foods from around the world": "1,700+ 种世界各地的食物",
     "Millions of packaged products online": "数百万种在线包装食品",
     "Build and save your own meals": "创建并保存自己的餐食",
     "Know if it's good for you": "了解是否健康",
@@ -463,7 +463,7 @@ export const CORE: AreaDict = {
     "Daily limits on the Today screen": "今天页面显示每日上限",
     "Start a workout with one tap. A live timer counts your time and calories while you log sets and weights.":
       "一键开始训练。记录组数和重量时，实时计时器会统计时间和热量。",
-    "230+ exercises and sports": "230+ 种运动项目",
+    "650+ exercises and sports": "650+ 种运动项目",
     "Calories from real activity data": "热量基于真实运动数据",
     "Workouts add calories back to your day": "训练会把热量加回当天",
     "A plan made for your body": "为你的身体定制的计划",

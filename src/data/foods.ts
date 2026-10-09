@@ -1,6 +1,7 @@
 import type { Food } from "../lib/types";
 import { COMPONENT_ROWS, RECIPES } from "./dishes";
 import { WORLD_ROWS } from "./worldFoods";
+import { MORE_ROWS } from "./moreFoods";
 
 // Values are per 100 g (or 100 ml for drinks), compiled from USDA FoodData Central
 // and the Malaysian Food Composition Database. Cooked dishes include typical oil.
@@ -166,8 +167,8 @@ const rows: Row[] = [
   ["Egg white", "Eggs & Dairy", 52, 10.9, 0.7, 0.2, 0, 0.7, 0, 166, "1 large", 33],
   ["Half-boiled eggs", "Eggs & Dairy", 143, 12.6, 0.7, 9.5, 0, 0.4, 3.1, 142, "2 eggs", 100, "telur separuh masak"],
   ["Salted egg", "Eggs & Dairy", 190, 13, 3.5, 13.5, 0, 0, 3.8, 2700, "1 egg", 55, "telur masin"],
-  ["Full cream milk", "Eggs & Dairy", 61, 3.2, 4.8, 3.3, 0, 5.1, 1.9, 43, "1 glass", 250, "susu"],
-  ["Low fat milk", "Eggs & Dairy", 42, 3.4, 5, 1, 0, 5.1, 0.6, 44, "1 glass", 250, "skim"],
+  ["Full cream milk", "Eggs & Dairy", 61, 3.2, 4.8, 3.3, 0, 4.8, 1.9, 43, "1 glass", 250, "susu"],
+  ["Low fat milk", "Eggs & Dairy", 42, 3.4, 5, 1, 0, 5, 0.6, 44, "1 glass", 250, "skim"],
   ["Soy milk (unsweetened)", "Eggs & Dairy", 33, 2.9, 1.7, 1.6, 0.4, 0.4, 0.2, 51, "1 glass", 250, "soya"],
   ["Soy milk (sweetened)", "Eggs & Dairy", 54, 3.3, 6.3, 1.8, 0.6, 4, 0.2, 51, "1 glass", 250, "air soya"],
   ["Oat milk", "Eggs & Dairy", 48, 1, 6.6, 1.5, 0.8, 3.2, 0.2, 42, "1 glass", 250],
@@ -449,7 +450,8 @@ const rows: Row[] = [
   ["BCAA drink", "Supplements", 0, 0, 0, 0, 0, 0, 0, 30, "1 scoop", 10],
 ];
 
-const BASE: Food[] = [...rows, ...WORLD_ROWS, ...COMPONENT_ROWS].map((r, i) => ({
+// IDs are positional: new rows are only ever appended at the end.
+const BASE: Food[] = [...rows, ...WORLD_ROWS, ...COMPONENT_ROWS, ...MORE_ROWS].map((r, i) => ({
   id: `db-${i}`,
   name: r[0],
   category: r[1],
