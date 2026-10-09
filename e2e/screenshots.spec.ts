@@ -80,6 +80,20 @@ function seed() {
     coach: [],
     deleted: [],
     stamps: {},
+    // Three 28-day cycles; the next period is due in 3 days.
+    periods: [-81, -53, -25].map((d, i) => ({ id: `p${i}`, date: dayKey(d), createdAt: i })),
+    personId: "aisyah",
+    people: [
+      {
+        id: "mum",
+        data: { profile: { name: "Mum", sex: "female", age: 56, heightCm: 154, weightKg: 68, activity: 1.375, goal: "lose", experience: "beginner", trainingDays: 3, diet: "halal", onboarded: true }, log: [], sessions: [], stamps: {} },
+      },
+      {
+        id: "adam",
+        data: { profile: { name: "Adam", sex: "male", age: 17, heightCm: 171, weightKg: 58, activity: 1.725, goal: "gain", experience: "beginner", trainingDays: 4, diet: "halal", onboarded: true }, log: [], sessions: [], stamps: {} },
+      },
+    ],
+    removedPeople: [],
   };
 }
 
@@ -333,6 +347,23 @@ for (const set of SETS) {
     await shot("profile-allergies-fasting");
     await scrollTo("Reminders");
     await shot("profile-reminders-language");
+
+    // Cycle tracking
+    await page.getByRole("switch", { name: "Track my cycle" }).click();
+    await scrollTo("Cycle");
+    await shot("profile-cycle");
+    await tab("Today");
+    await page.getByTestId("cycle-card").evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 300));
+    await shot("cycle-today");
+    await tab("Profile");
+    await page.getByRole("switch", { name: "Track my cycle" }).click();
+
+    // Family members
+    await tab("Today");
+    await page.getByRole("button", { name: "Switch person" }).click();
+    await shot("switch-person");
+    await closeSheet();
+    await tab("Profile");
 
     // Ramadan mode
     await page.getByRole("tab", { name: "Ramadan" }).click();

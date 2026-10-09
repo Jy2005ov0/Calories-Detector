@@ -24,7 +24,13 @@ function seedState() {
   const n = (kcal: number, p: number, c: number, f: number) => ({ ...ZERO, kcal, protein: p, carbs: c, fat: f, sugar: c / 5, sodium: kcal * 1.2, satFat: f / 3, fiber: 2 });
   const now = Date.now();
   return {
-    profile: { name: "Aisyah binti Abdullah", sex: "female", age: 27, heightCm: 162, weightKg: 61, activity: 1.55, goal: "lose", experience: "intermediate", trainingDays: 5, diet: "halal", onboarded: true },
+    profile: { name: "Aisyah binti Abdullah", sex: "female", age: 27, heightCm: 162, weightKg: 61, activity: 1.55, goal: "lose", experience: "intermediate", trainingDays: 5, diet: "halal", onboarded: true, cycle: { on: true, length: 28, periodDays: 5, remind: true } },
+    periods: [-53, -25].map((d, i) => ({ id: `p${i}`, date: dayKey(d), createdAt: i })),
+    personId: "me",
+    people: [
+      { id: "mum", data: { profile: { name: "Puan Rohana binti Ismail (Mum)", sex: "female", age: 56, heightCm: 154, weightKg: 68, activity: 1.375, goal: "lose", experience: "beginner", trainingDays: 3, diet: "halal", onboarded: true }, stamps: {} } },
+    ],
+    removedPeople: [],
     log: [
       { id: "l1", date: key, meal: "breakfast", name: "Nasi lemak ayam goreng with extra sambal and telur mata", grams: 400, nutrients: n(860, 38, 80, 44), source: "db", createdAt: now - 5e6 },
       { id: "l2", date: key, meal: "breakfast", name: "Teh tarik", grams: 250, nutrients: n(185, 4, 31, 5), source: "db", createdAt: now - 4.9e6 },
@@ -323,6 +329,10 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await dialog().getByRole("button", { name: /dinner/ }).click();
   await expect(dialog().locator(".bubble.assistant li")).toHaveCount(3);
   await audit(page, "Coach · answer", issues);
+  await close();
+
+  await page.getByRole("button", { name: "Switch person" }).click();
+  await audit(page, "Switch person", issues);
   await close();
 
   // ── Food ───────────────────────────────────────────
