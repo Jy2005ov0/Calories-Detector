@@ -191,7 +191,7 @@ export const CORE: AreaDict = {
     "Snap or search your food": "Snap atau cari makanan anda",
     "Take a photo of your plate and the app works out what's on it and how many calories it has.":
       "Ambil foto pinggan anda dan aplikasi akan kenal pasti isinya serta jumlah kalorinya.",
-    "1,700+ foods from around the world": "1,700+ makanan dari seluruh dunia",
+    "11,000+ foods from around the world": "11,000+ makanan dari seluruh dunia",
     "Millions of packaged products online": "Berjuta-juta produk berbungkus dalam talian",
     "Build and save your own meals": "Bina dan simpan hidangan anda sendiri",
     "Know if it's good for you": "Ketahui sama ada ia baik untuk anda",
@@ -470,7 +470,7 @@ export const CORE: AreaDict = {
     "You can replay the guide from the ? button any time.": "随时可通过 ? 按钮重新查看指南。",
     "Snap or search your food": "拍照或搜索食物",
     "Take a photo of your plate and the app works out what's on it and how many calories it has.": "给餐盘拍张照，应用就能识别食物并算出热量。",
-    "1,700+ foods from around the world": "1,700+ 种世界各地的食物",
+    "11,000+ foods from around the world": "11,000+ 种世界各地的食物",
     "Millions of packaged products online": "数百万种在线包装食品",
     "Build and save your own meals": "创建并保存自己的餐食",
     "Know if it's good for you": "了解是否健康",

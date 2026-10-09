@@ -131,7 +131,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/09-barcode-scanner.jpg" width="190" alt="Scan a barcode"><br><sub>Scan a barcode</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/10-barcode-product.jpg" width="190" alt="Packaged food from its barcode"><br><sub>Packaged food from its barcode</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/14-food.jpg" width="190" alt="Food home"><br><sub>Food home</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/15-food-search.jpg" width="190" alt="Search 1,700+ world foods"><br><sub>Search 1,700+ world foods</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/15-food-search.jpg" width="190" alt="Search 11,000+ foods"><br><sub>Search 11,000+ foods</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/16-food-health-check.jpg" width="190" alt="Health grade and goal check"><br><sub>Health grade and goal check</sub></td>
 </tr></table>
 
@@ -207,7 +207,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/09-barcode-scanner.jpg" width="190" alt="Scan a barcode"><br><sub>Scan a barcode</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/10-barcode-product.jpg" width="190" alt="Packaged food from its barcode"><br><sub>Packaged food from its barcode</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/14-food.jpg" width="190" alt="Food home"><br><sub>Food home</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/15-food-search.jpg" width="190" alt="Search 1,700+ world foods"><br><sub>Search 1,700+ world foods</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/15-food-search.jpg" width="190" alt="Search 11,000+ foods"><br><sub>Search 11,000+ foods</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/16-food-health-check.jpg" width="190" alt="Health grade and goal check"><br><sub>Health grade and goal check</sub></td>
 </tr></table>
 
@@ -260,7 +260,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 | | |
 |---|---|
 | **Photo calories** | Snap a meal with the camera, or pick one from your **photo library** (one tap from the *Photos* button on Today or the *Photo library* tile on Food). Claude vision lists each food, estimates the grams and works out the calories and macros. You can fix the grams before logging. |
-| **Food search** | 1,730 built-in foods (per 100 g, from USDA, UK CoFID and the Malaysian Food Composition Database) across 26 cuisines and groups: Malaysian, Chinese, Japanese, Korean, Thai & Vietnamese, Indian, Middle Eastern, Italian, Mexican & Latin American, American & British, European and African & Caribbean, plus everyday staples. Typing 3+ letters also searches **Open Food Facts** (millions of packaged products, no key needed). |
+| **Food search** | 11,000+ foods: 2,560 hand-checked dishes and ingredients (per 100 g, from USDA, UK CoFID and the Malaysian Food Composition Database) plus the full 8,789-food USDA SR28 database, across 26 cuisines and groups: Malaysian, Chinese, Japanese, Korean, Thai & Vietnamese, Indian, Middle Eastern, Italian, Mexican & Latin American, American & British, European and African & Caribbean, plus everyday staples. Typing 3+ letters also searches **Open Food Facts** (millions of packaged products, no key needed). |
 | **Meal builder** | Combine any foods and quantities. See live totals, a health grade (A–E) and whether it fits your goal. Then log it or save it to reuse later. |
 | **Custom foods** | Copy any nutrition label into *My Foods*. |
 | **Health check** | Every food and meal gets a 0–100 score (protein and fibre per calorie versus sugar, saturated fat and sodium) plus a verdict against what you still have left today. |

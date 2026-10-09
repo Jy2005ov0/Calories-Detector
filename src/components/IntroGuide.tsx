@@ -18,7 +18,7 @@ export const INTRO_SLIDES: Slide[] = [
     colors: ["#0a84ff", "#5e5ce6"],
     title: "Snap or search your food",
     body: "Take a photo of your plate and the app works out what's on it and how many calories it has.",
-    points: ["1,700+ foods from around the world", "Millions of packaged products online", "Build and save your own meals"],
+    points: ["11,000+ foods from around the world", "Millions of packaged products online", "Build and save your own meals"],
   },
   {
     Icon: HeartPulse,
