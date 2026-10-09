@@ -146,6 +146,10 @@ describe("personal records and progressive overload", () => {
     expect(isNewRecord(history, "s-1", { weightKg: 62.5, reps: 8, done: true }, "now")).toBe(true);
     expect(isNewRecord(history, "s-1", { weightKg: 50, reps: 8, done: true }, "now")).toBe(false);
     expect(isNewRecord([], "s-1", { weightKg: 50, reps: 8, done: true }, "now")).toBe(false);
+    // A second set at the same weight in the same workout isn't another record.
+    const live = { ...session("now", 8, [[62.5, 8]]), endedAt: undefined };
+    expect(isNewRecord([...history, live], "s-1", { weightKg: 62.5, reps: 8, done: true }, "now")).toBe(false);
+    expect(isNewRecord([...history, live], "s-1", { weightKg: 65, reps: 8, done: true }, "now")).toBe(true);
   });
 });
 

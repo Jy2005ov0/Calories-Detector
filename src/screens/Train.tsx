@@ -225,9 +225,11 @@ export function Train() {
                         index={i}
                         set={set}
                         onChange={(next) => {
+                          // Check for a record against what was done before this set is saved.
+                          const record = next.done && !set.done && isNewRecord(getState().sessions, ex.exerciseId, next, active.id);
                           updateEx(ex.id, (e) => ({ ...e, sets: e.sets!.map((s, j) => (j === i ? next : s)) }));
                           if (next.done && !set.done) {
-                            if (isNewRecord(getState().sessions, ex.exerciseId, next, active.id)) {
+                            if (record) {
                               haptic("success");
                               showToast(t("New personal record · {name} {kg} kg × {reps}", { name: ex.name, kg: next.weightKg, reps: next.reps }));
                             }

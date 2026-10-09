@@ -67,9 +67,19 @@ export function suggestNext(last: { sets: SetEntry[] } | null, targetReps: strin
   return { weightKg: top, text: t("Stay at {kg} kg and aim for {reps}+ reps", { kg: top, reps: Math.min(upper, best + 1) }) };
 }
 
-/** True when this set beats the person's previous best for the exercise. */
+/**
+ * True when this set beats the person's previous best for the exercise — across past workouts
+ * and the sets already done today, so a second set at the same weight isn't another "record".
+ * The first time someone does a lift there is nothing to beat, so it isn't a record either.
+ */
 export function isNewRecord(sessions: WorkoutSession[], exerciseId: string, set: SetEntry, currentSessionId: string) {
   if (!set.done || set.weightKg <= 0 || set.reps <= 0) return false;
-  const prev = personalRecords(sessions.filter((s) => s.id !== currentSessionId)).find((b) => b.exerciseId === exerciseId);
-  return !!prev && e1rm(set.weightKg, set.reps) > prev.e1rm + 0.01;
+  const past = personalRecords(sessions.filter((s) => s.id !== currentSessionId)).find((b) => b.exerciseId === exerciseId);
+  if (!past) return false;
+  const today = sessions
+    .find((s) => s.id === currentSessionId)
+    ?.exercises.filter((e) => e.exerciseId === exerciseId)
+    .flatMap((e) => doneSets(e))
+    .reduce((m, x) => Math.max(m, e1rm(x.weightKg, x.reps)), 0) ?? 0;
+  return e1rm(set.weightKg, set.reps) > Math.max(past.e1rm, today) + 0.01;
 }

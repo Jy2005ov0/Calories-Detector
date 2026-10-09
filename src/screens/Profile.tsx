@@ -119,7 +119,7 @@ function TimeField({ id, label, value, onChange }: { id: string; label: string; 
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
-      <input id={id} type="time" value={value} onChange={(e) => e.target.value && onChange(e.target.value)} style={{ width: 110 }} />
+      <input id={id} type="time" value={value} onChange={(e) => e.target.value && onChange(e.target.value)} style={{ width: "auto", minWidth: 120, flex: "none" }} />
     </div>
   );
 }

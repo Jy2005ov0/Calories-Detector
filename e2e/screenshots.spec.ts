@@ -226,7 +226,7 @@ for (const set of SETS) {
     await shot("barcode-scanner");
     await sheet().getByLabel("Barcode number").fill("9556001234567");
     await sheet().getByRole("button", { name: "Look up" }).click();
-    await expect(page.getByRole("dialog", { name: "Milo 3in1 Activ-Go" })).toBeVisible();
+    await expect(page.getByRole("dialog").getByRole("heading", { name: "Milo 3in1 Activ-Go" })).toBeVisible();
     await shot("barcode-product");
     await closeSheet();
 
@@ -269,6 +269,7 @@ for (const set of SETS) {
     await page.getByRole("button", { name: /Hiding foods you avoid/ }).click();
     await shot("halal-filter");
     await page.locator(".row", { hasText: "Char siu (BBQ pork)" }).first().click();
+    await page.getByRole("dialog").getByRole("alert").evaluate((el) => el.scrollIntoView({ block: "center" }));
     await shot("halal-warning");
     await closeSheet();
     await page.getByRole("button", { name: /Showing all foods/ }).click();
@@ -290,13 +291,14 @@ for (const set of SETS) {
     await closeSheet();
     await page.getByRole("button", { name: /Clock in & start/ }).click();
     const bench = page.locator(".card", { hasText: "Barbell bench press" }).first();
-    // Last week was 40 kg × 10 on every set, so the app pre-fills 42.5 kg.
-    for (const set of [1, 2]) {
-      await bench.getByLabel(`Set ${set} reps`).fill("10");
-      await bench.getByRole("button", { name: "Mark set done" }).first().click();
-    }
-    await expect(page.locator(".toast")).toContainText("New personal record");
+    // Last week was 40 kg × 10 on every set, so the app pre-fills 42.5 kg — set 1 is a new record.
+    await bench.getByLabel("Set 1 reps").fill("10");
+    await bench.getByRole("button", { name: "Mark set done" }).first().click();
+    await expect(page.locator(".toast", { hasText: "New personal record" })).toBeVisible();
     await shot("workout-rest-timer-record", 600);
+    await page.getByRole("timer", { name: "Rest timer" }).getByRole("button", { name: "Skip" }).click();
+    await bench.getByLabel("Set 2 reps").fill("10");
+    await bench.getByRole("button", { name: "Mark set done" }).first().click();
     await page.getByRole("timer", { name: "Rest timer" }).getByRole("button", { name: "Skip" }).click();
     await bench.getByLabel("Set 3 reps").fill("8");
     await bench.getByRole("button", { name: "Mark set done" }).first().click();
