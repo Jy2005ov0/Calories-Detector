@@ -93,6 +93,18 @@ describe("mergeStates", () => {
     expect(mergeStates(removed, withKid).people).toEqual([]);
   });
 
+  it("one person's Delete all data never wipes someone else", () => {
+    const phone1 = state({ personId: "a", resetAt: 5_000_000, stamps: { log: 5_000_000 } });
+    const cloud = state({ personId: "a", people: [{ id: "d", data: state({ log: [entry("d1", 1000)], stamps: { log: 1000 } }) }] });
+    const once = mergeStates(phone1, cloud);
+    const twice = mergeStates(once, cloud);
+    for (const m of [once, twice]) {
+      const d = m.people.find((p) => p.id === "d")!.data;
+      expect(d.log.map((e) => e.id)).toEqual(["d1"]);
+      expect(d.resetAt).toBeUndefined();
+    }
+  });
+
   it("merges settings field by field", () => {
     // Weight changed on the phone; split changed later in the cloud. Both survive.
     const phone = state({ profile: { ...DEFAULT_PROFILE, weightKg: 80, onboarded: true }, split: "auto", stamps: { profile: 10, split: 1 } });

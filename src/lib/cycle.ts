@@ -1,5 +1,8 @@
 import { t as tr } from "../i18n";
-import type { CycleSettings, PeriodEntry } from "./types";
+import type { CycleSettings, PeriodEntry, Profile } from "./types";
+
+/** Cycle settings that apply: tracking is only for women, even if it was switched on before a change of sex. */
+export const cycleOf = (p: Pick<Profile, "sex" | "cycle">): CycleSettings => ({ ...p.cycle, on: !!p.cycle?.on && p.sex === "female" });
 
 // Menstrual cycle: predictions from the user's own logged period starts. Estimates for planning
 // training and food around how you feel; not medical advice and not a method of contraception.

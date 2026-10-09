@@ -41,17 +41,22 @@ export interface AppState {
   people: PersonSnapshot[];
   /** People removed from the household, so sync doesn't bring them back. */
   removedPeople: string[];
+  /** While a new person is being set up: who to go back to on Cancel. */
+  returnTo?: string;
 }
 
 /** Settings shared by everyone on the phone; everything else is per person. */
 export const SHARED_KEYS = ["theme", "language", "introDone", "tourDone"] as const;
-const HOUSEHOLD_KEYS = ["personId", "people", "removedPeople"] as const;
+const HOUSEHOLD_KEYS = ["personId", "people", "removedPeople", "returnTo"] as const;
 type SharedKey = (typeof SHARED_KEYS)[number] | (typeof HOUSEHOLD_KEYS)[number];
 export type PersonData = Omit<AppState, SharedKey>;
 export interface PersonSnapshot {
   id: string;
   data: PersonData;
 }
+
+/** When the household-wide settings last changed. */
+const sharedStamps = () => Object.fromEntries(SHARED_KEYS.filter((k) => state.stamps[k]).map((k) => [k, state.stamps[k]]));
 
 /** One person's part of the state. */
 export function personData(s: AppState): PersonData {
@@ -71,6 +76,8 @@ export function everyone(s: AppState): Map<string, AppState> {
 const fill = (d: Partial<PersonData>): PersonData => ({
   ...personData(initial),
   ...d,
+  // Optional, so set explicitly: one person's reset date must never carry over to another.
+  resetAt: d.resetAt,
   profile: { ...DEFAULT_PROFILE, ...d.profile },
   reminders: { ...DEFAULT_REMINDERS, ...d.reminders },
 });
@@ -385,18 +392,24 @@ export const actions = {
       language: state.language,
       introDone: true,
       tourDone: true,
+      stamps: sharedStamps(),
       personId: uid(),
       people: [...state.people, { id: state.personId, data: personData(state) }],
       removedPeople: state.removedPeople,
+      returnTo: state.personId,
     });
   },
   /** Switch who is using the app. Nothing is changed, so nothing looks newer to sync. */
   switchPerson(id: string) {
     const target = state.people.find((p) => p.id === id);
     if (!target) return;
+    const data = fill(target.data);
     commit({
       ...state,
-      ...fill(target.data),
+      ...data,
+      // Theme and language belong to the household: keep when they last changed.
+      stamps: { ...data.stamps, ...sharedStamps() },
+      returnTo: undefined,
       personId: id,
       people: [...state.people.filter((p) => p.id !== id), { id: state.personId, data: personData(state) }],
     });
@@ -408,7 +421,7 @@ export const actions = {
   },
   /** Back out of adding a person: go back to whoever was using the app before. */
   cancelNewPerson() {
-    const back = state.people[state.people.length - 1];
+    const back = state.people.find((p) => p.id === state.returnTo) ?? state.people[state.people.length - 1];
     if (!back || state.profile.onboarded) return;
     const leaving = state.personId;
     actions.switchPerson(back.id);

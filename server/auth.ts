@@ -74,7 +74,11 @@ export function rateLimiter(max: number, windowMs: number) {
     if (hits.size > 10_000 && now - pruned > windowMs / 10) {
       pruned = now;
       for (const [k, v] of hits) if (now - v[v.length - 1] > windowMs) hits.delete(k);
-      if (hits.size > 50_000) hits.clear();
+      // Still too many: drop the oldest keys (a Map keeps insertion order), never everyone's counters at once.
+      for (const k of hits.keys()) {
+        if (hits.size <= 40_000) break;
+        hits.delete(k);
+      }
     }
     return recent.length > max;
   };

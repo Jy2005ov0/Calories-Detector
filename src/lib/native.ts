@@ -5,7 +5,7 @@ import { Share } from "@capacitor/share";
 import { t } from "../i18n";
 import { buildPlan, sessionFromPlan, sessionKcal } from "./fitness";
 import { isNative, platform } from "./platform";
-import { cycleStatus } from "./cycle";
+import { cycleOf, cycleStatus } from "./cycle";
 import { minutesOf } from "./progress";
 import { actions, getState, subscribe, todayKey, weekdayOf, type AppState } from "./store";
 
@@ -88,8 +88,8 @@ function reminderSchedule(s: AppState): LocalNotificationSchema[] {
       });
     }
   }
-  const c = p.cycle;
-  const cycle = c?.on && c.remind ? cycleStatus(c, s.periods ?? [], todayKey()) : null;
+  const c = cycleOf(p);
+  const cycle = c.on && c.remind ? cycleStatus(c, s.periods ?? [], todayKey()) : null;
   if (cycle) {
     // 9 am two days before, and on the day it's expected.
     const at = (daysBefore: number) => {
@@ -115,7 +115,7 @@ const allReminderIds = () =>
 export async function syncReminders(s: AppState = getState()) {
   if (!isNative) return;
   const wanted = reminderSchedule(s);
-  const any = s.reminders.meals || s.reminders.water || s.reminders.gym || (s.profile.cycle?.on && s.profile.cycle.remind);
+  const any = s.reminders.meals || s.reminders.water || s.reminders.gym || (cycleOf(s.profile).on && s.profile.cycle.remind);
   if (any && !(await notificationsReady())) return;
   try {
     await LocalNotifications.cancel({ notifications: allReminderIds().map((id) => ({ id })) });

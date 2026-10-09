@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FOOD_BY_NAME } from "../data/foods";
 import { conflicts, foodConflicts, foodTags } from "./allergens";
-import { averageLength, cycleStatus, periodDue, phaseTip } from "./cycle";
+import { averageLength, cycleOf, cycleStatus, periodDue, phaseTip } from "./cycle";
 import { recommendedFoods, sampleDay } from "./diet";
 import { toCsv } from "./export";
 import { fastStatus, logStreak, waterGoalMl, weightTrend, workoutWeekStreak } from "./progress";
@@ -203,6 +203,11 @@ describe("cycle tracking", () => {
     // A 60-day gap is a forgotten log, not a 60-day cycle.
     expect(averageLength(p("2026-06-01", "2026-07-01", "2026-08-30"), 28)).toBe(30);
     expect(averageLength(p("2026-06-01"), 28)).toBe(28);
+  });
+
+  it("only applies to women, even if it was on before a change of sex", () => {
+    expect(cycleOf({ sex: "female", cycle: on }).on).toBe(true);
+    expect(cycleOf({ sex: "male", cycle: on }).on).toBe(false);
   });
 
   it("is off until turned on, and needs a logged period", () => {

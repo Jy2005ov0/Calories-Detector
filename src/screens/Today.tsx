@@ -5,7 +5,7 @@ import { locale, t, useLanguage } from "../i18n";
 import { mealLabel, mealOptions } from "../lib/api";
 import { formatDuration, plural, sessionKcal, sessionMinutes } from "../lib/fitness";
 import { bmi, round, sum, targets } from "../lib/nutrition";
-import { cycleStatus, periodDue, phaseName, phaseTip } from "../lib/cycle";
+import { cycleOf, cycleStatus, periodDue, phaseName, phaseTip } from "../lib/cycle";
 import { fastStatus, logStreak } from "../lib/progress";
 import { bmiBand } from "../lib/recommend";
 import { actions, useStore, useTodayKey } from "../lib/store";
@@ -51,9 +51,10 @@ const longDate = (key: string) => {
 
 /** Cycle day, phase and what it means for training and food; a one-tap "Period started" when it's due. */
 function CycleCard({ today }: { today: string }) {
-  const cycle = useStore((s) => s.profile.cycle);
+  const profile = useStore((s) => s.profile);
   const periods = useStore((s) => s.periods);
-  if (!cycle?.on) return null;
+  const cycle = cycleOf(profile);
+  if (!cycle.on) return null;
   const c = cycleStatus(cycle, periods, today);
   const log = () => {
     actions.logPeriod(today);
