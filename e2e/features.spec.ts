@@ -72,6 +72,8 @@ test("Siti: halal, peanut allergy and Ramadan — warnings, filters, sahur/iftar
   await page.getByLabel("Search foods").fill("char siu");
   await page.locator(".row", { hasText: "Char siu (BBQ pork)" }).click();
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Not halal · contains pork");
+  // The verdict agrees with the warning instead of calling it a good fit.
+  await expect(page.getByRole("dialog")).toContainText("Not suitable for you");
   await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
 
   // Plan: the sample day is sahur, iftar (with dates) and moreh, with nothing she avoids.

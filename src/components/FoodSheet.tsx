@@ -4,7 +4,7 @@ import type { RecipePart } from "../data/dishes";
 import { recipeTotals } from "../data/foods";
 import { FoodPicker } from "./MealBuilder";
 import { t, useLanguage } from "../i18n";
-import { foodConflicts } from "../lib/allergens";
+import { foodConflicts, withConflicts } from "../lib/allergens";
 import { defaultMeal, mealLabel, mealOptions } from "../lib/api";
 import {
   healthReport,
@@ -377,9 +377,7 @@ export function FoodSheet({
 
             <div className="section-header">{t("Is it good for me?")}</div>
             <AvoidCard conflicts={foodConflicts(food, profile)} />
-            <SuitabilityCard
-              s={suitability(n, tg, eaten, profile.goal, isWholeProduce(food))}
-            />
+            <SuitabilityCard s={withConflicts(suitability(n, tg, eaten, profile.goal, isWholeProduce(food)), foodConflicts(food, profile))} />
             <div className="spacer" />
             <HealthCard
               report={healthReport(n, { intrinsicSugar: isWholeProduce(food) })}

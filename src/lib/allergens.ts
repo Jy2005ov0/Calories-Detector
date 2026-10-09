@@ -145,3 +145,9 @@ export function foodConflicts(f: Food, p: Pick<Profile, "allergies" | "diet">) {
 export function hasRestrictions(p: Pick<Profile, "allergies" | "diet">) {
   return (p.allergies?.length ?? 0) > 0 || p.diet !== "anything";
 }
+
+/** A food that clashes with someone's allergies or diet is never "a great choice", whatever its numbers. */
+export function withConflicts<S extends { verdict: string; headline: string; reasons: string[] }>(s: S, found: Conflict[]): S {
+  if (!found.length) return s;
+  return { ...s, verdict: "avoid", headline: t("Not suitable for you"), reasons: [...found.map((c) => c.text), ...s.reasons] };
+}

@@ -8,7 +8,7 @@ import type { MealType, Nutrients } from "../lib/types";
 import { useTodayTotals } from "./FoodSheet";
 import { t, useLanguage } from "../i18n";
 import { AvoidCard, HealthCard, Segmented, Sheet, SuitabilityCard, haptic, showToast } from "./ui";
-import { conflicts, nameTags } from "../lib/allergens";
+import { conflicts, nameTags, withConflicts } from "../lib/allergens";
 
 interface Editable extends PhotoItem {
   baseGrams: number;
@@ -114,6 +114,7 @@ export function PhotoSheet({ open, onClose, start }: { open: boolean; onClose: (
   };
 
   const total = sum(items.map(itemNutrients));
+  const photoConflicts = result ? conflicts(new Set(items.flatMap((i) => [...nameTags(`${i.name} ${result.mealName}`)])), profile) : [];
   const tg = targets(profile);
 
   const addAll = () => {
@@ -254,8 +255,8 @@ export function PhotoSheet({ open, onClose, start }: { open: boolean; onClose: (
           {result.notes && <p className="footnote">{result.notes}</p>}
 
           <div className="section-header">{t("Is it good for me?")}</div>
-          <AvoidCard conflicts={conflicts(new Set(items.flatMap((i) => [...nameTags(`${i.name} ${result.mealName}`)])), profile)} />
-          <SuitabilityCard s={suitability(total, tg, eaten, profile.goal)} />
+          <AvoidCard conflicts={photoConflicts} />
+          <SuitabilityCard s={withConflicts(suitability(total, tg, eaten, profile.goal), photoConflicts)} />
           <div className="spacer" />
           <HealthCard report={healthReport(total)} />
 
