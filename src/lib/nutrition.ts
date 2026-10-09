@@ -61,8 +61,12 @@ export function targets(p: Profile): Targets {
   const adjust = p.goal === "lose" && p.fasting === "ramadan" ? -0.15 : GOAL_ADJUST[p.goal];
   const kcal = Math.max(floor, Math.round((tdee(p) * (1 + adjust)) / 10) * 10);
   // Protein: 2.0 g/kg while cutting (preserve muscle), 1.8 g/kg otherwise (ISSN position stand).
-  const protein = Math.round(p.weightKg * (p.goal === "lose" ? 2.0 : 1.8));
-  const fat = Math.round((kcal * (p.goal === "lose" ? 0.27 : 0.28)) / 9);
+  // Above a BMI of 25 it's based on the weight at BMI 25, since extra body fat doesn't need extra protein.
+  const m = p.heightCm / 100;
+  const leanRef = m > 0 ? Math.min(p.weightKg, 25 * m * m) : p.weightKg;
+  const protein = Math.round(leanRef * (p.goal === "lose" ? 2.0 : 1.8));
+  // At least 50 g carbs; fat gives way if the day is too small for both (it never drops below 20% of energy).
+  const fat = Math.round(Math.max(kcal * 0.2, Math.min(kcal * (p.goal === "lose" ? 0.27 : 0.28), kcal - protein * 4 - 200)) / 9);
   const carbs = Math.max(50, Math.round((kcal - protein * 4 - fat * 9) / 4));
   return {
     kcal,
@@ -108,7 +112,8 @@ export function healthReport(n: Nutrients, opts: { intrinsicSugar?: boolean } = 
   const negatives: string[] = [];
   if (n.kcal < 10 && n.sugar < 1 && n.sodium < 100) return { score: 100, grade: "A", positives: [tr("Practically calorie-free")], negatives };
 
-  const per100kcal = (v: number) => (v / n.kcal) * 100;
+  // Near-zero-calorie items (salt, stock, sugar-free syrup) would divide by ~0; 10 kcal is the floor.
+  const per100kcal = (v: number) => (v / Math.max(n.kcal, 10)) * 100;
   const proteinD = per100kcal(n.protein); // g per 100 kcal
   const fiberD = per100kcal(n.fiber);
   const sugarD = per100kcal(n.sugar);

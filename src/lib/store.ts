@@ -31,6 +31,8 @@ export interface AppState {
   deleted: string[];
   /** When each field last changed on this device; sync keeps the newer side field by field. */
   stamps: Partial<Record<keyof AppState, number>>;
+  /** When "Delete all data" was last used; synced copies from before it are dropped. */
+  resetAt?: number;
 }
 
 const KEY = "calories-detector:v1";
@@ -218,7 +220,8 @@ export const actions = {
     setState((s) => ({ log: s.log.filter((e) => e.id !== id), deleted: tombstone(s.deleted, id) }));
   },
   restoreLog(entry: LogEntry) {
-    setState((s) => ({ log: [...s.log, entry], deleted: s.deleted.filter((d) => d !== entry.id) }));
+    // A new id: the old one may already be synced as deleted, and sync never un-deletes.
+    setState((s) => ({ log: [...s.log, { ...entry, id: uid() }] }));
   },
   touchRecent(foodId: string) {
     setState((s) => ({ recentFoodIds: [foodId, ...s.recentFoodIds.filter((x) => x !== foodId)].slice(0, 20) }));
@@ -227,7 +230,11 @@ export const actions = {
     setState((s) => ({ customFoods: [f, ...s.customFoods] }));
   },
   saveCustomMeal(m: CustomMeal) {
-    setState((s) => ({ customMeals: [m, ...s.customMeals.filter((x) => x.id !== m.id)], deleted: s.deleted.filter((d) => d !== m.id) }));
+    setState((s) => {
+      // Undo of a delete comes back under a new id (sync never un-deletes an id).
+      const meal = { ...m, id: s.deleted.includes(m.id) ? uid() : m.id, updatedAt: Date.now() };
+      return { customMeals: [meal, ...s.customMeals.filter((x) => x.id !== m.id)] };
+    });
   },
   deleteCustomMeal(id: string) {
     setState((s) => ({ customMeals: s.customMeals.filter((x) => x.id !== id), deleted: tombstone(s.deleted, id) }));
@@ -238,18 +245,17 @@ export const actions = {
     return s.id;
   },
   updateSession(id: string, fn: (s: WorkoutSession) => WorkoutSession) {
-    setState((st) => ({ sessions: st.sessions.map((s) => (s.id === id ? fn(s) : s)) }));
+    setState((st) => ({ sessions: st.sessions.map((s) => (s.id === id ? { ...fn(s), updatedAt: Date.now() } : s)) }));
   },
   clockOut(id: string, kcal: number) {
     setState((st) => ({
-      sessions: st.sessions.map((s) => (s.id === id ? { ...s, endedAt: Date.now(), kcal: Math.round(kcal) } : s)),
+      sessions: st.sessions.map((s) => (s.id === id ? { ...s, endedAt: Date.now(), updatedAt: Date.now(), kcal: Math.round(kcal) } : s)),
       activeSessionId: null,
     }));
   },
   addSession(session: WorkoutSession) {
     setState((st) => ({
-      sessions: [...st.sessions, session].sort((a, b) => b.startedAt - a.startedAt),
-      deleted: st.deleted.filter((d) => d !== session.id),
+      sessions: [...st.sessions, { ...session, id: st.deleted.includes(session.id) ? uid() : session.id, updatedAt: Date.now() }].sort((a, b) => b.startedAt - a.startedAt),
     }));
   },
   discardSession(id: string) {
@@ -276,7 +282,7 @@ export const actions = {
     setState((s) => {
       const current = s.days.find((d) => d.id === date) ?? { id: date, waterMl: 0, steps: 0 };
       // Keep about a year of daily stats.
-      return { days: [...s.days.filter((d) => d.id !== date), fn(current)].sort((a, b) => a.id.localeCompare(b.id)).slice(-400) };
+      return { days: [...s.days.filter((d) => d.id !== date), { ...fn(current), updatedAt: Date.now() }].sort((a, b) => a.id.localeCompare(b.id)).slice(-400) };
     });
   },
   setReminders(r: Partial<Reminders>) {
@@ -301,8 +307,8 @@ export const actions = {
     setState({ split });
   },
   resetAll() {
-    // Every field is stamped as changed now, so the reset wins over older synced copies.
-    setState({ ...initial, stamps: {} });
+    // Every field is stamped as changed now, and resetAt tells sync to drop anything older.
+    setState({ ...initial, stamps: {}, resetAt: Date.now() });
   },
 };
 

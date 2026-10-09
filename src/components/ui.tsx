@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "motion/react";
-import { useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type InputHTMLAttributes, type ReactNode } from "react";
 import { CircleAlert, CircleCheck, Minus, Plus, ThumbsUp, TriangleAlert, X } from "lucide-react";
 import type { Grade, HealthReport, Suitability } from "../lib/nutrition";
 import type { Nutrients } from "../lib/types";
@@ -19,6 +19,63 @@ export function project(velocity: number, decelerationRate = 0.998) {
 }
 
 export { haptic };
+
+// ── Number input ────────────────────────────────────────
+
+const parseNum = (s: string) => parseFloat(s.replace(",", "."));
+
+/**
+ * A number box that keeps what's typed ("22.", "0,5", "") while only reporting finished,
+ * valid numbers. Typing 22.5 no longer turns into 225, and clearing the box doesn't save 0
+ * unless `emptyValue` says so.
+ */
+export function NumberInput({
+  value,
+  onChange,
+  min = 0,
+  max = Infinity,
+  integer = false,
+  emptyValue,
+  ...rest
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+  integer?: boolean;
+  /** Reported when the box is cleared; leave unset to keep the last good value instead. */
+  emptyValue?: number;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "min" | "max">) {
+  const show = (v: number) => (v ? String(v) : "");
+  const [text, setText] = useState(show(value));
+  // Follow changes made elsewhere (a stepper, a pre-filled suggestion) unless they match what's typed.
+  useEffect(() => {
+    if (parseNum(text) !== value && !(text === "" && !value)) setText(show(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  return (
+    <input
+      inputMode={integer ? "numeric" : "decimal"}
+      {...rest}
+      value={text}
+      onChange={(e) => {
+        const s = e.target.value.replace(integer ? /[^\d]/g : /[^\d.,]/g, "");
+        setText(s);
+        if (s === "") {
+          if (emptyValue !== undefined) onChange(emptyValue);
+          return;
+        }
+        const n = integer ? Math.round(parseNum(s)) : parseNum(s);
+        if (Number.isFinite(n) && n >= min && n <= max) onChange(n);
+      }}
+      onBlur={(e) => {
+        const n = parseNum(text);
+        if (!(text === "" && emptyValue !== undefined) && !(Number.isFinite(n) && n >= min && n <= max)) setText(show(value));
+        rest.onBlur?.(e);
+      }}
+    />
+  );
+}
 
 // ── Sheet ───────────────────────────────────────────────
 
@@ -78,7 +135,8 @@ export function Sheet({ open, onClose, title, left, right, children }: SheetProp
             aria-labelledby={titleId}
             initial={reduce ? { opacity: 0 } : { y: "100%" }}
             animate={reduce ? { opacity: 1 } : { y: 0 }}
-            exit={reduce ? { opacity: 0 } : { y: "100%" }}
+            // A closing sheet still shows its buttons; a second tap must not log twice.
+            exit={reduce ? { opacity: 0, pointerEvents: "none" } : { y: "100%", pointerEvents: "none" }}
             transition={SPRING}
             drag={reduce ? false : "y"}
             dragListener={false}

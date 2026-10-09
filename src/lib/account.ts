@@ -3,7 +3,7 @@ import { SocialLogin } from "@capgo/capacitor-social-login";
 import { t } from "../i18n";
 import { mergeStates } from "./merge";
 import { apiUrl, isNative, platform, readDurable, writeDurable } from "./platform";
-import { getState, parseState, replaceState, subscribe } from "./store";
+import { getState, INITIAL_STATE, parseState, replaceState, subscribe } from "./store";
 
 export type Provider = "password" | "google" | "apple";
 
@@ -26,6 +26,8 @@ interface AccountState {
   version: number;
   lastSyncedAt: number | null;
   status: SyncStatus;
+  /** The account this phone's data last belonged to. */
+  lastUserId?: string;
 }
 
 const KEY = "calories-detector:account";
@@ -66,6 +68,9 @@ export function useAccount() {
 }
 
 export const getAccount = () => account;
+
+/** Sends the session with AI requests so limits are per account rather than per network. */
+export const authHeaders = (): Record<string, string> => (account.token ? { Authorization: `Bearer ${account.token}` } : {});
 
 export async function hydrateAccount() {
   const durable = await readDurable(KEY).catch(() => null);
@@ -126,7 +131,10 @@ export function authConfig() {
 // ── Sign in / out ────────────────────────────────────────
 
 async function completeSignIn(res: { token: string; user: AccountUser }) {
-  set({ token: res.token, user: res.user, guest: false, version: 0, lastSyncedAt: null });
+  // A different person signing in on a shared phone mustn't get the previous account's data
+  // merged into theirs. (Data used without any account is still brought along.)
+  if (account.lastUserId && account.lastUserId !== res.user.id) replaceState({ ...INITIAL_STATE, stamps: {} });
+  set({ token: res.token, user: res.user, guest: false, version: 0, lastSyncedAt: null, lastUserId: res.user.id });
   // Bring this phone's data and the account's data together, then keep them in step.
   await pull();
   startSync();
@@ -189,7 +197,7 @@ export async function signOut() {
   stopSync();
   await api("POST", "/api/auth/logout").catch(() => {});
   if (isNative) SocialLogin.logout({ provider: "google" }).catch(() => {});
-  set({ token: null, user: null, version: 0, lastSyncedAt: null, status: "idle" });
+  set({ token: null, user: null, version: 0, lastSyncedAt: null, status: "idle", lastUserId: account.user?.id ?? account.lastUserId });
 }
 
 /** Deletes the account and everything stored on the server. Data on this phone is kept. */
@@ -241,22 +249,28 @@ async function push() {
   }
   busy = true;
   try {
-    for (let attempt = 0; attempt < 3; attempt++) {
+    let saved = false;
+    for (let attempt = 0; attempt < 3 && !saved; attempt++) {
       const json = JSON.stringify(getState());
-      if (json === lastSent) break;
+      if (json === lastSent) {
+        saved = true;
+        break;
+      }
       set({ status: "syncing" });
       try {
-        const saved = await api<Remote>("PUT", "/api/data", { baseVersion: account.version, data: getState() });
+        const result = await api<Remote>("PUT", "/api/data", { baseVersion: account.version, data: getState() });
         lastSent = json;
-        set({ version: saved.version });
-        break;
+        set({ version: result.version });
+        saved = true;
       } catch (e) {
         // Another device synced first: merge its copy into ours and try again.
         if (e instanceof ApiError && e.status === 409) adopt(e.body as unknown as Remote);
         else throw e;
       }
     }
-    set({ status: "synced", lastSyncedAt: Date.now() });
+    // Other phones kept winning the race: stay "syncing" and try again shortly.
+    if (saved) set({ status: "synced", lastSyncedAt: Date.now() });
+    else again = true;
   } catch (e) {
     handleError(e);
   } finally {
@@ -272,7 +286,7 @@ function handleError(e: unknown) {
   if (e instanceof ApiError && e.status === 401) {
     // Session expired or revoked elsewhere: keep the data, ask to sign in again.
     stopSync();
-    set({ token: null, user: null, version: 0, status: "idle" });
+    set({ token: null, user: null, version: 0, status: "idle", lastUserId: account.user?.id ?? account.lastUserId });
     return;
   }
   set({ status: e instanceof ApiError && e.status === 0 ? "offline" : "error" });

@@ -1,6 +1,7 @@
 import { apiConfigured, apiUrl } from "./platform";
 import { t } from "../i18n";
 import { getState } from "./store";
+import { authHeaders } from "./account";
 import type { Food, MealType, Profile } from "./types";
 
 // ── Open Food Facts (free, no key, millions of packaged products) ──
@@ -96,7 +97,7 @@ export async function analyzePhoto(base64: string, mediaType: string, hint: stri
   if (!apiConfigured) throw new Error(t("Photo analysis needs a server. Rebuild the app with VITE_API_URL set to your deployed server."));
   const res = await fetch(apiUrl("/api/analyze-photo"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ image: base64, mediaType, hint }),
     signal,
   });

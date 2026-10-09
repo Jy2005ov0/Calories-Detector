@@ -14,20 +14,27 @@ export function BarcodeSheet({ open, onClose, onFound, onNewFood }: { open: bool
   const [status, setStatus] = useState<Status>({ kind: "scanning" });
   const [code, setCode] = useState("");
   const busy = useRef(false);
+  // The camera keeps decoding; a code already looked up isn't looked up again.
+  const seen = useRef("");
+  const live = useRef(false);
+  live.current = open;
 
-  const lookup = async (raw: string) => {
+  const lookup = async (raw: string, fromCamera = false) => {
     const c = raw.replace(/\D/g, "");
-    if (c.length < 8 || busy.current) return;
+    if (c.length < 8 || busy.current || (fromCamera && c === seen.current)) return;
     busy.current = true;
+    seen.current = c;
     setStatus({ kind: "looking", code: c });
     try {
       const food = await lookupBarcode(c);
+      // The sheet may have been closed while the lookup was running.
+      if (!live.current) return;
       if (food) {
         haptic("success");
         onFound(food);
       } else setStatus({ kind: "not-found", code: c });
     } catch {
-      setStatus({ kind: "error", message: t("Couldn't reach the product database. Check your connection.") });
+      if (live.current) setStatus({ kind: "error", message: t("Couldn't reach the product database. Check your connection.") });
     } finally {
       busy.current = false;
     }
@@ -38,6 +45,7 @@ export function BarcodeSheet({ open, onClose, onFound, onNewFood }: { open: bool
     if (!open) return;
     setStatus({ kind: "scanning" });
     setCode("");
+    seen.current = "";
     let stop = () => {};
     let cancelled = false;
     (async () => {
@@ -49,8 +57,11 @@ export function BarcodeSheet({ open, onClose, onFound, onNewFood }: { open: bool
         stop = () => reader.reset();
         if (cancelled || !video.current) return stop();
         await reader.decodeFromConstraints({ video: { facingMode: "environment" }, audio: false }, video.current, (result) => {
-          if (result && !busy.current) lookup(result.getText());
+          if (cancelled) return stop();
+          if (result && !busy.current) lookup(result.getText(), true);
         });
+        // Closed while the camera was starting (e.g. during the permission prompt): turn it off.
+        if (cancelled) stop();
       } catch {
         if (!cancelled) setStatus({ kind: "no-camera" });
       }

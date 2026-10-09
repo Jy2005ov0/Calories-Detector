@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ArrowUp, Sparkles, Trash2 } from "lucide-react";
 import { LANGUAGES, t, useLanguage } from "../i18n";
 import { mealLabel } from "../lib/api";
+import { authHeaders } from "../lib/account";
 import { buildPlan, sessionKcal } from "../lib/fitness";
 import { round, sum, targets } from "../lib/nutrition";
 import { apiConfigured, apiUrl } from "../lib/platform";
@@ -117,7 +118,7 @@ export function CoachSheet({ open, onClose, initialQuestion }: { open: boolean; 
       if (!apiConfigured) throw new Error(t("The coach needs the app's server. Rebuild the app with VITE_API_URL set to your deployed server."));
       const res = await fetch(apiUrl("/api/coach"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ messages: history.map((m) => ({ role: m.role, text: m.text })), context: coachContext() }),
         signal: ctrl.signal,
       });

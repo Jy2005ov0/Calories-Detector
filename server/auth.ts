@@ -64,14 +64,28 @@ export function requireAuth(db: DB) {
 
 export function rateLimiter(max: number, windowMs: number) {
   const hits = new Map<string, number[]>();
+  let pruned = 0;
   return (key: string) => {
     const now = Date.now();
     const recent = (hits.get(key) ?? []).filter((t) => now - t < windowMs);
     recent.push(now);
     hits.set(key, recent);
-    if (hits.size > 10_000) for (const [k, v] of hits) if (now - v[v.length - 1] > windowMs) hits.delete(k);
+    // Drop stale keys now and then (not on every request), and never hold more than 50,000.
+    if (hits.size > 10_000 && now - pruned > windowMs / 10) {
+      pruned = now;
+      for (const [k, v] of hits) if (now - v[v.length - 1] > windowMs) hits.delete(k);
+      if (hits.size > 50_000) hits.clear();
+    }
     return recent.length > max;
   };
+}
+
+/** The signed-in user for a request, if it carries a valid session (doesn't require one). */
+export function optionalUser(db: DB, req: Request): string | undefined {
+  const header = req.get("authorization") ?? "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  const s = token ? db.session(sha256(token)) : undefined;
+  return s && s.expires_at >= Date.now() ? s.user_id : undefined;
 }
 
 // ── Google / Apple token verification ────────────────────
@@ -163,6 +177,8 @@ export function authRouter(db: DB, cfg: AuthConfig) {
   const r = Router();
   const tooManyLogins = rateLimiter(10, 15 * 60 * 1000);
   const tooManySignups = rateLimiter(20, 60 * 60 * 1000);
+  // Per email regardless of IP, so rotating addresses doesn't allow unlimited guessing.
+  const tooManyForEmail = rateLimiter(30, 15 * 60 * 1000);
 
   const ok = (res: Response, user: UserRow) => {
     res.json({ token: createSession(db, user.id), user: publicUser(db, user) });
@@ -186,10 +202,17 @@ export function authRouter(db: DB, cfg: AuthConfig) {
     }
     const id = randomUUID();
     const hash = await hashPassword(password);
-    db.transaction(() => {
-      db.insertUser({ id, email, name: name || null, password_hash: hash, email_verified: 0 });
-      db.linkIdentity("password", email, id);
-    });
+    try {
+      db.transaction(() => {
+        // Checked again here: two sign-ups for the same email can race past the check above.
+        if (db.userByEmail(email)) throw new Error("UNIQUE constraint failed: users.email");
+        db.insertUser({ id, email, name: name || null, password_hash: hash, email_verified: 0 });
+        db.linkIdentity("password", email, id);
+      });
+    } catch (e) {
+      if (/UNIQUE/.test(String((e as Error).message))) return void res.status(409).json({ error: "An account with this email already exists. Log in instead." });
+      throw e;
+    }
     ok(res, db.userById(id)!);
   });
 
@@ -197,7 +220,7 @@ export function authRouter(db: DB, cfg: AuthConfig) {
     const parsed = z.object({ email: Email, password: z.string().max(200) }).safeParse(req.body);
     if (!parsed.success) return void res.status(400).json({ error: "Enter your email and password." });
     const { email, password } = parsed.data;
-    if (tooManyLogins(`${req.ip}|${email}`)) return void res.status(429).json({ error: "Too many attempts. Wait 15 minutes and try again." });
+    if (tooManyLogins(`${req.ip}|${email}`) || tooManyForEmail(email)) return void res.status(429).json({ error: "Too many attempts. Wait 15 minutes and try again." });
     const user = db.userByEmail(email);
     const valid = await verifyPassword(password, user?.password_hash ?? (await DUMMY_HASH));
     if (!user || !user.password_hash || !valid) {

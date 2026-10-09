@@ -30,6 +30,32 @@ describe("mergeStates", () => {
     expect(mergeStates(state({ sessions: [newer], stamps: { sessions: 9 } }), state({ sessions: [older], stamps: { sessions: 1 } })).sessions[0].kcal).toBe(300);
   });
 
+  it("a finished workout isn't undone by a stale copy from a phone that changed another workout later", () => {
+    const finished = { ...session("w", 100, 200), kcal: 350, updatedAt: 210 };
+    const stale = session("w", 100);
+    const phoneA = state({ sessions: [finished], stamps: { sessions: 210 } });
+    const phoneB = state({ sessions: [stale, { ...session("v", 300), updatedAt: 400 }], stamps: { sessions: 400 } });
+    for (const merged of [mergeStates(phoneA, phoneB), mergeStates(phoneB, phoneA)]) {
+      const w = merged.sessions.find((s) => s.id === "w")!;
+      expect(w.endedAt).toBe(200);
+      expect(w.kcal).toBe(350);
+    }
+  });
+
+  it("Delete all data wins over older synced copies", () => {
+    const reset = state({ resetAt: 1000, profile: { ...DEFAULT_PROFILE, onboarded: false }, stamps: { log: 1000, profile: 1000, sessions: 1000 } });
+    const cloud = state({ log: [entry("a", 10), entry("b", 20)], sessions: [session("w", 30, 40)], profile: { ...DEFAULT_PROFILE, onboarded: true }, stamps: { log: 500, profile: 500, sessions: 500 } });
+    for (const merged of [mergeStates(reset, cloud), mergeStates(cloud, reset)]) {
+      expect(merged.log).toEqual([]);
+      expect(merged.sessions).toEqual([]);
+      expect(merged.profile.onboarded).toBe(false);
+      expect(merged.resetAt).toBe(1000);
+    }
+    // Anything logged after the reset is kept.
+    const after = state({ resetAt: 1000, log: [entry("c", 1100)], stamps: { log: 1100 } });
+    expect(mergeStates(after, cloud).log.map((e) => e.id)).toEqual(["c"]);
+  });
+
   it("merges settings field by field", () => {
     // Weight changed on the phone; split changed later in the cloud. Both survive.
     const phone = state({ profile: { ...DEFAULT_PROFILE, weightKg: 80, onboarded: true }, split: "auto", stamps: { profile: 10, split: 1 } });

@@ -67,7 +67,7 @@ export function bodyCheck(p: Profile, heightCm: number, weightKg: number): BodyC
   switch (band.key) {
     case "under":
       goal = "gain";
-      goalReason = tr("Gaining about {kg} kg, mostly muscle, would bring you into the healthy range.", { kg: Math.abs(Math.round(toHealthy)) });
+      goalReason = tr("Gaining about {kg} kg, mostly muscle, would bring you into the healthy range.", { kg: Math.max(1, Math.round(Math.abs(toHealthy))) });
       break;
     case "healthy":
       goal = p.goal === "lose" ? "maintain" : p.goal;
@@ -79,7 +79,7 @@ export function bodyCheck(p: Profile, heightCm: number, weightKg: number): BodyC
     default:
       goal = "lose";
       goalReason = tr("Losing about {kg} kg would bring you into the healthy range. At 0.5 kg a week that's around {weeks} weeks.", {
-        kg: Math.abs(Math.round(toHealthy)),
+        kg: Math.max(1, Math.round(Math.abs(toHealthy))),
         weeks: weeksToHealthy,
       });
   }

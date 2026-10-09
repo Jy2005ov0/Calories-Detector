@@ -85,6 +85,8 @@ export interface WeightEntry {
 /** Per-day extras. The id is the date (YYYY-MM-DD). */
 export interface DayStats {
   id: string;
+  /** When this item was last changed; sync keeps the newer copy. */
+  updatedAt?: number;
   waterMl: number;
   steps: number;
   /** Steps came from Apple Health / Health Connect rather than typed in. */
@@ -145,6 +147,8 @@ export interface SessionExercise {
 
 export interface WorkoutSession {
   id: string;
+  /** When this item was last changed; sync keeps the newer copy. */
+  updatedAt?: number;
   date: string;
   title: string;
   startedAt: number;
@@ -155,6 +159,8 @@ export interface WorkoutSession {
 
 export interface CustomMeal {
   id: string;
+  /** When this item was last changed; sync keeps the newer copy. */
+  updatedAt?: number;
   name: string;
   items: { foodId: string; name: string; grams: number; per100: Nutrients }[];
 }

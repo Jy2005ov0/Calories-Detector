@@ -146,7 +146,7 @@ export function ProgressSheet({ open, onClose }: { open: boolean; onClose: () =>
               <div className="row" key={w.id}>
                 <div className="row-main">
                   <div className="row-title tabular">{w.kg.toFixed(1)} kg</div>
-                  <div className="row-sub">{new Date(w.date).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" })}</div>
+                  <div className="row-sub">{new Date(`${w.date}T00:00`).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" })}</div>
                 </div>
                 <button className="icon-btn" aria-label={t("Delete weigh-in on {date}", { date: w.date })} onClick={() => actions.removeWeight(w.id)}>
                   <Trash2 size={15} />

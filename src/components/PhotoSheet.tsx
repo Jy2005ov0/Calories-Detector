@@ -130,8 +130,16 @@ export function PhotoSheet({ open, onClose, start }: { open: boolean; onClose: (
 
   return (
     <Sheet open={open} onClose={onClose} title={t("Scan a meal")}>
-      <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => onFile(e.target.files?.[0])} />
-      <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => {
+          onFile(e.target.files?.[0]);
+          // Allow picking the same photo again after Retake.
+          e.target.value = "";
+        }} />
+      <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => {
+          onFile(e.target.files?.[0]);
+          // Allow picking the same photo again after Retake.
+          e.target.value = "";
+        }} />
 
       {!img && (
         <>

@@ -6,7 +6,7 @@ import { workoutCard } from "../lib/export";
 import { scheduleRestEnd, shareFile } from "../lib/native";
 import { isNewRecord, lastPerformance, personalRecords, suggestNext } from "../lib/records";
 import { ExerciseLibrary } from "../components/ExerciseLibrary";
-import { Empty, SPRING, Sheet, Stepper, haptic, showToast, useNow } from "../components/ui";
+import { Empty, NumberInput, SPRING, Sheet, Stepper, haptic, showToast, useNow } from "../components/ui";
 import { buildPlan, exerciseKcal, formatDuration, kcalFor, plural, sessionFromPlan, sessionKcal, sessionMinutes, sessionVolume } from "../lib/fitness";
 import { round } from "../lib/nutrition";
 import { confirmDialog } from "../lib/platform";
@@ -37,6 +37,8 @@ async function shareWorkout(w: WorkoutSession) {
 }
 
 const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.max(0, sec) % 60).padStart(2, "0")}`;
+
+let lastRest: { endsAt: number; total: number } | null = null;
 
 /** Countdown between sets. Buzzes when it's over (also from the lock screen and watch in the apps). */
 function RestBar({ rest, onChange }: { rest: { endsAt: number; total: number }; onChange: (r: { endsAt: number; total: number } | null) => void }) {
@@ -80,11 +82,13 @@ export function Train() {
   const now = useNow(1000, !!active);
   const [library, setLibrary] = useState<"add" | "log" | "browse" | null>(null);
   const [finishing, setFinishing] = useState(false);
-  const [rest, setRestState] = useState<{ endsAt: number; total: number } | null>(null);
+  // Kept outside the screen so the countdown survives switching tabs.
+  const [rest, setRestState] = useState(() => (lastRest && lastRest.endsAt > Date.now() ? lastRest : null));
   const [justFinished, setJustFinished] = useState<WorkoutSession | null>(null);
   const setRest = useMemo(
     () => (r: { endsAt: number; total: number } | null) => {
       setRestState(r);
+      lastRest = r;
       scheduleRestEnd(r?.endsAt ?? null);
     },
     [],
@@ -552,14 +556,13 @@ function SetRow({
   onChange: (s: { reps: number; weightKg: number; done: boolean }) => void;
 }) {
   useLanguage();
-  const parse = (v: string) => Math.max(0, parseFloat(v.replace(",", ".")) || 0);
   return (
     <>
       <span className="muted" style={{ fontWeight: 600 }}>
         {index + 1}
       </span>
-      <input className="num-input" style={{ width: "100%" }} inputMode="decimal" value={set.weightKg || ""} placeholder="0" aria-label={t("Set {n} weight", { n: index + 1 })} onChange={(e) => onChange({ ...set, weightKg: parse(e.target.value) })} />
-      <input className="num-input" style={{ width: "100%" }} inputMode="numeric" value={set.reps || ""} placeholder="0" aria-label={t("Set {n} reps", { n: index + 1 })} onChange={(e) => onChange({ ...set, reps: Math.round(parse(e.target.value)) })} />
+      <NumberInput className="num-input" style={{ width: "100%" }} value={set.weightKg} max={1000} emptyValue={0} placeholder="0" aria-label={t("Set {n} weight", { n: index + 1 })} onChange={(v) => onChange({ ...set, weightKg: v })} />
+      <NumberInput className="num-input" style={{ width: "100%" }} integer value={set.reps} max={1000} emptyValue={0} placeholder="0" aria-label={t("Set {n} reps", { n: index + 1 })} onChange={(v) => onChange({ ...set, reps: v })} />
       <button
         className={`check ${set.done ? "on" : ""}`}
         aria-label={set.done ? t("Mark set not done") : t("Mark set done")}

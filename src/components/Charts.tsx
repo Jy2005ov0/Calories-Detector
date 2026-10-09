@@ -25,7 +25,8 @@ export function WeightChart({ weights, goalKg }: { weights: WeightEntry[]; goalK
   const y = (kg: number) => pad.t + ((hi - kg) / (hi - lo || 1)) * (H - pad.t - pad.b);
   const ticks = [lo, (lo + hi) / 2, hi];
   const path = pts.map((p, i) => `${i ? "L" : "M"}${x(p.date).toFixed(1)},${y(p.kg).toFixed(1)}`).join(" ");
-  const shown = pts[sel ?? pts.length - 1];
+  // The tapped point may be gone after a weigh-in is deleted.
+  const shown = pts[Math.min(sel ?? Infinity, pts.length - 1)];
   const first = pts[0];
   const last = pts[pts.length - 1];
 

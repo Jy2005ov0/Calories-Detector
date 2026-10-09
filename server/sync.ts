@@ -25,7 +25,7 @@ export function syncRouter(db: DB) {
     const parsed = z.object({ baseVersion: z.number().int().min(0), data: z.record(z.string(), z.unknown()) }).safeParse(req.body);
     if (!parsed.success) return void res.status(400).json({ error: "Invalid data." });
     const json = JSON.stringify(parsed.data.data);
-    if (json.length > MAX_BYTES) return void res.status(413).json({ error: "Your data is too large to sync." });
+    if (Buffer.byteLength(json) > MAX_BYTES) return void res.status(413).json({ error: "Your data is too large to sync." });
     const userId = req.userId!;
     const saved = db.transaction(() => {
       const row = db.getData(userId);

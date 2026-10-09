@@ -19,6 +19,7 @@ import { actions, todayKey, useStore, useTodayKey } from "../lib/store";
 import type { Food, MealType } from "../lib/types";
 import {
   HealthCard,
+  NumberInput,
   NutritionTable,
   Segmented,
   Sheet,
@@ -334,20 +335,13 @@ export function FoodSheet({
                       {isGramMode ? t("Weight (g)") : t("Quantity")}
                     </div>
                     {isGramMode ? (
-                      <input
+                      <NumberInput
                         className="num-input"
                         style={{ width: 90 }}
-                        inputMode="decimal"
                         value={qty}
-                        onChange={(e) =>
-                          setQty(
-                            Math.max(
-                              0,
-                              Number(e.target.value.replace(/[^\d.]/g, "")) ||
-                                0,
-                            ),
-                          )
-                        }
+                        max={5000}
+                        emptyValue={0}
+                        onChange={setQty}
                         aria-label={t("Weight in grams")}
                       />
                     ) : (

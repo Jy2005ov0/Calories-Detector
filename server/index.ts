@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
-import { authConfigFromEnv, authRouter, type AuthConfig } from "./auth";
+import { authConfigFromEnv, authRouter, optionalUser, rateLimiter, type AuthConfig } from "./auth";
 import { openDb, type DB } from "./db";
 import { syncRouter } from "./sync";
 import { coachRouter } from "./coach";
@@ -47,8 +47,9 @@ function getClient() {
 
 export function createApp(db: DB = openDb(), authConfig: AuthConfig = authConfigFromEnv()) {
   const app = express();
-  // Behind a proxy (Render, Fly, Railway…) so rate limits see the real client IP.
-  app.set("trust proxy", 1);
+  // Behind a proxy (Render, Fly, Railway…) so rate limits see the real client IP. Set TRUST_PROXY
+  // to the number of proxies in front of the server (0 if none, 2 with Cloudflare in front of Render).
+  app.set("trust proxy", Number(process.env.TRUST_PROXY ?? 1));
   // The iOS and Android apps load from these local origins and call this server cross-origin.
   const NATIVE_ORIGINS = ["capacitor://localhost", "ionic://localhost", "https://localhost", "http://localhost"];
   const extraOrigins = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean);
@@ -57,7 +58,24 @@ export function createApp(db: DB = openDb(), authConfig: AuthConfig = authConfig
   app.use("/api/auth", authRouter(db, authConfig));
   app.use("/api/data", syncRouter(db));
 
-  app.use("/api/coach", coachRouter(getClient));
+  // The AI endpoints spend the server's Anthropic credit, so they're limited per person (account, or
+  // IP without one) and in total per day. AI_REQUIRE_ACCOUNT=1 restricts them to signed-in users.
+  const perPersonPhotos = rateLimiter(20, 10 * 60 * 1000);
+  const dailyLimit = Number(process.env.AI_DAILY_LIMIT ?? 2000);
+  let day = "";
+  let usedToday = 0;
+  const aiGate = (perPerson?: (key: string) => boolean): express.RequestHandler => (req, res, next) => {
+    const userId = optionalUser(db, req);
+    if (process.env.AI_REQUIRE_ACCOUNT === "1" && !userId) return void res.status(401).json({ error: "Sign in to use this feature." });
+    if (perPerson?.(userId ?? req.ip ?? "unknown")) return void res.status(429).json({ error: "Too many photos in a short time. Wait a few minutes and try again." });
+    const today = new Date().toISOString().slice(0, 10);
+    if (today !== day) [day, usedToday] = [today, 0];
+    if (++usedToday > dailyLimit) return void res.status(429).json({ error: "The AI features are busy today. Try again tomorrow." });
+    res.locals.aiKey = userId ?? req.ip;
+    next();
+  };
+
+  app.use("/api/coach", aiGate(), coachRouter(getClient));
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, photoAnalysis: getClient() !== null, coach: getClient() !== null });
@@ -66,7 +84,7 @@ export function createApp(db: DB = openDb(), authConfig: AuthConfig = authConfig
   const ALLOWED_MEDIA = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
   type AllowedMedia = (typeof ALLOWED_MEDIA)[number];
 
-  app.post("/api/analyze-photo", async (req, res) => {
+  app.post("/api/analyze-photo", aiGate(perPersonPhotos), async (req, res) => {
     const anthropic = getClient();
     if (!anthropic) {
       res.status(503).json({ error: "Photo analysis is not configured. Set ANTHROPIC_API_KEY on the server." });
@@ -126,6 +144,14 @@ export function createApp(db: DB = openDb(), authConfig: AuthConfig = authConfig
       }
     }
   });
+
+  // Errors (e.g. malformed JSON) come back as JSON without stack traces or file paths.
+  app.use("/api", ((err, _req, res, next) => {
+    if (res.headersSent) return next(err);
+    const status = Number((err as { status?: number }).status) || 500;
+    if (status >= 500) console.error(err);
+    res.status(status).json({ error: status >= 500 ? "Unexpected server error." : "Bad request." });
+  }) as express.ErrorRequestHandler);
 
   if (process.env.NODE_ENV === "production") {
     const dist = path.resolve(here, "../dist");

@@ -20,9 +20,12 @@ export function MealBuilder({ open, onClose, initial }: { open: boolean; onClose
   const [items, setItems] = useState<Item[]>([]);
   const [meal, setMeal] = useState<MealType>(defaultMeal());
   const [picking, setPicking] = useState(false);
+  // One id per opening, so saving again updates the same meal instead of adding a copy.
+  const [mealId, setMealId] = useState(() => initial?.id ?? uid());
 
   useEffect(() => {
     if (open) {
+      setMealId(initial?.id ?? uid());
       setName(initial?.name ?? "");
       setItems(initial?.items ?? []);
       setMeal(defaultMeal());
@@ -47,7 +50,7 @@ export function MealBuilder({ open, onClose, initial }: { open: boolean; onClose
   };
 
   const save = () => {
-    actions.saveCustomMeal({ id: initial?.id ?? uid(), name: name.trim() || t("My meal"), items });
+    actions.saveCustomMeal({ id: mealId, name: name.trim() || t("My meal"), items });
     haptic();
     showToast(t("Meal saved to My Meals"));
   };

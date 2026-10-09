@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AccountCard } from "../components/Account";
 import { AnimatePresence, motion } from "motion/react";
 import { Activity, Bell, ChevronRight, Dumbbell, FileDown, FileText, Flame, Languages, Leaf, LineChart, Moon, MoonStar, Scale, Sun, SunMoon, Target, TrendingDown, TrendingUp, User } from "lucide-react";
-import { Segmented, SPRING, Stepper, Switch, showToast } from "../components/ui";
+import { NumberInput, Segmented, SPRING, Stepper, Switch, showToast } from "../components/ui";
 import { LANGUAGES, t, useLanguage } from "../i18n";
 import { ALLERGENS } from "../lib/allergens";
 import { toCsv, toPdf } from "../lib/export";
@@ -37,17 +37,16 @@ const DIETS: { value: P["diet"]; label: string }[] = [
   { value: "vegan", label: "Vegan" },
 ];
 
-function NumField({ label, value, unit, onChange, step = 1 }: { label: string; value: number; unit: string; onChange: (v: number) => void; step?: number }) {
+const AGE: [number, number] = [13, 100];
+const HEIGHT: [number, number] = [120, 230];
+const WEIGHT: [number, number] = [30, 300];
+
+function NumField({ label, value, unit, onChange, range, draft }: { label: string; value: number; unit: string; onChange: (v: number) => void; range: [number, number]; draft?: boolean }) {
   return (
     <div className="field" data-tour={`field-${label.toLowerCase()}`}>
       <label>{t(label)}</label>
-      <input
-        inputMode="decimal"
-        value={value || ""}
-        step={step}
-        onChange={(e) => onChange(parseFloat(e.target.value.replace(",", ".")) || 0)}
-        aria-label={t(label)}
-      />
+      {/* While onboarding the form may be blank or half-typed; on the Profile tab only sensible values are saved. */}
+      <NumberInput value={value} onChange={onChange} min={draft ? 0 : range[0]} max={range[1]} emptyValue={draft ? 0 : undefined} integer={label !== "Weight"} aria-label={t(label)} />
       <span className="muted" style={{ width: 28 }}>
         {t(unit)}
       </span>
@@ -55,7 +54,7 @@ function NumField({ label, value, unit, onChange, step = 1 }: { label: string; v
   );
 }
 
-function ProfileFields({ p, set }: { p: P; set: (x: Partial<P>) => void }) {
+function ProfileFields({ p, set, draft }: { p: P; set: (x: Partial<P>) => void; draft?: boolean }) {
   return (
     <>
       <div className="group">
@@ -76,9 +75,9 @@ function ProfileFields({ p, set }: { p: P; set: (x: Partial<P>) => void }) {
             />
           </div>
         </div>
-        <NumField label="Age" value={p.age} unit="yrs" onChange={(v) => set({ age: v })} />
-        <NumField label="Height" value={p.heightCm} unit="cm" onChange={(v) => set({ heightCm: v })} />
-        <NumField label="Weight" value={p.weightKg} unit="kg" step={0.1} onChange={(v) => set({ weightKg: v })} />
+        <NumField label="Age" value={p.age} unit="yrs" range={AGE} draft={draft} onChange={(v) => set({ age: v })} />
+        <NumField label="Height" value={p.heightCm} unit="cm" range={HEIGHT} draft={draft} onChange={(v) => set({ heightCm: v })} />
+        <NumField label="Weight" value={p.weightKg} unit="kg" range={WEIGHT} draft={draft} onChange={(v) => set({ weightKg: v })} />
       </div>
     </>
   );
@@ -441,7 +440,8 @@ export function Onboarding() {
   const [p, setP] = useState<P>(() => ({ ...stored, name: stored.name || getAccount().user?.name?.split(" ")[0] || "" }));
   const [step, setStep] = useState(0);
   const set = (x: Partial<P>) => setP((o) => ({ ...o, ...x }));
-  const valid = p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300;
+  const within = (v: number, [lo, hi]: [number, number]) => v >= lo && v <= hi;
+  const valid = within(p.age, AGE) && within(p.heightCm, HEIGHT) && within(p.weightKg, WEIGHT);
 
   const steps = [
     {
@@ -471,7 +471,7 @@ export function Onboarding() {
       ),
       ok: true,
     },
-    { title: t("About you"), sub: t("Used to calculate how many calories your body needs."), body: <ProfileFields p={p} set={set} />, ok: valid },
+    { title: t("About you"), sub: t("Used to calculate how many calories your body needs."), body: <ProfileFields p={p} set={set} draft />, ok: valid },
     { title: t("Your goal"), sub: t("You can change this any time."), body: <OptionList options={GOALS} value={p.goal} onChange={(goal) => set({ goal })} />, ok: true },
     { title: t("How active are you?"), sub: t("Outside of the workouts you'll log here."), body: <OptionList options={ACTIVITY} value={p.activity} onChange={(activity) => set({ activity })} />, ok: true },
     {

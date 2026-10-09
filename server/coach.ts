@@ -33,7 +33,7 @@ export function coachRouter(getClient: () => Anthropic | null) {
       res.status(503).json({ error: "The coach is not configured. Set ANTHROPIC_API_KEY on the server." });
       return;
     }
-    if (tooMany(req.ip ?? "unknown")) {
+    if (tooMany(String(res.locals.aiKey ?? req.ip ?? "unknown"))) {
       res.status(429).json({ error: "You're asking very quickly. Wait a few minutes and try again." });
       return;
     }
