@@ -316,6 +316,10 @@ for (const set of SETS) {
     const scrollTo = (text: string) => page.locator(".section-header", { hasText: text }).first().evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 70));
     await scrollTo("Allergies");
     await shot("profile-allergies-fasting");
+    await page.getByRole("button", { name: "Vegetables", exact: true }).click();
+    await scrollTo("Foods I don't eat");
+    await shot("foods-i-dont-eat");
+    await page.getByRole("button", { name: "Vegetables", exact: true }).click();
     await scrollTo("Reminders");
     await shot("profile-reminders-language");
 
@@ -326,6 +330,10 @@ for (const set of SETS) {
     await tab("Today");
     await page.getByTestId("cycle-card").evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 300));
     await shot("cycle-today");
+    await page.getByTestId("cycle-card").getByRole("button", { name: "Period calendar" }).click();
+    await page.waitForTimeout(500);
+    await shot("period-calendar");
+    await closeSheet();
     await tab("Profile");
     await page.getByRole("switch", { name: "Track my cycle" }).click();
 
@@ -354,6 +362,11 @@ for (const set of SETS) {
     await page.getByRole("button", { name: "中文" }).click();
     await nav.first().click();
     await shot("language-chinese");
+    await nav.nth(2).click();
+    await page.locator("[data-tour=log-activity]").click();
+    await page.waitForTimeout(800);
+    await shot("exercise-chinese");
+    await page.keyboard.press("Escape");
     await nav.last().click();
     await page.getByRole("button", { name: "English" }).click();
 

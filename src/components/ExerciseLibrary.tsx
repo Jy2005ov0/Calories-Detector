@@ -99,7 +99,7 @@ export function ExerciseLibrary({
               <div className="row-main">
                 <div className="row-title">{exName(e.name)}</div>
                 <div className="row-sub">
-                  {e.kind === "strength" ? `${e.muscles?.map(exLabel).join(", ")} · ${exLabel(e.equipment)}` : `${exLabel(e.category)} · ${round(kcalFor(e.met, weight, 30))} kcal / 30 min`}
+                  {e.kind === "strength" ? `${e.muscles?.map(exLabel).join(lang === "zh" ? "、" : ", ")} · ${exLabel(e.equipment)}` : `${exLabel(e.category)} · ${round(kcalFor(e.met, weight, 30))} kcal / 30 min`}
                 </div>
               </div>
               <ChevronRight size={16} className="chev" />
@@ -149,7 +149,7 @@ export function ExerciseLibrary({
                 <div className="row">
                   <div className="row-main">{t("Muscles")}</div>
                   <div className="row-value" style={{ whiteSpace: "normal", textAlign: "right" }}>
-                    {detail.muscles?.map(exLabel).join(", ")}
+                    {detail.muscles?.map(exLabel).join(lang === "zh" ? "、" : ", ")}
                   </div>
                 </div>
                 <div className="row">
