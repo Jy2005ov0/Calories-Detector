@@ -50,7 +50,8 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
   const [hideAvoid, setHideAvoid] = useState(true);
   const restricted = hasRestrictions(profile);
   /** Leave out foods the person can't or won't eat, unless they choose to see them. */
-  const fits = (list: Food[]) => (restricted && hideAvoid ? list.filter((f) => foodConflicts(f, profile).length === 0) : list);
+  // Foods the person created themselves are never hidden — they know what's in them.
+  const fits = (list: Food[]) => (restricted && hideAvoid ? list.filter((f) => f.source === "custom" || foodConflicts(f, profile).length === 0) : list);
   const customFoods = useStore((s) => s.customFoods);
   const customMeals = useStore((s) => s.customMeals);
   const recentIds = useStore((s) => s.recentFoodIds);

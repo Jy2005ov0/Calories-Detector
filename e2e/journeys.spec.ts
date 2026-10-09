@@ -287,7 +287,7 @@ test("Mei Ling: vegetarian bulking, custom food and meal, body-part split, logs 
   await tab(page, "Train");
   await page.getByRole("button", { name: /Log activity/ }).click();
   await page.getByPlaceholder(/Search \d+ exercises/).fill("futsal");
-  await page.locator(".row", { hasText: "Futsal" }).click();
+  await page.locator(".row", { has: page.locator(".row-title", { hasText: /^Futsal$/ }) }).click();
   const activity = page.getByRole("dialog", { name: "Sports" });
   const duration = activity.locator(".row", { hasText: "Duration" });
   for (let i = 0; i < 6; i++) await duration.getByRole("button", { name: "Increase" }).click();
@@ -363,7 +363,7 @@ test("Failures are explained, not silent", async ({ page }) => {
   // Photo server not configured → the user is told why.
   await page.route("**/api/analyze-photo", (r) => r.fulfill({ status: 503, json: { error: "Photo analysis is not configured. Set ANTHROPIC_API_KEY on the server." } }));
   await page.getByLabel("Clear search").click();
-  await page.getByRole("button", { name: "Scan photo" }).click();
+  await page.getByRole("button", { name: "Take photo" }).click();
   await page.locator('input[type=file]:not([capture])').setInputFiles({ name: "x.png", mimeType: "image/png", buffer: PHOTO });
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByRole("dialog")).toContainText("Photo analysis is not configured");

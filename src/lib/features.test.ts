@@ -39,6 +39,13 @@ describe("allergens and halal", () => {
     expect(conflicts(new Set(), { allergies: ["egg"], diet: "halal" })).toEqual([]);
   });
 
+  it("treats trace seafood (belacan, fish sauce) as an allergy warning, not a reason to hide a dish from vegetarians", () => {
+    const sambalTempeh = { id: "x-tempeh", name: "Sambal tempeh" };
+    expect(conflicts(foodTags(sambalTempeh), { allergies: [], diet: "vegetarian" })).toEqual([]);
+    expect(conflicts(foodTags(sambalTempeh), { allergies: ["shellfish"], diet: "anything" }).map((c) => c.kind)).toEqual(["allergy"]);
+    expect(foodConflicts(food("Prawn mee (soup)"), { allergies: [], diet: "vegetarian" }).map((c) => c.kind)).toEqual(["diet"]);
+  });
+
   it("leaves allergens out of suggestions and meal plans", () => {
     const groups = recommendedFoods("lose", "anything", ["egg", "dairy"]);
     const names = groups.filter((g) => g.title !== "Limit").flatMap((g) => g.foods);

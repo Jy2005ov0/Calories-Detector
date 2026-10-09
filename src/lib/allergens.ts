@@ -6,7 +6,9 @@ import type { Allergen, Food, Profile } from "./types";
  * What a food contains, inferred from its name and (for mixed dishes) its parts.
  * Based on how the dish is usually made — recipes vary, so the app always says "usually contains".
  */
-export type Tag = Allergen | "pork" | "alcohol" | "meat" | "honey";
+/** "seafood" = fish or shellfish you can see on the plate; the fish/shellfish allergen tags also
+ *  catch trace sources such as belacan in sambal, fish sauce and oyster sauce. */
+export type Tag = Allergen | "pork" | "alcohol" | "meat" | "honey" | "seafood";
 
 const RULES: Record<Tag, { include: RegExp; exclude?: RegExp }> = {
   pork: {
@@ -56,6 +58,11 @@ const RULES: Record<Tag, { include: RegExp; exclude?: RegExp }> = {
   },
   sesame: { include: /sesame|tahini|hummus|baba ganoush|halva|bibimbap|dan dan|japchae|kimbap|bagel|sushi roll|gomasio/i },
   honey: { include: /honey|baklava/i, exclude: /honeydew/i },
+  seafood: {
+    include:
+      /fish(?! sauce)|salmon|tuna|mackerel|\bikan\b|anchov|sardine|\bcod\b|trout|sashimi|sushi|nigiri|prawn|shrimp|crab|lobster|mussel|oyster(?! sauce)|scallop|squid|calamari|sotong|\bclam|udang|seafood|takoyaki|keropok lekor|ceviche|poke bowl|unagi|eel|octopus|caviar|roe/i,
+    exclude: /coconut rice|fish sauce|oyster sauce/i,
+  },
 };
 
 const TAGS = Object.keys(RULES) as Tag[];
@@ -119,7 +126,9 @@ export function conflicts(tags: Set<Tag>, p: Pick<Profile, "allergies" | "diet">
     if (tags.has("pork")) out.push({ kind: "halal", text: t("Not halal · contains pork") });
     if (tags.has("alcohol")) out.push({ kind: "halal", text: t("Not halal · contains alcohol") });
   }
-  if ((p.diet === "vegetarian" || p.diet === "vegan") && (tags.has("meat") || tags.has("fish") || tags.has("shellfish"))) {
+  // Vegetarian and vegan rule out meat and seafood you can see; trace sources (belacan in
+  // sambal, fish sauce) are flagged for allergies only, so tempeh sambal isn't hidden.
+  if ((p.diet === "vegetarian" || p.diet === "vegan") && (tags.has("meat") || tags.has("seafood"))) {
     out.push({ kind: "diet", text: t("Not {diet} · contains meat or seafood", { diet: t(p.diet === "vegan" ? "vegan" : "vegetarian") }) });
   }
   if (p.diet === "vegan" && (tags.has("dairy") || tags.has("egg") || tags.has("honey"))) {
