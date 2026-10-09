@@ -90,7 +90,10 @@ export interface CycleSettings {
 /** The first day of a period. */
 export interface PeriodEntry {
   id: string;
+  /** First day of the period. */
   date: string;
+  /** Last day, once known (marked on the calendar). Without it the usual period length is assumed. */
+  end?: string;
   createdAt: number;
 }
 

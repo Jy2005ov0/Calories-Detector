@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { PeopleList, PhotoPicker } from "../components/People";
+import { CycleCalendar } from "../components/CycleCalendar";
 import { AnimatePresence, motion } from "motion/react";
-import { Activity, Bell, CalendarHeart, ChevronRight, Dumbbell, FileDown, FileText, Flame, Languages, Leaf, LineChart, Moon, MoonStar, Save, Upload, Scale, Sun, SunMoon, Target, Trash2, TrendingDown, TrendingUp, User } from "lucide-react";
+import { Activity, Bell, CalendarDays, CalendarHeart, ChevronRight, Dumbbell, FileDown, FileText, Flame, Languages, Leaf, LineChart, Moon, MoonStar, Save, Upload, Scale, Sun, SunMoon, Target, Trash2, TrendingDown, TrendingUp, User } from "lucide-react";
 import { NumberInput, Segmented, SPRING, Stepper, Switch, showToast } from "../components/ui";
 import { LANGUAGES, locale, t, useLanguage } from "../i18n";
 import { ALLERGENS } from "../lib/allergens";
@@ -128,7 +129,7 @@ function CycleSection() {
   const p = useStore((s) => s.profile);
   const periods = useStore((s) => s.periods);
   const today = useTodayKey();
-  const [date, setDate] = useState(today);
+  const [calendar, setCalendar] = useState(false);
   const c = p.cycle;
   const set = (x: Partial<typeof c>) => actions.updateProfile({ cycle: { ...c, ...x } });
   const status = cycleStatus(c, periods, today);
@@ -163,19 +164,15 @@ function CycleSection() {
               <label>{t("Period reminder")}</label>
               <Switch checked={c.remind} onChange={(remind) => set({ remind })} label={t("Period reminder")} />
             </div>
-            <div className="field">
-              <label htmlFor="cy-date">{t("First day of a period")}</label>
-              <input id="cy-date" type="date" value={date} max={today} onChange={(e) => e.target.value && setDate(e.target.value)} style={{ width: "auto", minWidth: 140, flex: "none" }} />
-            </div>
-            <button
-              className="row"
-              style={{ color: "var(--blue)", fontWeight: 600 }}
-              onClick={() => {
-                actions.logPeriod(date);
-                showToast(t("Period logged"));
-              }}
-            >
-              {t("Log period")}
+            <button className="row with-icon" onClick={() => setCalendar(true)}>
+              <div className="icon-tile" style={{ background: "var(--pink-fill)" }}>
+                <CalendarDays size={17} />
+              </div>
+              <div className="row-main">
+                <div className="row-title">{t("Period calendar")}</div>
+                <div className="row-sub">{t("Tap the days of each period, past ones too")}</div>
+              </div>
+              <ChevronRight size={16} className="chev" />
             </button>
           </>
         )}
@@ -188,7 +185,7 @@ function CycleSection() {
             .map((x) => (
               <div className="row" key={x.id}>
                 <div className="row-main">
-                  <div className="row-title">{show(x.date)}</div>
+                  <div className="row-title">{x.end && x.end !== x.date ? `${show(x.date)} – ${show(x.end)}` : show(x.date)}</div>
                 </div>
                 <button className="icon-btn" aria-label={t("Remove period on {date}", { date: show(x.date) })} onClick={() => actions.removePeriod(x.id)}>
                   <Trash2 size={16} />
@@ -197,6 +194,7 @@ function CycleSection() {
             ))}
         </div>
       )}
+      <CycleCalendar open={calendar} onClose={() => setCalendar(false)} />
       {c.on && (
         <p className="footnote">
           {status && learned ? `${t("Your cycles average {n} days.", { n: learned })} ` : ""}

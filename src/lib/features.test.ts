@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FOOD_BY_NAME } from "../data/foods";
 import { conflicts, foodConflicts, foodTags } from "./allergens";
-import { averageLength, cycleOf, cycleStatus, periodDue, phaseTip } from "./cycle";
+import { averageLength, cycleOf, cycleStatus, periodDays, periodDue, periodLength, phaseTip, predictedDays, togglePeriodDay } from "./cycle";
 import { recommendedFoods, sampleDay } from "./diet";
 import { fromBackup, toBackup, toCsv } from "./export";
 import { fastStatus, logStreak, waterGoalMl, weightTrend, workoutWeekStreak } from "./progress";
@@ -225,6 +225,34 @@ describe("cycle tracking", () => {
     expect(cycleStatus(on, [], "2026-10-03")).toBeNull();
     // A date in the future isn't used.
     expect(cycleStatus(on, p("2026-10-20"), "2026-10-03")).toBeNull();
+  });
+
+  it("calendar: tapping days marks a period, joins neighbours, and learns its length", () => {
+    const today = "2026-10-12";
+    let ps: ReturnType<typeof togglePeriodDay> = [];
+    for (const d of ["2026-09-14", "2026-09-15", "2026-09-16", "2026-09-17"]) ps = togglePeriodDay(ps, d, on, today, 1);
+    expect(ps).toEqual([expect.objectContaining({ date: "2026-09-14", end: "2026-09-17" })]);
+    expect(periodLength(ps, 5)).toBe(4);
+    // Unmarking a middle day splits it; marking it again joins it back.
+    ps = togglePeriodDay(ps, "2026-09-16", on, today, 1);
+    expect(ps.map((p) => [p.date, p.end])).toEqual([["2026-09-14", "2026-09-15"], ["2026-09-17", "2026-09-17"]]);
+    ps = togglePeriodDay(ps, "2026-09-16", on, today, 1);
+    expect(ps.map((p) => [p.date, p.end])).toEqual([["2026-09-14", "2026-09-17"]]);
+    // Future days can't be marked.
+    expect(togglePeriodDay(ps, "2026-10-20", on, today, 1)).toBe(ps);
+    // Marking today starts a period that stays open (probably still going).
+    ps = togglePeriodDay(ps, today, on, today, 1);
+    expect(ps[1]).toEqual(expect.objectContaining({ date: today }));
+    expect(ps[1].end).toBeUndefined();
+    expect(cycleStatus(on, ps, today)?.phase).toBe("period");
+  });
+
+  it("uses the marked end of the period for the phase, and shows the next predicted days", () => {
+    const ps = [{ id: "a", date: "2026-10-01", end: "2026-10-03", createdAt: 1 }];
+    expect(cycleStatus(on, ps, "2026-10-03")?.phase).toBe("period");
+    expect(cycleStatus(on, ps, "2026-10-04")?.phase).toBe("follicular");
+    expect([...periodDays(ps, on, "2026-10-12")]).toEqual(["2026-10-01", "2026-10-02", "2026-10-03"]);
+    expect([...predictedDays(cycleStatus(on, ps, "2026-10-12"), ps, on)]).toEqual(["2026-10-29", "2026-10-30", "2026-10-31"]);
   });
 
   it("offers 'Period started' only when it's due", () => {

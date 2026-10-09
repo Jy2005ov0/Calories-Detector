@@ -328,26 +328,41 @@ test("Aisyah: tracks her cycle — logs a period, sees her phase and tips, and l
   await tab(page, "Today");
   await expect(page.getByTestId("cycle-card")).toContainText("Cycle tracking is on");
 
-  // Her last period started on 16 September; with a 28-day cycle the next is due 14 October.
-  await tab(page, "Profile");
-  await page.getByLabel("First day of a period").fill("2026-09-16");
-  await page.getByRole("button", { name: "Log period", exact: true }).click();
-  await tab(page, "Today");
+  // On the period calendar she taps the days of her last period: 16–19 September.
+  // With a 28-day cycle the next one is due 14 October.
+  await page.getByTestId("cycle-card").getByRole("button", { name: "Period calendar" }).click();
+  const calendar = page.getByRole("dialog", { name: "Period calendar" });
+  await expect(calendar).toContainText("October 2026");
+  // Future days can't be marked.
+  await expect(calendar.getByRole("button", { name: "20 October", exact: true })).toBeDisabled();
+  await calendar.getByRole("button", { name: "Previous month" }).click();
+  await expect(calendar).toContainText("September 2026");
+  for (const d of [16, 17, 18, 19, 20]) await calendar.getByRole("button", { name: `${d} September`, exact: true }).click();
+  // A wrong tap is undone by tapping again.
+  await calendar.getByRole("button", { name: "20 September: period day" }).click();
+  await expect(calendar.getByRole("button", { name: /: period day$/ })).toHaveCount(4);
+  await expect(calendar).toContainText("periods 4 days");
+  await calendar.getByRole("button", { name: "Next month" }).click();
+  // The next period is predicted on 14–17 October.
+  await expect(calendar.getByRole("button", { name: /: predicted period$/ })).toHaveCount(4);
+  await calendar.getByRole("button", { name: "Close", exact: true }).click();
+
   const card = page.getByTestId("cycle-card");
   await expect(card).toContainText("Day 27 · Luteal phase");
   await expect(card).toContainText("Next period in 2 days");
   await expect(card).toContainText("Appetite can rise");
 
   // It's due soon, so a one-tap button appears.
-  await card.getByRole("button", { name: "My period started today" }).click();
+  await card.getByRole("button", { name: "Started today" }).click();
   await expect(card).toContainText("Period · day 1");
   await expect(card).toContainText("Iron-rich foods");
-  await expect(card.getByRole("button")).toHaveCount(0);
+  await expect(card.getByRole("button", { name: "Started today" })).toHaveCount(0);
 
   // Both periods are listed in Profile and can be removed.
   await tab(page, "Profile");
   const logged = page.getByRole("group", { name: "Logged periods" });
   await expect(logged.locator(".row")).toHaveCount(2);
+  await expect(logged).toContainText("16 Sept 2026 – 19 Sept 2026");
   await logged.getByRole("button", { name: /Remove period on/ }).first().click();
   await expect(logged.locator(".row")).toHaveCount(1);
   await expect(page.getByText(/not medical advice or contraception/)).toBeVisible();

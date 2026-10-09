@@ -40,7 +40,65 @@ export function averageLength(periods: Pick<PeriodEntry, "date">[], fallback: nu
   return recent.length ? Math.round(recent.reduce((a, b) => a + b, 0) / recent.length) : fallback;
 }
 
-export function cycleStatus(settings: CycleSettings, periods: Pick<PeriodEntry, "date">[], today: string): CycleStatus | null {
+/** How long periods usually last: the average of the last six with a marked end, else the setting. */
+export function periodLength(periods: Pick<PeriodEntry, "date" | "end">[], fallback: number): number {
+  const lengths = periods
+    .filter((p) => p.end && p.end >= p.date)
+    .map((p) => toDay(p.end!) - toDay(p.date) + 1)
+    .filter((n) => n >= 1 && n <= 12)
+    .slice(-6);
+  return lengths.length ? Math.round(lengths.reduce((a, b) => a + b, 0) / lengths.length) : fallback;
+}
+
+/** Last day of a period: the marked end, or (still going) the usual length. */
+const lastDayOf = (p: Pick<PeriodEntry, "date" | "end">, usual: number) => (p.end ? toDay(p.end) : toDay(p.date) + usual - 1);
+
+/** Every day marked as a period day up to today (an ongoing period counts up to today). */
+export function periodDays(periods: Pick<PeriodEntry, "date" | "end">[], settings: Pick<CycleSettings, "periodDays">, today: string): Set<string> {
+  const usual = periodLength(periods, settings.periodDays);
+  const now = toDay(today);
+  const out = new Set<string>();
+  for (const p of periods) for (let d = toDay(p.date); d <= Math.min(lastDayOf(p, usual), now); d++) out.add(fromDay(d));
+  return out;
+}
+
+/** The days of the next predicted period (for the calendar). */
+export function predictedDays(status: CycleStatus | null, periods: Pick<PeriodEntry, "date" | "end">[], settings: Pick<CycleSettings, "periodDays">): Set<string> {
+  const out = new Set<string>();
+  if (!status) return out;
+  const usual = periodLength(periods, settings.periodDays);
+  // When late, the prediction moves to today.
+  const start = toDay(status.nextStart) + Math.max(0, -status.daysUntil);
+  for (let d = start; d < start + usual; d++) out.add(fromDay(d));
+  return out;
+}
+
+/**
+ * Tap a day on the calendar: mark it as a period day, or unmark it. Neighbouring days join into one
+ * period. A period that reaches today and is shorter than usual stays open (it's probably still going).
+ */
+export function togglePeriodDay(periods: PeriodEntry[], day: string, settings: Pick<CycleSettings, "periodDays">, today: string, now = Date.now()): PeriodEntry[] {
+  if (day > today) return periods;
+  const usual = periodLength(periods, settings.periodDays);
+  const days = periodDays(periods, settings, today);
+  if (days.has(day)) days.delete(day);
+  else days.add(day);
+  const sorted = [...days].map(toDay).sort((a, b) => a - b);
+  const runs: [number, number][] = [];
+  for (const d of sorted) {
+    const last = runs[runs.length - 1];
+    if (last && d === last[1] + 1) last[1] = d;
+    else runs.push([d, d]);
+  }
+  const t = toDay(today);
+  return runs.map(([a, b], i) => {
+    const kept = periods.find((p) => p.date === fromDay(a));
+    const ongoing = b === t && b - a + 1 < usual;
+    return { id: kept?.id ?? `p-${a}-${i}`, date: fromDay(a), ...(ongoing ? {} : { end: fromDay(b) }), createdAt: kept?.createdAt ?? now };
+  });
+}
+
+export function cycleStatus(settings: CycleSettings, periods: Pick<PeriodEntry, "date" | "end">[], today: string): CycleStatus | null {
   if (!settings.on) return null;
   const past = starts(periods).filter((d) => d <= today);
   if (!past.length) return null;
@@ -53,7 +111,9 @@ export function cycleStatus(settings: CycleSettings, periods: Pick<PeriodEntry, 
   // Ovulation is about 14 days before the next period, whatever the cycle length.
   const ovulation = length - 14;
   let phase: Phase;
-  if (day <= settings.periodDays) phase = "period";
+  const latest = periods.filter((p) => p.date === past[past.length - 1])[0];
+  const periodLong = latest ? lastDayOf(latest, periodLength(periods, settings.periodDays)) - last + 1 : settings.periodDays;
+  if (day <= periodLong) phase = "period";
   else if (daysUntil < 0) phase = "late";
   else if (Math.abs(day - ovulation) <= 1) phase = "ovulation";
   else if (day < ovulation) phase = "follicular";

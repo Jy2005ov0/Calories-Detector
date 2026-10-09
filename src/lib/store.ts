@@ -337,6 +337,10 @@ export const actions = {
   logPeriod(date = todayKey()) {
     setState((s) => (s.periods.some((p) => p.date === date) ? {} : { periods: [...s.periods, { id: uid(), date, createdAt: Date.now() }].sort((a, b) => a.date.localeCompare(b.date)) }));
   },
+  /** Replace the logged periods (the calendar edits them as a whole). */
+  setPeriods(periods: PeriodEntry[]) {
+    setState({ periods: [...periods].sort((a, b) => a.date.localeCompare(b.date)) });
+  },
   removePeriod(id: string) {
     setState((s) => ({ periods: s.periods.filter((p) => p.id !== id), deleted: tombstone(s.deleted, id) }));
   },

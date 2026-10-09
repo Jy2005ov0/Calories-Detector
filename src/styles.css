@@ -30,6 +30,8 @@
   /* Text in status colours, and fills that carry white text: all ≥ 4.5:1. */
   --green-ink: #1f7a35;
   --orange-ink: #9c4500;
+  --pink-ink: #c4002f;
+  --pink-fill: #d1003f;
   --accent-fill: var(--blue);
   --green-fill: #1e7e34;
   --orange-fill: #c45200;
@@ -74,6 +76,8 @@
     --red: #ff6961;
     --green-ink: #30d158;
     --orange-ink: #ff9f0a;
+    --pink-ink: #ff6482;
+    --pink-fill: #d1003f;
     --accent-fill: #0a6cdc;
     --green-fill: #1e7e34;
     --orange-fill: #c45200;
@@ -108,6 +112,8 @@
     --red: #ff6961;
     --green-ink: #30d158;
     --orange-ink: #ff9f0a;
+    --pink-ink: #ff6482;
+    --pink-fill: #d1003f;
     --accent-fill: #0a6cdc;
     --green-fill: #1e7e34;
     --orange-fill: #c45200;
@@ -2103,4 +2109,94 @@ button.row:active,
   background: var(--blue);
   color: #fff;
   border: 2px solid var(--bg);
+}
+
+/* ── Period calendar ────────────────────────────────── */
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  text-align: center;
+}
+
+.cal-weekday {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--label-2);
+  padding: 4px 0;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  min-height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-day:disabled {
+  color: var(--label-tertiary, var(--label-2));
+  opacity: 0.6;
+}
+
+.cal-day.period {
+  background: var(--pink-fill);
+  color: #fff;
+  font-weight: 700;
+}
+
+.cal-day.predicted {
+  box-shadow: inset 0 0 0 2px var(--pink-ink);
+  color: var(--pink-ink);
+  opacity: 1;
+}
+
+.cal-day.today {
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--label-2);
+}
+
+.cal-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.cal-dot.period {
+  background: var(--pink-fill);
+}
+
+.cal-dot.predicted {
+  box-shadow: inset 0 0 0 2px var(--pink-ink);
+}
+
+.cal-dot.today {
+  box-shadow: inset 0 0 0 2px var(--label);
 }
