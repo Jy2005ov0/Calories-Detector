@@ -92,7 +92,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/20-train.jpg" width="190" alt="Train and personal records"><br><sub>Train and personal records</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/21-exercise-library.jpg" width="190" alt="1,900+ exercises, an icon per category"><br><sub>1,900+ exercises, an icon per category</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/21-exercise-library.jpg" width="190" alt="An icon for every exercise"><br><sub>An icon for every exercise</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/22-exercise-detail.jpg" width="190" alt="Real photos: start and end position"><br><sub>Real photos: start and end position</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/23-workout-rest-timer-record.jpg" width="190" alt="Rest timer, last time and a new record"><br><sub>Rest timer, last time and a new record</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/24-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
@@ -173,7 +173,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/20-train.jpg" width="190" alt="Train and personal records"><br><sub>Train and personal records</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/21-exercise-library.jpg" width="190" alt="1,900+ exercises, an icon per category"><br><sub>1,900+ exercises, an icon per category</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/21-exercise-library.jpg" width="190" alt="An icon for every exercise"><br><sub>An icon for every exercise</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/22-exercise-detail.jpg" width="190" alt="Real photos: start and end position"><br><sub>Real photos: start and end position</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/23-workout-rest-timer-record.jpg" width="190" alt="Rest timer, last time and a new record"><br><sub>Rest timer, last time and a new record</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/24-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
