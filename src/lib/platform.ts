@@ -104,6 +104,9 @@ export function pushBackHandler(fn: () => void) {
   };
 }
 
+/** True when this handler belongs to the sheet on top (the one Back or Escape should close). */
+export const isTopBackHandler = (fn: () => void) => backStack[backStack.length - 1] === fn;
+
 export function onBackButton(fallback: () => boolean) {
   if (platform !== "android") return () => {};
   const handle = App.addListener("backButton", () => {

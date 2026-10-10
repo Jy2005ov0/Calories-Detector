@@ -55,7 +55,7 @@ export function CycleCalendar({ open, onClose }: { open: boolean; onClose: () =>
             <ChevronRight size={18} />
           </button>
         </div>
-        <div className="cal-grid" role="grid" aria-label={t("Period calendar")}>
+        <div className="cal-grid" role="group" aria-label={t("Period calendar")}>
           {weekdays.map((w, i) => (
             <span key={`w${i}`} className="cal-weekday" aria-hidden>
               {w}

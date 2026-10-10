@@ -5,6 +5,7 @@ import type { AreaDict } from "./index";
 // weekdays, plural() nouns and prefixed "Category: " / "Equipment: " labels).
 export const TRAIN: AreaDict = {
   ms: {
+    "{name}: start and end position": "{name}: kedudukan mula dan akhir",
     "Nothing was logged, so the workout wasn't saved": "Tiada apa direkodkan, jadi latihan tidak disimpan",
     "Train": "Latihan",
     "Clock in": "Mula senaman",
@@ -147,6 +148,7 @@ export const TRAIN: AreaDict = {
     "set": "set",
   },
   zh: {
+    "{name}: start and end position": "{name}：起始和结束姿势",
     "Nothing was logged, so the workout wasn't saved": "没有记录任何内容，因此未保存这次训练",
     "Train": "训练",
     "Clock in": "开始训练",

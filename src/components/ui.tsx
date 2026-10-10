@@ -4,7 +4,7 @@ import { CircleAlert, CircleCheck, Minus, Plus, ThumbsUp, TriangleAlert, X } fro
 import type { Grade, HealthReport, Suitability } from "../lib/nutrition";
 import type { Nutrients } from "../lib/types";
 import { round } from "../lib/nutrition";
-import { haptic, pushBackHandler } from "../lib/platform";
+import { haptic, isTopBackHandler, pushBackHandler } from "../lib/platform";
 import { t, useLanguage } from "../i18n";
 
 // Apple's defaults translated to Motion springs: critically damped for UI, a touch of
@@ -121,15 +121,14 @@ export function Sheet({ open, onClose, title, left, right, children, full }: She
   closeRef.current = onClose;
   useEffect(() => {
     if (!open) return;
-    return pushBackHandler(() => closeRef.current());
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeRef.current();
+    const close = () => closeRef.current();
+    const pop = pushBackHandler(close);
+    // Escape, like Android's back button, closes only the sheet on top.
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && isTopBackHandler(close) && close();
     window.addEventListener("keydown", onKey);
     lockScroll();
     return () => {
+      pop();
       window.removeEventListener("keydown", onKey);
       unlockScroll();
     };

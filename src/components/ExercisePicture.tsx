@@ -81,6 +81,8 @@ import {
 } from "react-icons/md";
 import { TbArcheryArrow, TbBowling, TbFishHook, TbHorse, TbJumpRope, TbMountain, TbPingPong, TbSportBillard, TbStretching, TbStretching2, TbSwimming, TbTreadmill, TbVacuumCleaner, TbYoga } from "react-icons/tb";
 import { exerciseIconKey } from "../lib/exerciseIcon";
+import { t, useLanguage } from "../i18n";
+import { exName } from "../i18n/exercises";
 import { PICTOGRAMS, type Shape } from "./pictograms";
 import { EXERCISE_BY_NAME } from "../data/exercises";
 
@@ -295,6 +297,7 @@ export function ExerciseThumb({ name, size = 44 }: { name: string; category?: st
 
 /** Large picture for an exercise's page: start and end positions, shown one after the other. */
 export function ExerciseHero({ name }: { name: string; category?: string }) {
+  useLanguage();
   const id = useImageId(name);
   const [broken, setBroken] = useState(false);
   if (!id || broken)
@@ -304,7 +307,7 @@ export function ExerciseHero({ name }: { name: string; category?: string }) {
       </div>
     );
   return (
-    <div className="ex-hero" role="img" aria-label="" data-testid="exercise-picture">
+    <div className="ex-hero" role="img" aria-label={t("{name}: start and end position", { name: exName(name) })} data-testid="exercise-picture">
       <img src={src(id, 0)} alt="" decoding="async" onError={() => setBroken(true)} />
       <img src={src(id, 1)} alt="" decoding="async" className="ex-hero-end" />
     </div>
