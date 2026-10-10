@@ -465,3 +465,26 @@ test("Exercise library: a category icon on every row, the real photos on the exe
   await rows.first().click();
   await expect(page.locator(".ex-hero-icon")).toBeVisible();
 });
+
+test("Scrolling still works after closing stacked sheets (regression: the page stayed locked)", async ({ page }) => {
+  await start(page);
+  await onboard(page, "Sara");
+  await tab(page, "Train");
+  // Library → an activity's page → "Log activity" closes both sheets at once.
+  await page.locator("[data-tour=log-activity]").click();
+  const library = page.getByRole("dialog", { name: "Exercises" });
+  await library.locator("input").first().fill("futsal");
+  await library.locator(".row").first().click();
+  await page.getByRole("button", { name: "Log activity" }).last().click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
+  // Open and close a few sheets in different orders; the page must always scroll again.
+  await tab(page, "Today");
+  await page.getByRole("button", { name: /steps Progress$/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
+  const before = await page.evaluate(() => window.scrollY);
+  await page.mouse.wheel(0, 600);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before);
+});

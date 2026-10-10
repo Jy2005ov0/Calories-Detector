@@ -95,6 +95,20 @@ interface SheetProps {
   full?: boolean;
 }
 
+// The page behind an open sheet must not scroll. Sheets can be stacked (an exercise's page over the
+// exercise list) and close together, so each one only adds to a count; the page scrolls again
+// when the last one closes. (Saving and restoring the old value per sheet could leave the page
+// locked when two sheets closed in the "wrong" order.)
+let scrollLocks = 0;
+function lockScroll() {
+  scrollLocks++;
+  document.body.style.overflow = "hidden";
+}
+function unlockScroll() {
+  scrollLocks = Math.max(0, scrollLocks - 1);
+  if (scrollLocks === 0) document.body.style.overflow = "";
+}
+
 export function Sheet({ open, onClose, title, left, right, children, full }: SheetProps) {
   useLanguage();
   const reduce = useReducedMotion();
@@ -112,15 +126,14 @@ export function Sheet({ open, onClose, title, left, right, children, full }: She
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeRef.current();
     window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockScroll();
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      unlockScroll();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   return (
     <AnimatePresence>
