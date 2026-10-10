@@ -49,7 +49,7 @@ export function seedState() {
     tourDone: true,
     introDone: true,
     weights: [64.2, 63.8, 63.1, 62.6, 62.0, 61.4, 61.0].map((kg, i) => ({ id: `w${i}`, date: dayKey(-(6 - i) * 5), kg, createdAt: i })),
-    days: [8200, 10400, 6100, 12850, 7300, 9900, 4300].map((steps, i) => ({ id: dayKey(i - 6), steps, waterMl: 250 * (4 + i) })),
+    days: [0, 1, 2, 3, 4, 5, 6].map((i) => ({ id: dayKey(i - 6), waterMl: 250 * (4 + i) })),
     reminders: { meals: true, water: true, gym: true, breakfast: "08:00", lunch: "12:30", dinner: "19:00", gymTime: "18:00" },
     language: "en",
     deleted: [],

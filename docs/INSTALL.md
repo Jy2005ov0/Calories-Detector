@@ -40,7 +40,6 @@ On your phone, open **[W.apk](https://github.com/Jy2005ov0/Calories-Detector/rel
 - **Notifications:** allow them when asked, so meal, water, gym and period reminders and the rest timer can buzz.
 - **Battery:** **Settings → Apps → W → Battery → Unrestricted**. Some phones (Samsung, Xiaomi, Oppo, Huawei) otherwise stop reminders and the workout timer in the background.
 - **Reminders arrive late?** **Settings → Apps → W → Alarms & reminders → Allow** (Android 12 and later).
-- **Steps and weight from Health Connect:** in W go to **Profile → Progress → Sync from Health Connect** and allow *Steps* and *Weight*.
 
 That's it. Android apps don't expire.
 
@@ -94,7 +93,7 @@ A paid Apple Developer account ($99/year) signs for a year instead.
 
 ### What works in a sideloaded build
 
-Everything — camera, photo library, barcode scanner, reminders, rest timer, cycle tracking, family members and backups — **except Apple Health** (steps and weight sync), which Apple only allows for apps signed by a paid developer account. Type steps and weight in by hand instead.
+Everything: camera, photo library, barcode scanner, reminders, rest timer, cycle tracking, family members and backups. W doesn't use Apple Health (Apple only allows it for apps signed by a paid developer account), so nothing is missing.
 
 ---
 
@@ -134,7 +133,7 @@ If you host the built web app (`npm run build`, then any static host), W also ru
 - **iPhone (Safari):** open the web address → **Share** → **Add to Home Screen** → **Add**.
 - **Android (Chrome):** open the web address → **⋮** → **Install app**.
 
-It never expires, but reminders, Apple Health / Health Connect and the watch buttons need the installed app.
+It never expires, but reminders and the watch buttons need the installed app.
 
 ---
 
@@ -171,7 +170,6 @@ Moving to a new phone, or reinstalling? First use **Profile → Back up to a fil
 | **Sideloadly doesn't see the iPhone** (Windows) | Use iTunes and iCloud from **Apple's website**, not the Microsoft Store; unlock the phone and tap **Trust**; try another cable or USB port. |
 | **Login or "Guru Meditation" errors in Sideloadly** | Check the Apple ID email and password, approve the two-factor prompt on the phone, and update Sideloadly. A spare Apple ID often helps. |
 | **"Maximum number of apps"** | A free Apple ID allows 3 sideloaded apps at once. Remove one under **Settings → General → VPN & Device Management**, or delete an old sideloaded app. |
-| **Apple Health doesn't work** | Expected in sideloaded builds: Apple only allows it for apps signed by a paid developer account (see [What works](#what-works-in-a-sideloaded-build)). Type steps and weight in by hand. |
 
 ### Both
 

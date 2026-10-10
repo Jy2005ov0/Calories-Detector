@@ -203,13 +203,14 @@ describe("export", () => {
       ...INITIAL_STATE,
       log: [{ id: "1", date: "2026-10-08", meal: "breakfast", name: 'Roti "kosong", extra', grams: 95, nutrients: f.per100, source: "db", createdAt: 1 }],
       weights: [{ id: "w", date: "2026-10-08", kg: 70.4, createdAt: 1 }],
-      days: [{ id: "2026-10-08", waterMl: 1500, steps: 6000 }],
+      days: [{ id: "2026-10-08", waterMl: 1500 }],
       customMeals: [],
     });
     expect(csv).toContain("# Food log");
     expect(csv).toContain('"Roti ""kosong"", extra"');
     expect(csv).toContain("2026-10-08,70.4");
-    expect(csv).toContain("2026-10-08,1500,6000");
+    expect(csv).toContain("2026-10-08,1500");
+    expect(csv).not.toMatch(/steps/);
   });
 
   it("backs up everyone to a file and restores it exactly", () => {

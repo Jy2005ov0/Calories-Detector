@@ -7,7 +7,7 @@ import {
   ChevronRight,
   Dumbbell,
   Flame,
-  Footprints,
+  LineChart,
   MoonStar,
   Scale,
   Search,
@@ -295,12 +295,10 @@ export function Today({
   );
   const remaining = tg.kcal - eaten.kcal + burned;
 
-  const days = useStore((s) => s.days);
   const personId = useStore((s) => s.personId);
   const household = useStore(householdSize);
   const [peopleOpen, setPeopleOpen] = useState(false);
   const streak = useMemo(() => logStreak(log, today), [log, today]);
-  const steps = days.find((d) => d.id === today)?.steps ?? 0;
   // Ramadan shows sahur / iftar / moreh; lunch only if something was logged there.
   const meals: MealType[] = [
     ...mealOptions().map((m) => m.value),
@@ -494,12 +492,9 @@ export function Today({
           className="progress-link pressable"
           onClick={() => openSheet("progress")}
         >
-          <Footprints size={17} color="var(--green)" />
-          <span className="row-main tabular" style={{ textAlign: "left" }}>
-            {t("{n} of {goal} steps", {
-              n: steps.toLocaleString(locale()),
-              goal: profile.stepGoal.toLocaleString(locale()),
-            })}
+          <LineChart size={17} color="var(--green)" />
+          <span className="row-main" style={{ textAlign: "left" }}>
+            {t("Weight, water and streaks")}
           </span>
           <span className="link" style={{ fontSize: 15 }}>
             {t("Progress")}

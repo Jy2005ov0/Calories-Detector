@@ -96,10 +96,10 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
 
   // Water and progress
   await page.getByRole("button", { name: /^Add \d+ ml of water$/ }).click();
-  await page.getByRole("button", { name: /steps Progress$/ }).click();
+  await page.getByRole("button", { name: /streaks Progress$/ }).click();
   await audit(page, "Progress · weight", issues);
   await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, el.scrollHeight));
-  await audit(page, "Progress · steps & water", issues);
+  await audit(page, "Progress · water", issues);
   await close();
   await page.getByRole("button", { name: /^Cup size \d+ ml, change$/ }).click();
   await audit(page, "Water · cup size", issues);

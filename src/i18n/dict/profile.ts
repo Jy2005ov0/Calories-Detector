@@ -68,7 +68,6 @@ export const PROFILE: AreaDict = {
     "About you": "Tentang anda",
     "Body check": "Semakan badan",
     "BMI calculator with training and diet advice": "Kalkulator BMI dengan nasihat latihan dan diet",
-    "Weight chart, steps, water and streaks": "Carta berat, langkah, air dan rentetan",
     Goal: "Matlamat",
     "Activity level": "Tahap aktiviti",
     Training: "Latihan",
@@ -116,13 +115,10 @@ export const PROFILE: AreaDict = {
       "Peringatan gim dan senaman yang sedang berjalan memaparkan butang Daftar masuk / Daftar keluar — juga pada Apple Watch atau jam Wear OS anda.",
     "Reminders work in the iPhone and Android apps. In a browser they can't be scheduled.":
       "Peringatan berfungsi dalam aplikasi iPhone dan Android. Dalam pelayar, ia tidak boleh dijadualkan.",
-    "Daily goals": "Matlamat harian",
     Steps: "Langkah",
-    "step goal": "matlamat langkah",
     Language: "Bahasa",
     Data: "Data",
     "Export data (CSV)": "Eksport data (CSV)",
-    "Food log, workouts, weight, water and steps": "Log makanan, senaman, berat, air dan langkah",
     "30-day report (PDF)": "Laporan 30 hari (PDF)",
     "To share with a coach, trainer or doctor": "Untuk dikongsi dengan jurulatih atau doktor",
     "Your logs, workouts, custom foods and profile on this phone will be erased. This can't be undone.":
@@ -246,7 +242,6 @@ export const PROFILE: AreaDict = {
     "About you": "关于你",
     "Body check": "身体检查",
     "BMI calculator with training and diet advice": "BMI 计算器，附训练和饮食建议",
-    "Weight chart, steps, water and streaks": "体重图表、步数、饮水和连续记录",
     Goal: "目标",
     "Activity level": "活动水平",
     Training: "训练",
@@ -291,13 +286,10 @@ export const PROFILE: AreaDict = {
       "健身提醒和进行中的训练会显示打卡/签退按钮——在 Apple Watch 或 Wear OS 手表上也可以。",
     "Reminders work in the iPhone and Android apps. In a browser they can't be scheduled.":
       "提醒仅在 iPhone 和 Android 应用中有效。浏览器中无法设定。",
-    "Daily goals": "每日目标",
     Steps: "步数",
-    "step goal": "步数目标",
     Language: "语言",
     Data: "数据",
     "Export data (CSV)": "导出数据（CSV）",
-    "Food log, workouts, weight, water and steps": "饮食记录、训练、体重、饮水和步数",
     "30-day report (PDF)": "30 天报告（PDF）",
     "To share with a coach, trainer or doctor": "可分享给教练或医生",
     "Your logs, workouts, custom foods and profile on this phone will be erased. This can't be undone.":

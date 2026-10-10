@@ -25,7 +25,7 @@ The short version:
 | **First time** | Allow notifications, and set **Battery → Unrestricted** so reminders and the workout timer keep working | Turn on **Developer Mode** and trust your Apple ID under **VPN & Device Management** |
 | **Keep it** | Nothing to do — it doesn't expire | **Renew every 7 days** with a free Apple ID (Sideloadly or AltStore can do it automatically over Wi-Fi). Your data stays. |
 | **Update** | Open the new `W.apk` → **Update** | Install the new `W.ipa` with the same Apple ID |
-| **Not available** | — | Apple Health (needs a paid developer account); everything else works |
+| **Works** | Everything | Everything (the app doesn't use Apple Health, so a free Apple ID is enough) |
 
 No install at all: open the web app and use **Add to Home Screen** (Safari) or **Install app** (Chrome). See the [guide](docs/INSTALL.md#no-install-web-app-on-the-home-screen).
 
@@ -61,10 +61,10 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 #### Today and progress
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/06-today.jpg" width="190" alt="Calories left, water, steps, streak"><br><sub>Calories left, water, steps, streak</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/06-today.jpg" width="190" alt="Calories left, water, streak"><br><sub>Calories left, water, streak</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/07-today-meals.jpg" width="190" alt="Daily limits and meals"><br><sub>Daily limits and meals</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/10-progress-weight.jpg" width="190" alt="Weight chart and trend"><br><sub>Weight chart and trend</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/11-progress-steps-water.jpg" width="190" alt="Steps and water"><br><sub>Steps and water</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/11-progress-water.jpg" width="190" alt="Water history"><br><sub>Water history</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/12-water-cup-size.jpg" width="190" alt="Your own cup or bottle size"><br><sub>Your own cup or bottle size</sub></td>
 </tr></table>
 
@@ -142,10 +142,10 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 #### Today and progress
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/06-today.jpg" width="190" alt="Calories left, water, steps, streak"><br><sub>Calories left, water, steps, streak</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/06-today.jpg" width="190" alt="Calories left, water, streak"><br><sub>Calories left, water, streak</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/07-today-meals.jpg" width="190" alt="Daily limits and meals"><br><sub>Daily limits and meals</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/10-progress-weight.jpg" width="190" alt="Weight chart and trend"><br><sub>Weight chart and trend</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/11-progress-steps-water.jpg" width="190" alt="Steps and water"><br><sub>Steps and water</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/11-progress-water.jpg" width="190" alt="Water history"><br><sub>Water history</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/12-water-cup-size.jpg" width="190" alt="Your own cup or bottle size"><br><sub>Your own cup or bottle size</sub></td>
 </tr></table>
 
@@ -224,7 +224,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 | **Training plans** | Body-part split (Chest / Back / Legs / Shoulders / Arms), Push-Pull-Legs, Upper/Lower or Full Body, set for 2–6 days a week. Sets, reps, rest and RIR follow your goal and experience. Start any day with one tap. |
 | **Nutrition plan** | Calorie target (Mifflin-St Jeor × activity, ±goal), protein/carb/fat targets, foods to eat and limit, a sample day scaled to your target, and tips on meal timing. Supports halal, vegetarian and vegan diets. |
 | **Barcode scanner** | Point the camera at a packaged food (EAN/UPC) or type the number. The product's nutrition comes from Open Food Facts; unknown products can be added as a new food. |
-| **Progress** | Log your weight and see a chart with your weekly trend and whether it's on pace for your goal. Steps (typed in, or synced from **Apple Health / Health Connect** in the apps), water glasses against a goal of ~35 ml per kg, and 7-day charts. |
+| **Progress** | Log your weight and see a chart with your weekly trend and whether it's on pace for your goal. Water against a goal of ~35 ml per kg, and 7-day charts. (W doesn't count steps: Apple Health can't be used by sideloaded apps.) |
 | **Streaks** | A logging streak on Today and a weekly gym streak in Progress. |
 | **Reminders** | Meal, water and gym-day reminders at times you choose (in the iPhone and Android apps). |
 | **Clock in/out from your watch** | Gym reminders carry a **Clock in** button and a running workout shows a **Clock out** button. Both appear on a paired **Apple Watch** or **Wear OS** watch, because the watch mirrors the phone's notifications. |
@@ -277,7 +277,6 @@ The native apps reuse the same code and switch to native features when running o
 | Safe areas | Notch, Dynamic Island, home indicator | Edge-to-edge status and navigation bars |
 | Back | Swipe sheets down | Hardware/gesture **Back** closes the top sheet, then returns to Today, then leaves the app |
 | Data | Saved to localStorage and mirrored to UserDefaults so iOS can't evict it | Mirrored to SharedPreferences |
-| Health data | Steps and weight from Apple Health (HealthKit); weigh-ins are saved back | Steps and weight from Health Connect (Android 8+) |
 | Reminders & rest timer | Local notifications, also shown on a paired Apple Watch | Local notifications, also shown on a paired Wear OS watch |
 | Watch buttons | Clock in / Clock out buttons on the notification | Same, on the notification and the watch |
 | Barcode scanner | Live camera scanning in the app | Live camera scanning in the app |
@@ -285,8 +284,6 @@ The native apps reuse the same code and switch to native features when running o
 | Status bar | Follows light/dark mode | Follows light/dark mode |
 
 > **About the watch:** there is no separate watch app. The watch shows the phone's notifications with their buttons, so you can clock in from a gym reminder and clock out from the "clocked in" notification on your wrist while the app is running in the background on your phone. A standalone watchOS / Wear OS app would be a separate project.
-
-> **Health permissions:** the first time you tap *Sync from Apple Health / Health Connect* in Progress, the phone asks which data to share. On Android, Health Connect needs Android 8 or later (built in from Android 14; install it from the Play Store on older phones). Publishing to the App Store or Play Store with health access requires the privacy policy at `public/privacypolicy.html` to be hosted on your site.
 
 ### Build them
 

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Droplet, Footprints, HeartPulse, Minus, Plus, Trash2 } from "lucide-react";
+import { Droplet, Minus, Plus, Trash2 } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
-import { healthAvailable, healthName, readHealth, writeHealthWeight } from "../lib/native";
 import { round } from "../lib/nutrition";
 import { GLASS_ML, addDays, logStreak, waterGoalMl, weightTrend, workoutWeekStreak } from "../lib/progress";
 import { bmiBand } from "../lib/recommend";
@@ -28,20 +27,14 @@ export function ProgressSheet({ open, onClose }: { open: boolean; onClose: () =>
   const sessions = useStore((s) => s.sessions);
   const today = useTodayKey();
   const [kg, setKg] = useState(String(profile.weightKg));
-  const [steps, setSteps] = useState("");
-  const [health, setHealth] = useState(false);
-  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     if (open) {
       setKg(String(profile.weightKg));
-      setSteps("");
-      healthAvailable().then(setHealth);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const day = days.find((d) => d.id === today) ?? { id: today, waterMl: 0, steps: 0 };
   const week = useMemo(() => [...Array(7).keys()].map((i) => addDays(today, i - 6)), [today]);
   const statsFor = (date: string) => days.find((d) => d.id === date);
   const trend = weightTrend(weights, today);
@@ -54,32 +47,8 @@ export function ProgressSheet({ open, onClose }: { open: boolean; onClose: () =>
     const v = parseFloat(kg.replace(",", "."));
     if (!(v >= 30 && v <= 300)) return showToast(t("Enter a weight between 30 and 300 kg"));
     actions.logWeight(round(v, 1));
-    writeHealthWeight(round(v, 1));
     haptic("success");
     showToast(t("Weight saved · {kg} kg", { kg: round(v, 1) }));
-  };
-
-  const saveSteps = () => {
-    const v = Math.round(parseFloat(steps) || 0);
-    if (v < 0 || v > 100000) return;
-    actions.updateDay(today, (d) => ({ ...d, steps: v, stepsFromHealth: false }));
-    setSteps("");
-    haptic();
-  };
-
-  const sync = async () => {
-    setSyncing(true);
-    try {
-      const r = await readHealth();
-      actions.updateDay(today, (d) => ({ ...d, steps: r.steps, stepsFromHealth: true }));
-      if (r.weightKg && Math.abs(r.weightKg - profile.weightKg) >= 0.1) actions.logWeight(round(r.weightKg, 1));
-      haptic("success");
-      showToast(t("Synced from {app}", { app: healthName }));
-    } catch {
-      showToast(t("Couldn't read {app}. Check its permissions in Settings.", { app: healthName }));
-    } finally {
-      setSyncing(false);
-    }
   };
 
   const trendText =
@@ -155,41 +124,6 @@ export function ProgressSheet({ open, onClose }: { open: boolean; onClose: () =>
             ))}
         </div>
       )}
-
-      <div className="section-header">
-        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <Footprints size={14} /> {t("Steps")}
-        </span>
-        <span className="muted tabular" style={{ textTransform: "none" }}>
-          {t("Goal {n}", { n: profile.stepGoal.toLocaleString(locale()) })}
-        </span>
-      </div>
-      <div className="card">
-        <DayBars label={t("Steps")} unit={t("steps")} color="var(--green)" goal={profile.stepGoal} days={week.map((date) => ({ date, value: statsFor(date)?.steps ?? 0 }))} />
-        {health && (
-          <button className="btn tinted" style={{ marginTop: 10 }} onClick={sync} disabled={syncing}>
-            {syncing ? <div className="spinner" /> : <HeartPulse size={17} />} {t("Sync from {app}", { app: healthName })}
-          </button>
-        )}
-        <div className="field" style={{ padding: 0, marginTop: 8 }}>
-          <label htmlFor="pg-steps">{t("Steps today")}</label>
-          <input
-            id="pg-steps"
-            inputMode="numeric"
-            placeholder={String(day.steps || 0)}
-            value={steps}
-            onChange={(e) => setSteps(e.target.value.replace(/\D/g, ""))}
-            aria-label={t("Steps today")}
-            style={{ width: 90 }}
-          />
-          <button className="btn small" onClick={saveSteps} disabled={!steps}>
-            {t("Save")}
-          </button>
-        </div>
-        <p className="footnote" style={{ margin: "6px 0 0" }}>
-          {t("Steps are already counted in your activity level, so they don't add calories to your day.")}
-        </p>
-      </div>
 
       <div className="section-header">
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>

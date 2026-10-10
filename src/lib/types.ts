@@ -70,8 +70,6 @@ export interface Profile {
   fasting: "off" | "ramadan" | "16:8";
   /** Ramadan sahur end and iftar ("HH:MM", they change with location), and the 16:8 window start. */
   fastTimes: { sahur: string; iftar: string; windowStart: string };
-  /** Daily step goal. */
-  stepGoal: number;
   /** Menstrual cycle tracking (off unless turned on). */
   cycle: CycleSettings;
   /** Water added per tap, in ml (250 when unset). */
@@ -116,9 +114,6 @@ export interface DayStats {
   /** When this item was last changed; sync keeps the newer copy. */
   updatedAt?: number;
   waterMl: number;
-  steps: number;
-  /** Steps came from Apple Health / Health Connect rather than typed in. */
-  stepsFromHealth?: boolean;
 }
 
 export interface Reminders {

@@ -96,7 +96,6 @@ export const DEFAULT_PROFILE: Profile = {
   allergies: [],
   fasting: "off",
   fastTimes: { sahur: "05:45", iftar: "19:20", windowStart: "12:00" },
-  stepGoal: 8000,
   cycle: { on: false, length: 28, periodDays: 5, remind: true },
   onboarded: false,
 };
@@ -375,7 +374,7 @@ export const actions = {
   },
   updateDay(date: string, fn: (d: DayStats) => DayStats) {
     setState((s) => {
-      const current = s.days.find((d) => d.id === date) ?? { id: date, waterMl: 0, steps: 0 };
+      const current = s.days.find((d) => d.id === date) ?? { id: date, waterMl: 0 };
       // Keep about a year of daily stats.
       return { days: [...s.days.filter((d) => d.id !== date), { ...fn(current), updatedAt: Date.now() }].sort((a, b) => a.id.localeCompare(b.id)).slice(-400) };
     });

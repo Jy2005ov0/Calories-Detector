@@ -381,7 +381,7 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           </div>
           <div className="row-main">
             <div className="row-title">{t("Progress")}</div>
-            <div className="row-sub">{t("Weight chart, steps, water and streaks")}</div>
+            <div className="row-sub">{t("Weight chart, water and streaks")}</div>
           </div>
           <ChevronRight size={16} className="chev" />
         </button>
@@ -522,14 +522,6 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           : t("Reminders work in the iPhone and Android apps. In a browser they can't be scheduled.")}
       </p>
 
-      <div className="section-header">{t("Daily goals")}</div>
-      <div className="group">
-        <div className="field">
-          <label>{t("Steps")}</label>
-          <Stepper value={p.stepGoal} step={1000} min={2000} max={30000} format={(v) => v.toLocaleString()} label={t("step goal")} onChange={(stepGoal) => actions.updateProfile({ stepGoal })} />
-        </div>
-      </div>
-
       <div className="section-header">
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <Languages size={14} /> {t("Language")}
@@ -552,7 +544,7 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           </div>
           <div className="row-main">
             <div className="row-title">{t("Export data (CSV)")}</div>
-            <div className="row-sub">{t("Food log, workouts, weight, water and steps")}</div>
+            <div className="row-sub">{t("Food log, workouts, weight and water")}</div>
           </div>
         </button>
         <button className="row with-icon" onClick={() => doExport("pdf")} disabled={!!exporting}>

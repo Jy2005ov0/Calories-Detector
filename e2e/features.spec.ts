@@ -88,7 +88,7 @@ test("Siti: halal, peanut allergy and Ramadan — warnings, filters, sahur/iftar
   await expect(page.getByText("Break your fast with water and 2–3 dates", { exact: false })).toBeVisible();
 });
 
-test("Wei: scans a barcode, logs it, tracks water, steps and weight, and builds a streak", async ({ page }) => {
+test("Wei: scans a barcode, logs it, tracks water and weight, and builds a streak", async ({ page }) => {
   await start(page);
   await onboard(page, "Wei", { sex: "Male", weight: "82" });
 
@@ -138,24 +138,22 @@ test("Wei: scans a barcode, logs it, tracks water, steps and weight, and builds 
   await page.getByRole("button", { name: "Remove 500 ml of water" }).click();
   await expect(page.getByText(/^1\.08 of 2\.75 L water$/)).toBeVisible();
 
-  // Progress: steps and a few weigh-ins over two weeks draw the chart and the trend.
-  await page.getByRole("button", { name: /steps Progress$/ }).click();
+  // Progress: a few weigh-ins over two weeks draw the chart and the trend. (No step counting.)
+  await page.getByRole("button", { name: /streaks Progress$/ }).click();
   const progress = sheet(page, "Progress");
-  await progress.getByLabel("Steps today").fill("6400");
-  await progress.locator(".field", { hasText: "Steps today" }).getByRole("button", { name: "Save" }).click();
-  await expect(progress.getByRole("img", { name: /^Steps:/ })).toHaveAttribute("aria-label", /6400 steps$/);
+  await expect(progress.getByText(/steps/i)).toHaveCount(0);
   await progress.getByLabel("Weight in kg").fill("82");
   await progress.locator(".field", { hasText: "kg" }).getByRole("button", { name: "Save" }).click();
   await progress.getByRole("button", { name: "Close", exact: true }).click();
 
   for (const kg of ["81.4", "80.9"]) {
     await advance(page, 7 * 86400000);
-    await page.getByRole("button", { name: /steps Progress$/ }).click();
+    await page.getByRole("button", { name: /streaks Progress$/ }).click();
     await progress.getByLabel("Weight in kg").fill(kg);
     await progress.locator(".field", { hasText: "kg" }).getByRole("button", { name: "Save" }).click();
     await progress.getByRole("button", { name: "Close", exact: true }).click();
   }
-  await page.getByRole("button", { name: /steps Progress$/ }).click();
+  await page.getByRole("button", { name: /streaks Progress$/ }).click();
   await expect(progress.getByRole("img", { name: /Weight from 82.0 kg/ })).toHaveAttribute("aria-label", /to 80.9 kg/);
   await expect(progress).toContainText("Losing 0.5 kg a week");
   await expect(progress).toContainText("That's on track for your goal.");
@@ -259,7 +257,7 @@ test("Lina: doesn't eat vegetables or beef, so her meal plan leaves them out", a
   await expect(page.locator(".avoid-card")).toHaveCount(0);
 });
 
-test("Mei: reminders, step goal and switching language to Malay and Chinese", async ({ page }) => {
+test("Mei: reminders and switching language to Malay and Chinese", async ({ page }) => {
   await start(page);
   await onboard(page, "Mei");
   await tab(page, "Profile");
@@ -272,9 +270,8 @@ test("Mei: reminders, step goal and switching language to Malay and Chinese", as
   await page.getByRole("switch", { name: "Gym reminders" }).click();
   await expect(page.getByText("Reminders work in the iPhone and Android apps.", { exact: false })).toBeVisible();
 
-  await page.getByRole("button", { name: "More step goal" }).click();
-  await tab(page, "Today");
-  await expect(page.getByText("0 of 9,000 steps")).toBeVisible();
+  // No step goal any more.
+  await expect(page.getByRole("button", { name: "More step goal" })).toHaveCount(0);
 
   // Malay
   await tab(page, "Profile");
@@ -480,7 +477,7 @@ test("Scrolling still works after closing stacked sheets (regression: the page s
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
   // Open and close a few sheets in different orders; the page must always scroll again.
   await tab(page, "Today");
-  await page.getByRole("button", { name: /steps Progress$/ }).click();
+  await page.getByRole("button", { name: /streaks Progress$/ }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");

@@ -1,5 +1,4 @@
 import { LocalNotifications, type LocalNotificationSchema } from "@capacitor/local-notifications";
-import { Health } from "@capgo/capacitor-health";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { Share } from "@capacitor/share";
 import { t } from "../i18n";
@@ -201,42 +200,6 @@ export function startNativeServices() {
     if (s.reminders !== prev.reminders || s.profile !== prev.profile || s.split !== prev.split || s.language !== prev.language || s.periods !== prev.periods) syncReminders(s);
     prev = s;
   });
-}
-
-// ── Apple Health / Health Connect ────────────────────────
-
-export const healthName = platform === "ios" ? "Apple Health" : "Health Connect";
-
-export async function healthAvailable() {
-  if (!isNative) return false;
-  try {
-    return (await Health.isAvailable()).available;
-  } catch {
-    return false;
-  }
-}
-
-/** Read today's steps and the latest weight from the phone's health app. */
-export async function readHealth(): Promise<{ steps: number; weightKg?: number }> {
-  await Health.requestAuthorization({ read: ["steps", "weight"], write: ["weight"] });
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const now = new Date().toISOString();
-  const agg = await Health.queryAggregated({ dataType: "steps", startDate: start.toISOString(), endDate: now, bucket: "day", aggregation: "sum" });
-  const steps = Math.round(agg.samples.reduce((a, x) => a + (x.values?.sum ?? x.value ?? 0), 0));
-  const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString();
-  const w = await Health.readSamples({ dataType: "weight", startDate: monthAgo, endDate: now, limit: 1, ascending: false }).catch(() => ({ samples: [] }));
-  return { steps, weightKg: w.samples[0]?.value };
-}
-
-/** Save a weigh-in to the phone's health app as well. */
-export async function writeHealthWeight(kg: number) {
-  if (!isNative) return;
-  try {
-    await Health.saveSample({ dataType: "weight", value: kg, unit: "kilogram" });
-  } catch {
-    /* not authorised — fine */
-  }
 }
 
 // ── Files & sharing ──────────────────────────────────────

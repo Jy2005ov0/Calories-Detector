@@ -77,7 +77,7 @@ function seed() {
     theme: "system",
     language: "en",
     weights: [63.4, 63.1, 62.9, 62.6, 62.7, 62.2, 61.9, 61.8, 61.4, 61.0].map((kg, i) => ({ id: `w${i}`, date: dayKey(-(9 - i) * 4), kg, createdAt: i })),
-    days: [7400, 9100, 6200, 10400, 8300, 5600, 4200].map((steps, i) => ({ id: dayKey(i - 6), steps, waterMl: [2000, 2250, 1750, 2500, 2250, 1500, 1250][i] })),
+    days: [7400, 9100, 6200, 10400, 8300, 5600, 4200].map((_, i) => ({ id: dayKey(i - 6), waterMl: [2000, 2250, 1750, 2500, 2250, 1500, 1250][i] })),
     reminders: { meals: true, water: true, gym: true, breakfast: "08:00", lunch: "12:30", dinner: "19:00", gymTime: "18:00" },
     deleted: [],
     stamps: {},
@@ -222,12 +222,12 @@ for (const set of SETS) {
     await shot("barcode-product");
     await closeSheet();
 
-    // Progress, water and steps
+    // Progress and water
     await page.getByRole("button", { name: /^Add \d+ ml of water$/ }).click();
-    await page.getByRole("button", { name: /steps Progress$/ }).click();
+    await page.getByRole("button", { name: /streaks Progress$/ }).click();
     await shot("progress-weight");
     await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, 640));
-    await shot("progress-steps-water");
+    await shot("progress-water");
     await closeSheet();
 
     // Water cup size

@@ -3,6 +3,9 @@ import type { AreaDict } from "./index";
 // Translations for the core area. Keys are the exact English strings passed to t().
 export const CORE: AreaDict = {
   ms: {
+    "Weight, water and streaks": "Berat, air dan rentetan",
+    "Weight chart, water and streaks": "Carta berat, air dan rentetan",
+    "Food log, workouts, weight and water": "Log makanan, senaman, berat dan air",
     "For you and your family": "Untuk anda dan keluarga",
     "No sign-up. Your data stays on your phone, and family members get their own profiles.": "Tiada pendaftaran. Data anda kekal dalam telefon, dan ahli keluarga mendapat profil sendiri.",
     "Back up to move phones": "Sandarkan untuk tukar telefon",
@@ -218,8 +221,6 @@ export const CORE: AreaDict = {
     Weight: "Berat",
     "Enter a weight between 30 and 300 kg": "Masukkan berat antara 30 dan 300 kg",
     "Weight saved · {kg} kg": "Berat disimpan · {kg} kg",
-    "Synced from {app}": "Disegerakkan daripada {app}",
-    "Couldn't read {app}. Check its permissions in Settings.": "Tidak dapat membaca {app}. Semak kebenarannya dalam Tetapan.",
     "Log your weight a few times a week to see your trend.": "Catat berat anda beberapa kali seminggu untuk melihat trend.",
     "Holding steady over the last 4 weeks.": "Stabil sepanjang 4 minggu lepas.",
     "{dir} {kg} kg a week over the last 4 weeks.": "{dir} {kg} kg seminggu sepanjang 4 minggu lepas.",
@@ -234,11 +235,6 @@ export const CORE: AreaDict = {
     "Delete weigh-in on {date}": "Padam timbangan pada {date}",
     Steps: "Langkah",
     steps: "langkah",
-    "Goal {n}": "Sasaran {n}",
-    "Sync from {app}": "Segerak daripada {app}",
-    "Steps today": "Langkah hari ini",
-    "Steps are already counted in your activity level, so they don't add calories to your day.":
-      "Langkah sudah dikira dalam tahap aktiviti anda, jadi ia tidak menambah kalori ke hari anda.",
     Water: "Air",
     "Goal {l} L": "Sasaran {l} L",
     "Water goal reached · nice!": "Sasaran air dicapai · bagus!",
@@ -260,6 +256,9 @@ export const CORE: AreaDict = {
     "Weight from {from} kg on {d1} to {to} kg on {d2}": "Berat daripada {from} kg pada {d1} kepada {to} kg pada {d2}",
   },
   zh: {
+    "Weight, water and streaks": "体重、饮水和连续记录",
+    "Weight chart, water and streaks": "体重图表、饮水和连续记录",
+    "Food log, workouts, weight and water": "饮食记录、训练、体重和饮水",
     "For you and your family": "为你和家人而设",
     "No sign-up. Your data stays on your phone, and family members get their own profiles.": "无需注册。你的数据保存在手机上，家人也可以拥有自己的资料。",
     "Back up to move phones": "备份以便更换手机",
@@ -475,8 +474,6 @@ export const CORE: AreaDict = {
     Weight: "体重",
     "Enter a weight between 30 and 300 kg": "请输入 30 到 300 kg 之间的体重",
     "Weight saved · {kg} kg": "体重已保存 · {kg} kg",
-    "Synced from {app}": "已从 {app} 同步",
-    "Couldn't read {app}. Check its permissions in Settings.": "无法读取 {app}，请在设置中检查权限。",
     "Log your weight a few times a week to see your trend.": "每周记录几次体重，即可查看趋势。",
     "Holding steady over the last 4 weeks.": "过去 4 周保持稳定。",
     "{dir} {kg} kg a week over the last 4 weeks.": "过去 4 周每周{dir} {kg} kg。",
@@ -491,11 +488,6 @@ export const CORE: AreaDict = {
     "Delete weigh-in on {date}": "删除 {date} 的体重记录",
     Steps: "步数",
     steps: "步",
-    "Goal {n}": "目标 {n}",
-    "Sync from {app}": "从 {app} 同步",
-    "Steps today": "今日步数",
-    "Steps are already counted in your activity level, so they don't add calories to your day.":
-      "步数已计入你的活动水平，因此不会额外增加当天热量。",
     Water: "饮水",
     "Goal {l} L": "目标 {l} L",
     "Water goal reached · nice!": "饮水目标已达成 · 真棒！",
