@@ -488,3 +488,54 @@ test("Scrolling still works after closing stacked sheets (regression: the page s
   await page.mouse.wheel(0, 600);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before);
 });
+
+test("Fixing a mistake: rice added to dinner by accident is edited, moved, deleted, undone and swiped away", async ({ page }) => {
+  await start(page);
+  await onboard(page, "Hana");
+  // Log rice to dinner by mistake.
+  await tab(page, "Food");
+  await page.getByLabel("Search foods").fill("white rice");
+  await page.locator(".row").first().click();
+  const food = page.getByRole("dialog");
+  await food.getByRole("tab", { name: "Dinner" }).click();
+  await food.getByRole("button", { name: /^Add to Dinner/ }).click();
+  await tab(page, "Today");
+  const dinner = page.locator(".section-header", { hasText: /^Dinner/ });
+  await expect(dinner).toContainText("kcal");
+  const riceRow = page.locator(".swipe-row", { hasText: /rice/i }).first();
+  const riceName = (await riceRow.locator(".row-title").innerText()).trim();
+
+  // Tap it: change the amount — the calories follow.
+  await riceRow.getByRole("button", { name: `Edit ${riceName}` }).click();
+  const edit = page.getByRole("dialog", { name: "Edit food" });
+  const before = Number(await edit.getByTestId("edit-kcal").innerText());
+  const grams = Number(await edit.getByLabel("Amount").inputValue());
+  await edit.getByLabel("Amount").fill(String(grams * 2));
+  await expect.poll(async () => Math.abs(Number(await edit.getByTestId("edit-kcal").innerText()) - before * 2)).toBeLessThanOrEqual(1);
+  const after = Number(await edit.getByTestId("edit-kcal").innerText());
+  // …and move it to lunch.
+  await edit.getByRole("tab", { name: "Lunch" }).click();
+  await edit.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Moved to Lunch" })).toBeVisible();
+  await expect(dinner).not.toContainText("kcal");
+  await expect(page.locator(".section-header", { hasText: /^Lunch/ })).toContainText(`${after} kcal`);
+
+  // Delete it from the edit sheet, then undo.
+  await page.locator(".swipe-row", { hasText: riceName }).getByRole("button", { name: `Edit ${riceName}` }).click();
+  await edit.getByRole("button", { name: "Delete from Lunch" }).click();
+  await expect(page.locator(".swipe-row", { hasText: riceName })).toHaveCount(0);
+  await page.getByRole("status").getByRole("button", { name: "Undo" }).click();
+  await expect(page.locator(".swipe-row", { hasText: riceName })).toHaveCount(1);
+
+  // Swipe it left to delete.
+  const row = page.locator(".swipe-row", { hasText: riceName }).locator(".row");
+  const box = (await row.boundingBox())!;
+  await page.mouse.move(box.x + box.width - 60, box.y + box.height / 2);
+  await page.mouse.down();
+  for (let i = 1; i <= 8; i++) await page.mouse.move(box.x + box.width - 60 - i * 20, box.y + box.height / 2);
+  await page.mouse.up();
+  await expect(page.locator(".swipe-row", { hasText: riceName })).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: `Removed ${riceName}` })).toBeVisible();
+  // The page still scrolls afterwards.
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
+});

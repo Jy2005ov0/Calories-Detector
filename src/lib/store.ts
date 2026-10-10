@@ -291,6 +291,18 @@ export const actions = {
   removeLog(id: string) {
     setState((s) => ({ log: s.log.filter((e) => e.id !== id), deleted: tombstone(s.deleted, id) }));
   },
+  /** Fix a logged food: a different amount (its nutrients scale with it) or another meal. */
+  updateLog(id: string, patch: { grams?: number; meal?: LogEntry["meal"] }) {
+    setState((s) => ({
+      log: s.log.map((e) => {
+        if (e.id !== id) return e;
+        const grams = patch.grams && patch.grams > 0 ? patch.grams : e.grams;
+        const k = grams / e.grams;
+        const nutrients = k === 1 ? e.nutrients : (Object.fromEntries(Object.entries(e.nutrients).map(([n, v]) => [n, v * k])) as unknown as LogEntry["nutrients"]);
+        return { ...e, grams, nutrients, meal: patch.meal ?? e.meal };
+      }),
+    }));
+  },
   restoreLog(entry: LogEntry) {
     // A new id: the old one may already be synced as deleted, and sync never un-deletes.
     setState((s) => ({ log: [...s.log, { ...entry, id: uid() }] }));

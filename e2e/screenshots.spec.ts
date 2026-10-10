@@ -206,6 +206,10 @@ for (const set of SETS) {
     await shot("today");
     await page.evaluate(() => window.scrollTo(0, 620));
     await shot("today-meals");
+    await page.locator(".log-edit").first().click();
+    await page.waitForTimeout(500);
+    await shot("edit-food");
+    await closeSheet();
     await page.evaluate(() => window.scrollTo(0, 0));
 
     // Barcode

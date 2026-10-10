@@ -3,6 +3,14 @@ import type { AreaDict } from "./index";
 // Translations for the food area. Keys are the exact English strings passed to t().
 export const FOOD: AreaDict = {
   ms: {
+    "Edit food": "Sunting makanan",
+    "Edit {name}": "Sunting {name}",
+    "Amount": "Jumlah",
+    "Save changes": "Simpan perubahan",
+    "Delete from {meal}": "Padam daripada {meal}",
+    "Moved to {meal}": "Dipindahkan ke {meal}",
+    "Updated {name}": "{name} dikemas kini",
+    "Delete": "Padam",
     // Foods I don't eat
     "Foods I don't eat": "Makanan yang saya tak makan",
     "Beef": "Daging lembu",
@@ -200,6 +208,14 @@ export const FOOD: AreaDict = {
       "Data produk daripada Open Food Facts, pangkalan data percuma berjuta-juta makanan.",
   },
   zh: {
+    "Edit food": "编辑食物",
+    "Edit {name}": "编辑{name}",
+    "Amount": "分量",
+    "Save changes": "保存更改",
+    "Delete from {meal}": "从{meal}中删除",
+    "Moved to {meal}": "已移到{meal}",
+    "Updated {name}": "已更新{name}",
+    "Delete": "删除",
     // Foods I don't eat
     "Foods I don't eat": "我不吃的食物",
     "Beef": "牛肉",

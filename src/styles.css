@@ -2288,3 +2288,42 @@ html[data-platform="android"] .sheet-cta {
   outline: 2px solid var(--blue);
   outline-offset: -2px;
 }
+
+/* Logged food: tap to edit, swipe left to delete */
+.swipe-row {
+  position: relative;
+  overflow: hidden;
+}
+.swipe-row + .swipe-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  border-top: 0.5px solid var(--separator);
+  z-index: 1;
+}
+.swipe-delete {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding-right: 18px;
+  background: var(--red);
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+}
+.log-edit {
+  display: block;
+  min-width: 0;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+}

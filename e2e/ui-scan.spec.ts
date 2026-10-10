@@ -107,6 +107,9 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await page.getByTestId("cycle-card").getByRole("button", { name: "Period calendar" }).click();
   await audit(page, "Period calendar", issues);
   await close();
+  await page.locator(".log-edit").first().click();
+  await audit(page, "Edit a logged food", issues);
+  await close();
 
   await page.getByRole("button", { name: "Switch person" }).click();
   await audit(page, "Switch person", issues);

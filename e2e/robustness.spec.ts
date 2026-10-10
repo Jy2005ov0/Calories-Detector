@@ -104,6 +104,7 @@ const SHEETS: { name: string; open: (page: Page) => Promise<void> }[] = [
   { name: "Period calendar", open: async (p) => p.getByTestId("cycle-card").getByRole("button").first().click() },
   { name: "Switch person", open: async (p) => p.getByRole("button", { name: "Switch person" }).click() },
   { name: "Barcode", open: async (p) => p.locator('[data-tour="barcode"]').click() },
+  { name: "Edit a logged food", open: async (p) => p.locator(".log-edit").first().click() },
   {
     name: "Food",
     open: async (p) => {
@@ -275,6 +276,7 @@ for (const language of ["ms", "zh"] as const) {
     await sheet("Progress", () => page.locator(".progress-link").click());
     await sheet("Cup size", () => page.locator(".water-cup").click());
     await sheet("Period calendar", () => page.getByTestId("cycle-card").getByRole("button").first().click());
+    await sheet("Edit a logged food", () => page.locator(".log-edit").first().click());
     await tab(page, 1);
     await audit(page, "Food", issues);
     await page.getByLabel(/.+/).first().fill("nasi");

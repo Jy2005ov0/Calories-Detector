@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { motion } from "motion/react";
+import { useMemo, useRef, useState } from "react";
+import { motion, useMotionValue, useTransform } from "motion/react";
 import {
   Barcode,
   CalendarDays,
@@ -44,6 +44,7 @@ import {
   useNow,
 } from "../components/ui";
 import { WaterControl } from "../components/ProgressSheet";
+import { LogEntrySheet, deleteLogEntry } from "../components/LogEntrySheet";
 import { CycleCalendar } from "../components/CycleCalendar";
 import { PeopleSheet, PersonAvatar, householdSize } from "../components/People";
 import type { SheetKind, Tab } from "../App";
@@ -214,6 +215,55 @@ function CycleCard({ today }: { today: string }) {
   );
 }
 
+/**
+ * A food in today's log. Tap it to change the amount or meal, swipe it left (or tap the bin) to delete.
+ * Deleting always offers Undo.
+ */
+function LogRow({ e, onEdit }: { e: LogEntry; onEdit: () => void }) {
+  const x = useMotionValue(0);
+  const reveal = useTransform(x, [-96, -24, 0], [1, 0.4, 0]);
+  // A swipe that starts on a button must not also count as tapping it (that deleted twice).
+  const swiped = useRef(false);
+  return (
+    <div className="swipe-row">
+      <motion.div className="swipe-delete" style={{ opacity: reveal }} aria-hidden>
+        <Trash2 size={18} /> {t("Delete")}
+      </motion.div>
+      <motion.div
+        className="row"
+        drag="x"
+        dragDirectionLock
+        dragConstraints={{ left: -110, right: 0 }}
+        dragElastic={{ left: 0.25, right: 0 }}
+        dragSnapToOrigin
+        style={{ x, touchAction: "pan-y" }}
+        onDragStart={() => (swiped.current = true)}
+        onDragEnd={(_, info) => {
+          if (info.offset.x < -90 || info.velocity.x < -700) deleteLogEntry(e);
+          setTimeout(() => (swiped.current = false), 50);
+        }}
+        onClickCapture={(ev) => {
+          if (!swiped.current) return;
+          ev.preventDefault();
+          ev.stopPropagation();
+        }}
+      >
+        <button className="row-main log-edit" onClick={onEdit} aria-label={t("Edit {name}", { name: e.name })}>
+          <div className="row-title">{e.name}</div>
+          <div className="row-sub">
+            {e.note ? `${e.note} · ` : ""}
+            {round(e.grams)} g · P {round(e.nutrients.protein)} · C {round(e.nutrients.carbs)} · F {round(e.nutrients.fat)}
+          </div>
+        </button>
+        <span className="row-value">{round(e.nutrients.kcal)}</span>
+        <button className="icon-btn" aria-label={t("Remove {name}", { name: e.name })} onClick={() => deleteLogEntry(e)}>
+          <Trash2 size={15} />
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
 export function Today({
   go,
   openSheet,
@@ -274,17 +324,12 @@ export function Today({
         ? t("Good afternoon")
         : t("Good evening");
 
-  const remove = (e: LogEntry) => {
-    actions.removeLog(e.id);
-    showToast(t("Removed {name}", { name: e.name }), {
-      label: t("Undo"),
-      run: () => actions.restoreLog(e),
-    });
-  };
+  const [editing, setEditing] = useState<LogEntry | null>(null);
 
   return (
     <div className="screen">
       <PeopleSheet open={peopleOpen} onClose={() => setPeopleOpen(false)} />
+      <LogEntrySheet entry={editing} onClose={() => setEditing(null)} />
       <p
         className="subtitle"
         style={{
@@ -569,26 +614,7 @@ export function Today({
                   {t("Nothing logged yet")}
                 </div>
               ) : (
-                list.map((e) => (
-                  <div className="row" key={e.id}>
-                    <div className="row-main">
-                      <div className="row-title">{e.name}</div>
-                      <div className="row-sub">
-                        {e.note ? `${e.note} · ` : ""}
-                        {round(e.grams)} g · P {round(e.nutrients.protein)} · C{" "}
-                        {round(e.nutrients.carbs)} · F {round(e.nutrients.fat)}
-                      </div>
-                    </div>
-                    <span className="row-value">{round(e.nutrients.kcal)}</span>
-                    <button
-                      className="icon-btn"
-                      aria-label={t("Remove {name}", { name: e.name })}
-                      onClick={() => remove(e)}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                ))
+                list.map((e) => <LogRow key={e.id} e={e} onEdit={() => setEditing(e)} />)
               )}
             </div>
           </div>
