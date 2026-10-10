@@ -234,7 +234,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 | **Ramadan & 16:8 fasting** | Ramadan mode turns meals into Sahur, Iftar and Moreh, counts down to iftar or the end of sahur, uses a gentler 15% deficit, and builds a sample day around dates at iftar. 16:8 mode shows when your eating window opens and closes. |
 | **Cycle tracking** | For women, off until turned on in Profile. Tap the days of each period on a **period calendar** (past ones too); W learns your cycle and period length, shows the cycle day and phase on Today with a training and food tip for that phase (e.g. heavier lifts in the follicular phase, iron-rich food during your period, a little extra appetite and water weight in the luteal phase), predicts the next period, shows the predicted days on the calendar, and offers a one-tap *Started today* when it's due or late. Optional reminder two days before and on the day. Estimates only — not medical advice or contraception. |
 | **Family members** | Several people can share one phone (Profile → People → *Add a person*). Each person has their own profile and photo, plan, food log, workouts, weight, water and cycle; theme and language are shared. Switch from Profile or the avatar on Today. |
-| **Exercise pictures** | Lists show an icon for each exercise's category (chest, back, legs, running, swimming, racket sports…). Tap an exercise to see real photos of its start and end position, fading into each other, for 1,000+ gym exercises (from the public-domain [free-exercise-db](https://github.com/yuhonas/free-exercise-db)). Names, form tips and step-by-step instructions follow the app language (English, Malay, Chinese). |
+| **Exercise pictures** | Every exercise has its own icon: a drawn figure of the movement for gym exercises (bench press, squat, deadlift, pull-up, curl, plank… 38 in all) and an icon of the sport for activities (badminton, futsal, swimming, boxing, yoga, gardening… 110 more). Tap an exercise to see real photos of its start and end position, fading into each other, for 1,000+ gym exercises (from the public-domain [free-exercise-db](https://github.com/yuhonas/free-exercise-db)). Names, form tips and step-by-step instructions follow the app language (English, Malay, Chinese). |
 | **Foods I don't eat** | Tap a group (vegetables, beef, chicken, pork, lamb, seafood, mushrooms, spicy food) or type it your way — "I don't eat vege", "tak makan sayur", "不吃牛肉", "durian". The meal plan and food suggestions leave them out and make up the calories with other foods (fruit takes the place of vegetables). It's a preference, not an allergy, so those foods can still be searched and logged. |
 | **Water your way** | Each tap adds your own cup or bottle size (100 ml to 1 L, or any amount you type), and a one-off amount can be added too. |
 | **No sign-up** | Create a profile (with an optional picture from your photo library) and start — no email or password. Data stays on the phone. |
@@ -349,3 +349,9 @@ src/lib/store.ts         localStorage-backed state
 src/screens/*            Today, Food, Train, Plan, Profile (+ onboarding)
 src/components/*         Sheet, segmented control, rings, food/meal sheets
 ```
+
+## Credits
+
+- Exercise photos and instructions: [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (public domain).
+- Sport and activity icons: [Material Symbols](https://fonts.google.com/icons) (Apache 2.0), [Tabler Icons](https://tabler.io/icons) (MIT), [Lucide](https://lucide.dev) (ISC) and [game-icons.net](https://game-icons.net) by Lorc, Delapouite and contributors (CC BY 3.0), via [react-icons](https://react-icons.github.io/react-icons/).
+- Gym movement pictograms are drawn for W.

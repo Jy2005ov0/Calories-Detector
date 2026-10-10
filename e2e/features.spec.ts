@@ -448,6 +448,9 @@ test("Exercise library: a category icon on every row, the real photos on the exe
   await library.getByRole("radio", { name: "Strength" }).or(library.getByRole("tab", { name: "Strength" })).first().click();
   const rows = library.locator(".row");
   await expect(rows.first().locator(".ex-pic-icon")).toBeVisible();
+  // Each exercise has its own icon: the movement, not just its muscle group.
+  await expect(rows.filter({ hasText: "Barbell bench press" }).first().locator(".ex-pic-icon")).toHaveAttribute("data-icon", "bench");
+  await expect(rows.filter({ hasText: "Dumbbell fly" }).first().locator(".ex-pic-icon")).toHaveAttribute("data-icon", "fly");
   await expect(library.locator(".row img")).toHaveCount(0);
   await rows.filter({ hasText: "Barbell bench press" }).first().click();
   const picture = page.getByTestId("exercise-picture");
@@ -458,6 +461,7 @@ test("Exercise library: a category icon on every row, the real photos on the exe
   // A sport without a photo shows its icon instead.
   await page.getByRole("dialog", { name: "Chest" }).getByRole("button", { name: "Close", exact: true }).click();
   await library.getByRole("searchbox").or(library.locator("input")).first().fill("futsal");
+  await expect(rows.first().locator(".ex-pic-icon")).toHaveAttribute("data-icon", "soccer");
   await rows.first().click();
   await expect(page.locator(".ex-hero-icon")).toBeVisible();
 });
