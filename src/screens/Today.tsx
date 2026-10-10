@@ -237,10 +237,10 @@ function LogRow({ e, onEdit }: { e: LogEntry; onEdit: () => void }) {
         dragElastic={{ left: 0.25, right: 0 }}
         dragSnapToOrigin
         style={{ x, touchAction: "pan-y" }}
+        onPointerDownCapture={() => (swiped.current = false)}
         onDragStart={() => (swiped.current = true)}
         onDragEnd={(_, info) => {
           if (info.offset.x < -90 || info.velocity.x < -700) deleteLogEntry(e);
-          setTimeout(() => (swiped.current = false), 50);
         }}
         onClickCapture={(ev) => {
           if (!swiped.current) return;

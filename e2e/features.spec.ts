@@ -524,7 +524,8 @@ test("Fixing a mistake: rice added to dinner by accident is edited, moved, delet
   await page.getByRole("status").getByRole("button", { name: "Undo" }).click();
   await expect(page.locator(".swipe-row", { hasText: riceName })).toHaveCount(1);
 
-  // Swipe it left to delete.
+  // Swipe it left to delete (once the earlier "Removed" message has gone, so a double delete would show).
+  await expect(page.getByRole("status").filter({ hasText: `Removed ${riceName}` })).toHaveCount(0, { timeout: 10_000 });
   const row = page.locator(".swipe-row", { hasText: riceName }).locator(".row");
   const box = (await row.boundingBox())!;
   await page.mouse.move(box.x + box.width - 60, box.y + box.height / 2);
@@ -532,7 +533,7 @@ test("Fixing a mistake: rice added to dinner by accident is edited, moved, delet
   for (let i = 1; i <= 8; i++) await page.mouse.move(box.x + box.width - 60 - i * 20, box.y + box.height / 2);
   await page.mouse.up();
   await expect(page.locator(".swipe-row", { hasText: riceName })).toHaveCount(0);
-  await expect(page.getByRole("status").filter({ hasText: `Removed ${riceName}` })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: `Removed ${riceName}` })).toHaveCount(1);
   // The page still scrolls afterwards.
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
 });

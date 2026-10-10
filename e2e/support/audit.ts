@@ -136,6 +136,22 @@ export async function audit(page: Page, screen: string, issues: Issue[]) {
       if (r.width < 24 || r.height < 24) out.push({ kind: "tap-target-too-small", detail: `${desc(el)} is ${Math.round(r.width)}×${Math.round(r.height)}px (min 24)` });
       else if (!inlineLink && (r.width < 32 || r.height < 32)) out.push({ kind: "tap-target-small", detail: `${desc(el)} is ${Math.round(r.width)}×${Math.round(r.height)}px` });
     }
+    // The part of an element that can actually be seen: clipped by any scrolling ancestor
+    // (a row scrolled half out of a sheet is partly hidden under the sheet's header).
+    const shown = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      let { left, top, right, bottom } = r;
+      for (let p = el.parentElement; p; p = p.parentElement) {
+        const cs = getComputedStyle(p);
+        if (cs.overflowX === "visible" && cs.overflowY === "visible") continue;
+        const c = p.getBoundingClientRect();
+        left = Math.max(left, c.left);
+        top = Math.max(top, c.top);
+        right = Math.min(right, c.right);
+        bottom = Math.max(top, Math.min(bottom, c.bottom));
+      }
+      return { left, top, right: Math.max(left, right), bottom };
+    };
     for (let i = 0; i < interactive.length; i++) {
       for (let j = i + 1; j < interactive.length; j++) {
         const a = interactive[i], b = interactive[j];
@@ -144,7 +160,7 @@ export async function audit(page: Page, screen: string, issues: Issue[]) {
         // Floating bars that content scrolls under by design (and can scroll clear of).
         const chrome = (el: Element) => !!el.closest(".tabbar, .help-btn, .sheet-cta, .rest-bar");
         if (chrome(a) !== chrome(b)) continue;
-        const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+        const ra = shown(a), rb = shown(b);
         const ox = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left);
         const oy = Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top);
         if (ox > 4 && oy > 4) out.push({ kind: "overlap", detail: `${desc(a)} overlaps ${desc(b)} by ${Math.round(ox)}×${Math.round(oy)}px` });
