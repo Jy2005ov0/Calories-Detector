@@ -184,7 +184,10 @@ export function Sheet({ open, onClose, title, left, right, children, full }: She
                 </div>
               </div>
             </div>
-            <div className="sheet-body">{children}</div>
+            {/* Focusable so a keyboard or switch control can scroll it even when it holds no buttons. */}
+            <div className="sheet-body" tabIndex={0}>
+              {children}
+            </div>
           </motion.div>
         </>
       )}

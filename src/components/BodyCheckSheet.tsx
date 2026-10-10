@@ -117,7 +117,8 @@ export function BodyCheckSheet({ open, onClose }: { open: boolean; onClose: () =
       {result && (
         <>
           <div className="card" style={{ marginTop: 14 }} aria-live="polite">
-            <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            {/* The band can be long in Malay ("Berlebihan berat badan"): it moves under the number rather than spilling. */}
+            <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", columnGap: 10, rowGap: 4 }}>
               <span className="big-number" data-testid="bmi-value">
                 {round(result.bmi, 1).toFixed(1)}
               </span>

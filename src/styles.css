@@ -2281,3 +2281,10 @@ html[data-platform="android"] .sheet-cta {
 .sheet.full {
   height: calc(100dvh - var(--safe-top) - 24px);
 }
+.sheet-body:focus {
+  outline: none;
+}
+.sheet-body:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}

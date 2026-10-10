@@ -147,8 +147,10 @@ export function ExerciseLibrary({
             {detail.kind === "strength" && (
               <div className="group" style={{ marginTop: 12 }}>
                 <div className="row">
-                  <div className="row-main">{t("Muscles")}</div>
-                  <div className="row-value" style={{ whiteSpace: "normal", textAlign: "right" }}>
+                  <div className="row-main" style={{ flex: "none" }}>
+                    {t("Muscles")}
+                  </div>
+                  <div className="row-value" style={{ whiteSpace: "normal", textAlign: "right", flex: 1, minWidth: 0 }}>
                     {detail.muscles?.map(exLabel).join(lang === "zh" ? "、" : ", ")}
                   </div>
                 </div>
