@@ -16,12 +16,15 @@ let package = Package(
         .package(name: "CapacitorCamera", path: "../../../node_modules/@capacitor/camera"),
         .package(name: "CapacitorDialog", path: "../../../node_modules/@capacitor/dialog"),
         .package(name: "CapacitorFilesystem", path: "../../../node_modules/@capacitor/filesystem"),
+        .package(name: "CapacitorGeolocation", path: "../../../node_modules/@capacitor/geolocation"),
         .package(name: "CapacitorHaptics", path: "../../../node_modules/@capacitor/haptics"),
         .package(name: "CapacitorKeyboard", path: "../../../node_modules/@capacitor/keyboard"),
         .package(name: "CapacitorLocalNotifications", path: "../../../node_modules/@capacitor/local-notifications"),
         .package(name: "CapacitorPreferences", path: "../../../node_modules/@capacitor/preferences"),
         .package(name: "CapacitorShare", path: "../../../node_modules/@capacitor/share"),
-        .package(name: "CapacitorSplashScreen", path: "../../../node_modules/@capacitor/splash-screen")
+        .package(name: "CapacitorSplashScreen", path: "../../../node_modules/@capacitor/splash-screen"),
+        .package(name: "CapgoCapacitorPedometer", path: "../../../node_modules/@capgo/capacitor-pedometer"),
+        .package(name: "CapgoCapacitorSpeechRecognition", path: "../../../node_modules/@capgo/capacitor-speech-recognition")
     ],
     targets: [
         .target(
@@ -33,12 +36,15 @@ let package = Package(
                 .product(name: "CapacitorCamera", package: "CapacitorCamera"),
                 .product(name: "CapacitorDialog", package: "CapacitorDialog"),
                 .product(name: "CapacitorFilesystem", package: "CapacitorFilesystem"),
+                .product(name: "CapacitorGeolocation", package: "CapacitorGeolocation"),
                 .product(name: "CapacitorHaptics", package: "CapacitorHaptics"),
                 .product(name: "CapacitorKeyboard", package: "CapacitorKeyboard"),
                 .product(name: "CapacitorLocalNotifications", package: "CapacitorLocalNotifications"),
                 .product(name: "CapacitorPreferences", package: "CapacitorPreferences"),
                 .product(name: "CapacitorShare", package: "CapacitorShare"),
-                .product(name: "CapacitorSplashScreen", package: "CapacitorSplashScreen")
+                .product(name: "CapacitorSplashScreen", package: "CapacitorSplashScreen"),
+                .product(name: "CapgoCapacitorPedometer", package: "CapgoCapacitorPedometer"),
+                .product(name: "CapgoCapacitorSpeechRecognition", package: "CapgoCapacitorSpeechRecognition")
             ]
         )
     ]

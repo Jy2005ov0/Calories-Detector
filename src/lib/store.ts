@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { SplitId } from "./fitness";
 import { readDurable, writeDurable } from "./platform";
-import type { CustomMeal, DayStats, Food, LogEntry, PeriodEntry, Profile, Reminders, WeightEntry, WorkoutSession } from "./types";
+import type { Challenge, CustomMeal, DayStats, Food, LogEntry, Measurement, PeriodEntry, PlannedMeal, Profile, ProgressPhoto, Reminders, Routine, Supplement, WeightEntry, WorkoutSession } from "./types";
 
 export interface AppState {
   profile: Profile;
@@ -24,9 +24,23 @@ export interface AppState {
   weights: WeightEntry[];
   /** First days of logged periods (cycle tracking). */
   periods: PeriodEntry[];
-  /** Water per day. */
+  /** Water, steps, check-in and supplements per day. */
   days: DayStats[];
   reminders: Reminders;
+  /** Foods starred for one-tap logging. */
+  favorites: Food[];
+  /** Products found by barcode, kept so they work offline next time. */
+  savedProducts: Food[];
+  supplements: Supplement[];
+  measurements: Measurement[];
+  photos: ProgressPhoto[];
+  routines: Routine[];
+  /** The weekly meal planner, and grocery items ticked off ("<week start>|<food id>"). */
+  mealPlan: PlannedMeal[];
+  groceryDone: string[];
+  challenges: Challenge[];
+  /** Text size for easier reading (shared by everyone on the phone). */
+  textSize: "normal" | "large" | "xlarge";
   /** IDs of deleted entries, so a delete on one device isn't undone by another during sync. */
   deleted: string[];
   /** When each field last changed on this device; sync keeps the newer side field by field. */
@@ -44,7 +58,7 @@ export interface AppState {
 }
 
 /** Settings shared by everyone on the phone; everything else is per person. */
-export const SHARED_KEYS = ["theme", "language", "introDone", "tourDone"] as const;
+export const SHARED_KEYS = ["theme", "language", "introDone", "tourDone", "textSize"] as const;
 const HOUSEHOLD_KEYS = ["personId", "people", "removedPeople", "returnTo"] as const;
 type SharedKey = (typeof SHARED_KEYS)[number] | (typeof HOUSEHOLD_KEYS)[number];
 export type PersonData = Omit<AppState, SharedKey>;
@@ -127,6 +141,16 @@ const initial: AppState = {
   periods: [],
   days: [],
   reminders: DEFAULT_REMINDERS,
+  favorites: [],
+  savedProducts: [],
+  supplements: [],
+  measurements: [],
+  photos: [],
+  routines: [],
+  mealPlan: [],
+  groceryDone: [],
+  challenges: [],
+  textSize: "normal",
   deleted: [],
   stamps: {},
   personId: "me",
@@ -283,9 +307,16 @@ export const actions = {
   updateProfile(p: Partial<Profile>) {
     setState((s) => ({ profile: { ...s.profile, ...p } }));
   },
+  /** Add foods to the log; returns the new entries' ids (for Undo). */
   addLog(entries: Omit<LogEntry, "id" | "createdAt">[]) {
     const now = Date.now();
-    setState((s) => ({ log: [...s.log, ...entries.map((e, i) => ({ ...e, id: uid(), createdAt: now + i }))] }));
+    const added = entries.map((e, i) => ({ ...e, id: uid(), createdAt: now + i }));
+    setState((s) => ({ log: [...s.log, ...added] }));
+    return added.map((e) => e.id);
+  },
+  /** Take back several just-added entries (Undo after copying a meal). */
+  removeLogs(ids: string[]) {
+    setState((s) => ({ log: s.log.filter((e) => !ids.includes(e.id)), deleted: ids.reduce(tombstone, s.deleted) }));
   },
   removeLog(id: string) {
     setState((s) => ({ log: s.log.filter((e) => e.id !== id), deleted: tombstone(s.deleted, id) }));
@@ -379,6 +410,111 @@ export const actions = {
       return { days: [...s.days.filter((d) => d.id !== date), { ...fn(current), updatedAt: Date.now() }].sort((a, b) => a.id.localeCompare(b.id)).slice(-400) };
     });
   },
+  // ── Faster logging ──
+  /** Star or un-star a food for one-tap logging. */
+  toggleFavorite(food: Food) {
+    setState((s) =>
+      s.favorites.some((f) => f.id === food.id)
+        ? { favorites: s.favorites.filter((f) => f.id !== food.id) }
+        : { favorites: [{ ...food, recipe: food.recipe }, ...s.favorites].slice(0, 100) },
+    );
+  },
+  /** Keep a product found by barcode, so scanning it again works offline. */
+  saveProduct(food: Food) {
+    setState((s) => ({ savedProducts: [food, ...s.savedProducts.filter((f) => f.id !== food.id)].slice(0, 300) }));
+  },
+  /** Copy one meal's foods from another day (e.g. yesterday's breakfast) into today. Returns how many were copied. */
+  copyMeal(from: string, to: string, meal: LogEntry["meal"]): string[] {
+    const items = state.log.filter((e) => e.date === from && e.meal === meal);
+    return items.length ? actions.addLog(items.map(({ id: _id, createdAt: _c, ...e }) => ({ ...e, date: to }))) : [];
+  },
+
+  // ── Daily check-in, steps and supplements ──
+  setCheckIn(date: string, c: Pick<DayStats, "sleepH" | "mood" | "energy">) {
+    actions.updateDay(date, (d) => ({ ...d, ...c }));
+  },
+  setSteps(date: string, steps: number) {
+    if ((state.days.find((d) => d.id === date)?.steps ?? -1) === steps) return;
+    actions.updateDay(date, (d) => ({ ...d, steps }));
+  },
+  saveSupplement(x: Supplement) {
+    setState((s) => ({ supplements: [...s.supplements.filter((y) => y.id !== x.id), x].sort((a, b) => a.createdAt - b.createdAt) }));
+  },
+  deleteSupplement(id: string) {
+    setState((s) => ({ supplements: s.supplements.filter((y) => y.id !== id), deleted: tombstone(s.deleted, id) }));
+  },
+  /** Tick (or untick) a dose as taken today. */
+  toggleTaken(date: string, key: string) {
+    actions.updateDay(date, (d) => {
+      const taken = d.taken ?? [];
+      return { ...d, taken: taken.includes(key) ? taken.filter((k) => k !== key) : [...taken, key] };
+    });
+  },
+
+  // ── Body ──
+  logMeasurement(m: Omit<Measurement, "id" | "createdAt">) {
+    setState((s) => {
+      const existing = s.measurements.find((x) => x.date === m.date);
+      const entry: Measurement = { ...existing, ...m, id: existing?.id ?? uid(), createdAt: Date.now() };
+      return { measurements: [...s.measurements.filter((x) => x.date !== m.date), entry].sort((a, b) => a.date.localeCompare(b.date)) };
+    });
+  },
+  removeMeasurement(id: string) {
+    setState((s) => ({ measurements: s.measurements.filter((x) => x.id !== id), deleted: tombstone(s.deleted, id) }));
+  },
+  addPhoto(p: ProgressPhoto) {
+    setState((s) => ({ photos: [...s.photos, p].sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt) }));
+  },
+  removePhoto(id: string) {
+    setState((s) => ({ photos: s.photos.filter((x) => x.id !== id), deleted: tombstone(s.deleted, id) }));
+  },
+
+  // ── Training ──
+  saveRoutine(r: Routine) {
+    setState((s) => {
+      const routine = { ...r, id: s.deleted.includes(r.id) ? uid() : r.id, updatedAt: Date.now() };
+      return { routines: [routine, ...s.routines.filter((x) => x.id !== r.id)] };
+    });
+  },
+  deleteRoutine(id: string) {
+    setState((s) => ({ routines: s.routines.filter((x) => x.id !== id), deleted: tombstone(s.deleted, id) }));
+  },
+
+  // ── Meal planner ──
+  addPlanned(date: string, meal: LogEntry["meal"], item: PlannedMeal["items"][number]) {
+    setState((s) => {
+      const existing = s.mealPlan.find((p) => p.date === date && p.meal === meal);
+      const next: PlannedMeal = existing ? { ...existing, items: [...existing.items, item] } : { id: uid(), date, meal, items: [item] };
+      // Keep about two months of plans.
+      return { mealPlan: [...s.mealPlan.filter((p) => p.id !== next.id), next].sort((a, b) => a.date.localeCompare(b.date)).slice(-240) };
+    });
+  },
+  removePlanned(planId: string, index: number) {
+    setState((s) => ({
+      mealPlan: s.mealPlan
+        .map((p) => (p.id === planId ? { ...p, items: p.items.filter((_, i) => i !== index) } : p))
+        .filter((p) => p.items.length > 0),
+    }));
+  },
+  setPlannedGrams(planId: string, index: number, grams: number) {
+    setState((s) => ({ mealPlan: s.mealPlan.map((p) => (p.id === planId ? { ...p, items: p.items.map((it, i) => (i === index ? { ...it, grams } : it)) } : p)) }));
+  },
+  toggleGrocery(key: string) {
+    setState((s) => ({ groceryDone: s.groceryDone.includes(key) ? s.groceryDone.filter((k) => k !== key) : [...s.groceryDone, key].slice(-500) }));
+  },
+
+  // ── Challenges ──
+  joinChallenge(id: Challenge["id"], start = todayKey()) {
+    setState((s) => ({ challenges: [...s.challenges.filter((c) => c.id !== id), { id, start }] }));
+  },
+  leaveChallenge(id: Challenge["id"]) {
+    setState((s) => ({ challenges: s.challenges.filter((c) => c.id !== id) }));
+  },
+
+  setTextSize(textSize: AppState["textSize"]) {
+    setState({ textSize });
+  },
+
   setReminders(r: Partial<Reminders>) {
     setState((s) => ({ reminders: { ...s.reminders, ...r } }));
   },
@@ -418,6 +554,7 @@ export const actions = {
       ...initial,
       theme: state.theme,
       language: state.language,
+      textSize: state.textSize,
       introDone: true,
       tourDone: true,
       stamps: sharedStamps(),

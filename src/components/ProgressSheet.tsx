@@ -6,6 +6,7 @@ import { GLASS_ML, addDays, logStreak, waterGoalMl, weightTrend, workoutWeekStre
 import { bmiBand } from "../lib/recommend";
 import { actions, useStore, useTodayKey } from "../lib/store";
 import { DayBars, WeightChart } from "./Charts";
+import { BodySection } from "./BodySection";
 import { NumberInput, Sheet, haptic, showToast } from "./ui";
 
 /** Healthy weight at the top of the normal BMI band for this height (Asia-Pacific cut-off 23). */
@@ -124,6 +125,8 @@ export function ProgressSheet({ open, onClose }: { open: boolean; onClose: () =>
             ))}
         </div>
       )}
+
+      <BodySection />
 
       <div className="section-header">
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>

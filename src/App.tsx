@@ -34,6 +34,12 @@ export default function App() {
   const onboarded = useStore((s) => s.profile.onboarded);
   const introDone = useStore((s) => s.introDone);
   const theme = useStore((s) => s.theme);
+  const textSize = useStore((s) => s.textSize);
+  // Larger text scales the whole interface, so layouts reflow instead of clipping.
+  useEffect(() => {
+    if (textSize === "normal") delete document.documentElement.dataset.text;
+    else document.documentElement.dataset.text = textSize;
+  }, [textSize]);
 
   // Apply the appearance setting, and keep "System" in step if the phone switches mode.
   useEffect(() => {

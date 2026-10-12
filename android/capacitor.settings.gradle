@@ -14,6 +14,9 @@ project(':capacitor-dialog').projectDir = new File('../node_modules/@capacitor/d
 include ':capacitor-filesystem'
 project(':capacitor-filesystem').projectDir = new File('../node_modules/@capacitor/filesystem/android')
 
+include ':capacitor-geolocation'
+project(':capacitor-geolocation').projectDir = new File('../node_modules/@capacitor/geolocation/android')
+
 include ':capacitor-haptics'
 project(':capacitor-haptics').projectDir = new File('../node_modules/@capacitor/haptics/android')
 
@@ -31,3 +34,9 @@ project(':capacitor-share').projectDir = new File('../node_modules/@capacitor/sh
 
 include ':capacitor-splash-screen'
 project(':capacitor-splash-screen').projectDir = new File('../node_modules/@capacitor/splash-screen/android')
+
+include ':capgo-capacitor-pedometer'
+project(':capgo-capacitor-pedometer').projectDir = new File('../node_modules/@capgo/capacitor-pedometer/android')
+
+include ':capgo-capacitor-speech-recognition'
+project(':capgo-capacitor-speech-recognition').projectDir = new File('../node_modules/@capgo/capacitor-speech-recognition/android')

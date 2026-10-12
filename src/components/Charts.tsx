@@ -124,3 +124,59 @@ export function DayBars({ days, goal, color, unit, label }: { days: { date: stri
 function roundedTop(x: number, y: number, w: number, h: number, r: number) {
   return `M${x},${y + h} V${y + r} Q${x},${y} ${x + r},${y} H${x + w - r} Q${x + w},${y} ${x + w},${y + r} V${y + h} Z`;
 }
+
+/** Any measure over time (strength, waist…): one line, last point marked; tap a point to read it. */
+export function TrendChart({ points, unit, color = "var(--blue)", label }: { points: { date: string; value: number }[]; unit: string; color?: string; label: string }) {
+  useLanguage();
+  const [sel, setSel] = useState<number | null>(null);
+  const pts = points.slice(-60);
+  if (pts.length < 2) return null;
+  const W = 320;
+  const H = 150;
+  const pad = { l: 38, r: 10, t: 12, b: 22 };
+  const ys = pts.map((p) => p.value);
+  const span = Math.max(...ys) - Math.min(...ys);
+  const step = span > 50 ? 10 : span > 10 ? 5 : 1;
+  const lo = Math.floor((Math.min(...ys) - step / 2) / step) * step;
+  const hi = Math.ceil((Math.max(...ys) + step / 2) / step) * step;
+  const x = (i: number) => pad.l + (i / (pts.length - 1)) * (W - pad.l - pad.r);
+  const y = (v: number) => pad.t + ((hi - v) / (hi - lo || 1)) * (H - pad.t - pad.b);
+  const ticks = [lo, (lo + hi) / 2, hi];
+  const path = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(" ");
+  const idx = Math.min(sel ?? pts.length - 1, pts.length - 1);
+  const shown = pts[idx];
+  const fmt = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1));
+  return (
+    <figure className="chart" style={{ margin: 0 }}>
+      <div className="chart-readout" aria-live="polite">
+        <strong className="tabular">
+          {fmt(shown.value)} {unit}
+        </strong>{" "}
+        <span className="muted">· {shortDate(shown.date)}</span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={t("{label}: {from} {unit} on {d1} to {to} {unit} on {d2}", { label, unit, from: fmt(pts[0].value), d1: shortDate(pts[0].date), to: fmt(pts[pts.length - 1].value), d2: shortDate(pts[pts.length - 1].date) })}>
+        {ticks.map((v) => (
+          <g key={v}>
+            <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} stroke="var(--separator)" strokeWidth={1} />
+            <text x={pad.l - 6} y={y(v) + 4} textAnchor="end" className="chart-axis">
+              {fmt(v)}
+            </text>
+          </g>
+        ))}
+        <text x={pad.l} y={H - 6} className="chart-axis">
+          {shortDate(pts[0].date)}
+        </text>
+        <text x={W - pad.r} y={H - 6} textAnchor="end" className="chart-axis">
+          {shortDate(pts[pts.length - 1].date)}
+        </text>
+        <path d={path} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        {pts.map((p, i) => (
+          <circle key={`${p.date}-${i}`} cx={x(i)} cy={y(p.value)} r={12} fill="transparent" onClick={() => setSel(i)} style={{ cursor: "pointer" }}>
+            <title>{`${fmt(p.value)} ${unit} · ${shortDate(p.date)}`}</title>
+          </circle>
+        ))}
+        <circle cx={x(idx)} cy={y(shown.value)} r={4.5} fill={color} stroke="var(--bg-elev)" strokeWidth={2} pointerEvents="none" />
+      </svg>
+    </figure>
+  );
+}

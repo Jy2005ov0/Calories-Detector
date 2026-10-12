@@ -55,16 +55,32 @@ export interface Targets {
   sodiumMax: number;
 }
 
+/** Extra energy a day during pregnancy and breastfeeding (US National Academies / IOM). */
+export const PREGNANCY_EXTRA = { off: 0, t1: 0, t2: 340, t3: 452, breastfeeding: 330 } as const;
+
+/** Pregnancy or breastfeeding mode, which only applies to women. */
+export const pregnancyOf = (p: Pick<Profile, "sex" | "pregnancy">) => (p.sex === "female" ? (p.pregnancy ?? "off") : "off");
+
 export function targets(p: Profile): Targets {
   const floor = p.sex === "male" ? 1500 : 1200;
-  // During Ramadan a 20% deficit on top of fasting is hard to sustain; use 15%.
-  const adjust = p.goal === "lose" && p.fasting === "ramadan" ? -0.15 : GOAL_ADJUST[p.goal];
-  const kcal = Math.max(floor, Math.round((tdee(p) * (1 + adjust)) / 10) * 10);
-  // Protein: 2.0 g/kg while cutting (preserve muscle), 1.8 g/kg otherwise (ISSN position stand).
-  // Above a BMI of 25 it's based on the weight at BMI 25, since extra body fat doesn't need extra protein.
+  const preg = pregnancyOf(p);
   const m = p.heightCm / 100;
+  // Above a BMI of 25 protein is based on the weight at BMI 25, since extra body fat doesn't need extra protein.
   const leanRef = m > 0 ? Math.min(p.weightKg, 25 * m * m) : p.weightKg;
-  const protein = Math.round(leanRef * (p.goal === "lose" ? 2.0 : 1.8));
+  let kcal: number;
+  let protein: number;
+  if (preg !== "off") {
+    // No deficit (or surplus) while pregnant or breastfeeding: maintenance plus what the baby needs.
+    kcal = Math.max(1800, Math.round((tdee(p) + PREGNANCY_EXTRA[preg]) / 10) * 10);
+    // About 1.2 g/kg, plus 25 g a day from the second trimester and while breastfeeding.
+    protein = Math.round(leanRef * 1.2 + (preg === "t1" ? 0 : 25));
+  } else {
+    // During Ramadan a 20% deficit on top of fasting is hard to sustain; use 15%.
+    const adjust = p.goal === "lose" && p.fasting === "ramadan" ? -0.15 : GOAL_ADJUST[p.goal];
+    kcal = Math.max(floor, Math.round((tdee(p) * (1 + adjust)) / 10) * 10);
+    // Protein: 2.0 g/kg while cutting (preserve muscle), 1.8 g/kg otherwise (ISSN position stand).
+    protein = Math.round(leanRef * (p.goal === "lose" ? 2.0 : 1.8));
+  }
   // At least 50 g carbs; fat gives way if the day is too small for both (it never drops below 20% of energy).
   const fat = Math.round(Math.max(kcal * 0.2, Math.min(kcal * (p.goal === "lose" ? 0.27 : 0.28), kcal - protein * 4 - 200)) / 9);
   const carbs = Math.max(50, Math.round((kcal - protein * 4 - fat * 9) / 4));

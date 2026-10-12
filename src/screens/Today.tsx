@@ -8,7 +8,9 @@ import {
   Dumbbell,
   Flame,
   LineChart,
+  Mic,
   MoonStar,
+  NotebookPen,
   Scale,
   Search,
   Trash2,
@@ -42,6 +44,7 @@ import {
   Ring,
   SPRING,
   Sheet,
+  haptic,
   showToast,
   useNow,
 } from "../components/ui";
@@ -50,6 +53,11 @@ import { LogEntrySheet, deleteLogEntry } from "../components/LogEntrySheet";
 import { CycleCalendar } from "../components/CycleCalendar";
 import { LateAdviceSheetBody } from "../components/LateAdviceSheet";
 import { PeopleSheet, PersonAvatar, householdSize } from "../components/People";
+import { QuickAddSheet, VoiceLogSheet } from "../components/QuickLog";
+import { CheckInCard, StepsCard, SupplementsCard } from "../components/Daily";
+import { WeeklyReportSheet } from "../components/WeeklyReport";
+import { stepKcal, useStepUpdates } from "../lib/steps";
+import { addDays } from "../lib/progress";
 import type { SheetKind, Tab } from "../App";
 
 const hm = (min: number) =>
@@ -326,10 +334,14 @@ export function Today({
   const eaten = useMemo(() => sum(entries.map((e) => e.nutrients)), [entries]);
   const todaysSessions = sessions.filter((s) => s.date === today);
   const active = sessions.find((s) => s.id === activeId);
-  const burned = todaysSessions.reduce(
-    (a, s) => a + (s.endedAt ? s.kcal : sessionKcal(s, profile.weightKg, now)),
-    0,
-  );
+  useStepUpdates(today);
+  const stepsToday = useStore((s) => s.days.find((d) => d.id === today)?.steps ?? 0);
+  const walkKcal = profile.stepsOn && profile.stepsInBudget ? stepKcal(stepsToday, profile.weightKg) : 0;
+  const burned =
+    todaysSessions.reduce(
+      (a, s) => a + (s.endedAt ? s.kcal : sessionKcal(s, profile.weightKg, now)),
+      0,
+    ) + walkKcal;
   const remaining = tg.kcal - eaten.kcal + burned;
 
   const personId = useStore((s) => s.personId);
@@ -360,11 +372,25 @@ export function Today({
         : t("Good evening");
 
   const [editing, setEditing] = useState<LogEntry | null>(null);
+  const [quick, setQuick] = useState<"add" | "voice" | "report" | null>(null);
+  const yesterday = addDays(today, -1);
+  const copyYesterday = (m: MealType) => {
+    const ids = actions.copyMeal(yesterday, today, m);
+    if (!ids.length) return;
+    haptic("success");
+    showToast(t("Copied yesterday's {meal} · {n} foods", { meal: mealLabel(m), n: ids.length }), {
+      label: t("Undo"),
+      run: () => actions.removeLogs(ids),
+    });
+  };
 
   return (
     <div className="screen">
       <PeopleSheet open={peopleOpen} onClose={() => setPeopleOpen(false)} />
       <LogEntrySheet entry={editing} onClose={() => setEditing(null)} />
+      <QuickAddSheet open={quick === "add"} onClose={() => setQuick(null)} />
+      <VoiceLogSheet open={quick === "voice"} onClose={() => setQuick(null)} />
+      <WeeklyReportSheet open={quick === "report"} onClose={() => setQuick(null)} />
       <p
         className="subtitle"
         style={{
@@ -496,6 +522,8 @@ export function Today({
 
       <FastCard now={now} />
       <CycleCard today={today} />
+      <StepsCard today={today} />
+      <CheckInCard today={today} />
 
       <div className="tiles" style={{ marginTop: 12 }}>
         <button className="tile" onClick={() => go("food")}>
@@ -520,6 +548,24 @@ export function Today({
             <div className="tile-sub">{t("Packaged food")}</div>
           </div>
         </button>
+        <button className="tile" onClick={() => setQuick("voice")}>
+          <div className="icon-tile" style={{ background: "var(--blue)" }}>
+            <Mic size={18} />
+          </div>
+          <div>
+            <div className="tile-title">{t("Say it")}</div>
+            <div className="tile-sub">{t("Speak or type a meal")}</div>
+          </div>
+        </button>
+        <button className="tile" onClick={() => setQuick("add")}>
+          <div className="icon-tile" style={{ background: "var(--green)" }}>
+            <NotebookPen size={18} />
+          </div>
+          <div>
+            <div className="tile-title">{t("Quick add")}</div>
+            <div className="tile-sub">{t("Just the calories")}</div>
+          </div>
+        </button>
       </div>
 
       <div className="card" style={{ marginTop: 12 }} data-tour="water">
@@ -538,7 +584,23 @@ export function Today({
           </span>
           <ChevronRight size={16} className="chev" />
         </button>
+        <div className="hairline" />
+        <button
+          className="progress-link pressable"
+          onClick={() => setQuick("report")}
+        >
+          <CalendarDays size={17} color="var(--blue)" />
+          <span className="row-main" style={{ textAlign: "left" }}>
+            {t("Your week at a glance")}
+          </span>
+          <span className="link" style={{ fontSize: 15 }}>
+            {t("Weekly report")}
+          </span>
+          <ChevronRight size={16} className="chev" />
+        </button>
       </div>
+
+      <SupplementsCard today={today} />
 
       <button
         className="card pressable"
@@ -633,12 +695,25 @@ export function Today({
                 {mealLabel(m)}
                 {list.length > 0 && ` · ${round(kcal)} kcal`}
               </span>
-              <button
-                onClick={() => go("food")}
-                aria-label={t("Add to {meal}", { meal: mealLabel(m) })}
-              >
-                {t("Add")}
-              </button>
+              <span style={{ display: "flex", gap: 14 }}>
+                {list.length === 0 &&
+                  log.some((e) => e.date === yesterday && e.meal === m) && (
+                    <button
+                      onClick={() => copyYesterday(m)}
+                      aria-label={t("Copy yesterday's {meal}", {
+                        meal: mealLabel(m),
+                      })}
+                    >
+                      {t("Copy yesterday")}
+                    </button>
+                  )}
+                <button
+                  onClick={() => go("food")}
+                  aria-label={t("Add to {meal}", { meal: mealLabel(m) })}
+                >
+                  {t("Add")}
+                </button>
+              </span>
             </div>
             <div className="group">
               {list.length === 0 ? (

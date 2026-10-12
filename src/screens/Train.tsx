@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Check, Clock, Dumbbell, Flame, History, LogIn, LogOut, Plus, Share, Timer, Trash2, Trophy, Weight } from "lucide-react";
+import { Calculator, Check, Clock, Dumbbell, Flame, Footprints, History, LogIn, LogOut, Plus, Share, Timer, Trash2, Trophy, Weight } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { exName, useExerciseNames } from "../i18n/exercises";
 import { ExerciseThumb } from "../components/ExercisePicture";
@@ -8,12 +8,14 @@ import { workoutCard } from "../lib/export";
 import { scheduleRestEnd, shareFile } from "../lib/native";
 import { isNewRecord, lastPerformance, personalRecords, suggestNext } from "../lib/records";
 import { ExerciseLibrary } from "../components/ExerciseLibrary";
+import { GymToolsSheet, ProgressLinks, RoutinesSection, RunTracker, StrengthSheet, WorkoutCalendar, runSummary, sessionFromRoutine } from "../components/TrainExtras";
+import { warmupSets } from "../lib/lifting";
 import { Empty, NumberInput, SPRING, Sheet, Stepper, haptic, showToast, useNow } from "../components/ui";
 import { buildPlan, exerciseKcal, formatDuration, kcalFor, plural, sessionFromPlan, sessionKcal, sessionMinutes, sessionVolume } from "../lib/fitness";
 import { round } from "../lib/nutrition";
 import { confirmDialog } from "../lib/platform";
 import { actions, getState, todayKey, uid, useStore, useTodayKey, weekdayOf } from "../lib/store";
-import type { Exercise, SessionExercise, WorkoutSession } from "../lib/types";
+import type { Exercise, SessionExercise, SetEntry, WorkoutSession } from "../lib/types";
 
 function toSessionExercise(ex: Exercise, minutes?: number): SessionExercise {
   return {
@@ -88,6 +90,7 @@ export function Train() {
   // Kept outside the screen so the countdown survives switching tabs.
   const [rest, setRestState] = useState(() => (lastRest && lastRest.endsAt > Date.now() ? lastRest : null));
   const [justFinished, setJustFinished] = useState<WorkoutSession | null>(null);
+  const [tool, setTool] = useState<{ kind: "gym" | "run" | "strength"; kg?: number } | null>(null);
   const setRest = useMemo(
     () => (r: { endsAt: number; total: number } | null) => {
       setRestState(r);
@@ -199,7 +202,10 @@ export function Train() {
               <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
                 <ExerciseThumb name={ex.name} size={44} />
                 <div className="row-main">
-                  <div style={{ fontWeight: 600 }}>{exName(ex.name)}</div>
+                  <div style={{ fontWeight: 600 }}>
+                    {ex.group && <span className="superset-tag">{t("Superset {g}", { g: ex.group })}</span>}
+                    {exName(ex.name)}
+                  </div>
                   <div className="row-sub">
                     {ex.targetReps ? `${t("Target")} ${ex.sets?.length} × ${ex.targetReps} · ` : ""}
                     {round(exerciseKcal(ex, profile.weightKg))} kcal
@@ -241,25 +247,56 @@ export function Train() {
                               haptic("success");
                               showToast(t("New personal record · {name} {kg} kg × {reps}", { name: exName(ex.name), kg: next.weightKg, reps: next.reps }));
                             }
-                            const secs = ex.restSec ?? 90;
-                            setRest({ endsAt: Date.now() + secs * 1000, total: secs });
+                            // In a superset, go straight to the next exercise; rest after the last one.
+                            const idx = active.exercises.findIndex((e) => e.id === ex.id);
+                            const nextInGroup = !!ex.group && active.exercises[idx + 1]?.group === ex.group;
+                            if (nextInGroup) {
+                              showToast(t("Superset: on to {name}", { name: exName(active.exercises[idx + 1].name) }));
+                            } else if (!next.warmup) {
+                              const secs = ex.restSec ?? 90;
+                              setRest({ endsAt: Date.now() + secs * 1000, total: secs });
+                            }
                           }
                         }}
                       />
                     ))}
                   </div>
-                  <button
-                    className="btn small secondary"
-                    style={{ marginTop: 10 }}
-                    onClick={() =>
-                      updateEx(ex.id, (e) => {
-                        const last = e.sets?.[e.sets.length - 1];
-                        return { ...e, sets: [...(e.sets ?? []), { reps: last?.reps ?? 10, weightKg: last?.weightKg ?? 0, done: false }] };
-                      })
-                    }
-                  >
-                    <Plus size={15} /> {t("Add set")}
-                  </button>
+                  <div className="btn-row" style={{ flexWrap: "wrap", columnGap: 8 }}>
+                    <button
+                      className="btn small secondary"
+                      style={{ marginTop: 10 }}
+                      onClick={() =>
+                        updateEx(ex.id, (e) => {
+                          const last = e.sets?.[e.sets.length - 1];
+                          return { ...e, sets: [...(e.sets ?? []), { reps: last?.reps ?? 10, weightKg: last?.weightKg ?? 0, done: false }] };
+                        })
+                      }
+                    >
+                      <Plus size={15} /> {t("Add set")}
+                    </button>
+                    {(() => {
+                      const work = Math.max(0, ...(ex.sets ?? []).filter((x) => !x.warmup).map((x) => x.weightKg));
+                      const warm = warmupSets(work);
+                      if (!warm.length || (ex.sets ?? []).some((x) => x.warmup)) return null;
+                      return (
+                        <button
+                          className="btn small secondary"
+                          style={{ marginTop: 10 }}
+                          onClick={() => updateEx(ex.id, (e) => ({ ...e, sets: [...warm.map((w) => ({ reps: w.reps, weightKg: w.kg, done: false, warmup: true })), ...(e.sets ?? [])] }))}
+                        >
+                          {t("Add {n} warm-up sets", { n: warm.length })}
+                        </button>
+                      );
+                    })()}
+                    <button
+                      className="btn small secondary"
+                      style={{ marginTop: 10 }}
+                      aria-label={t("Plates for {name}", { name: exName(ex.name) })}
+                      onClick={() => setTool({ kind: "gym", kg: Math.max(0, ...(ex.sets ?? []).map((x) => x.weightKg)) || undefined })}
+                    >
+                      <Calculator size={15} /> {t("Plates")}
+                    </button>
+                  </div>
                 </>
               )}
             </motion.div>
@@ -359,6 +396,7 @@ export function Train() {
         </Sheet>
 
         <ExerciseLibrary open={library !== null} onClose={() => setLibrary(null)} onPick={onPick} />
+        <GymToolsSheet open={tool?.kind === "gym"} initialKg={tool?.kg} onClose={() => setTool(null)} />
         <AnimatePresence>{rest && <RestBar rest={rest} onChange={setRest} />}</AnimatePresence>
       </div>
     );
@@ -437,7 +475,27 @@ export function Train() {
             <div className="tile-sub">{t("Form cues & calories")}</div>
           </div>
         </button>
+        <button className="tile" onClick={() => setTool({ kind: "run" })}>
+          <div className="icon-tile" style={{ background: "var(--teal)" }}>
+            <Footprints size={18} />
+          </div>
+          <div>
+            <div className="tile-title">{t("Track a run")}</div>
+            <div className="tile-sub">{t("GPS distance & pace")}</div>
+          </div>
+        </button>
+        <button className="tile" onClick={() => setTool({ kind: "gym" })}>
+          <div className="icon-tile" style={{ background: "var(--pink)" }}>
+            <Calculator size={18} />
+          </div>
+          <div>
+            <div className="tile-title">{t("Gym tools")}</div>
+            <div className="tile-sub">{t("Plates, 1-rep max, warm-up")}</div>
+          </div>
+        </button>
       </div>
+
+      <RoutinesSection onStart={(r) => clockIn(r.name, sessionFromRoutine(r))} />
 
       <div className="section-header">{t("This week")}</div>
       <div className="card">
@@ -462,6 +520,10 @@ export function Train() {
           </div>
         </div>
       </div>
+
+      <div className="section-header">{t("Consistency")}</div>
+      <WorkoutCalendar />
+      <ProgressLinks onStrength={() => setTool({ kind: "strength" })} />
 
       {justFinished && (
         <div className="card done-card" style={{ marginTop: 12 }}>
@@ -510,7 +572,7 @@ export function Train() {
                 <div className="row-title">{exName(s.title)}</div>
                 <div className="row-sub">
                   {new Date(s.startedAt).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" })} ·{" "}
-                  {formatDuration(sessionMinutes(s))} · {plural(s.exercises.length, "exercise")}
+                  {s.distanceM ? runSummary(s.distanceM, sessionMinutes(s)) : `${formatDuration(sessionMinutes(s))} · ${plural(s.exercises.length, "exercise")}`}
                 </div>
               </div>
               <span className="row-value">{s.kcal} kcal</span>
@@ -532,6 +594,9 @@ export function Train() {
         )}
       </div>
 
+      <GymToolsSheet open={tool?.kind === "gym"} initialKg={tool?.kg} onClose={() => setTool(null)} />
+      <RunTracker open={tool?.kind === "run"} onClose={() => setTool(null)} />
+      <StrengthSheet open={tool?.kind === "strength"} onClose={() => setTool(null)} />
       <ExerciseLibrary
         open={library !== null}
         onClose={() => setLibrary(null)}
@@ -564,14 +629,14 @@ function SetRow({
   onChange,
 }: {
   index: number;
-  set: { reps: number; weightKg: number; done: boolean };
-  onChange: (s: { reps: number; weightKg: number; done: boolean }) => void;
+  set: SetEntry;
+  onChange: (s: SetEntry) => void;
 }) {
   useLanguage();
   return (
     <>
-      <span className="muted" style={{ fontWeight: 600 }}>
-        {index + 1}
+      <span className="muted" style={{ fontWeight: 600 }} title={set.warmup ? t("Warm-up set") : undefined}>
+        {set.warmup ? "W" : index + 1}
       </span>
       <NumberInput className="num-input" style={{ width: "100%" }} value={set.weightKg} max={1000} emptyValue={0} placeholder="0" aria-label={t("Set {n} weight", { n: index + 1 })} onChange={(v) => onChange({ ...set, weightKg: v })} />
       <NumberInput className="num-input" style={{ width: "100%" }} integer value={set.reps} max={1000} emptyValue={0} placeholder="0" aria-label={t("Set {n} reps", { n: index + 1 })} onChange={(v) => onChange({ ...set, reps: v })} />

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Barcode, CameraOff, PencilLine } from "lucide-react";
 import { t, useLanguage } from "../i18n";
 import { lookupBarcode } from "../lib/api";
+import { actions, getState } from "../lib/store";
 import type { Food } from "../lib/types";
 import { Sheet, haptic } from "./ui";
 
@@ -26,7 +27,10 @@ export function BarcodeSheet({ open, onClose, onFound, onNewFood }: { open: bool
     seen.current = c;
     setStatus({ kind: "looking", code: c });
     try {
-      const food = await lookupBarcode(c);
+      // Scanned before: works offline, straight away.
+      const saved = getState().savedProducts.find((f) => f.id === `off-${c}`);
+      const food = saved ?? (await lookupBarcode(c));
+      if (food && !saved) actions.saveProduct(food);
       // The sheet may have been closed while the lookup was running.
       if (!live.current) return;
       if (food) {

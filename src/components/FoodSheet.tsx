@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, RotateCcw } from "lucide-react";
+import { Plus, RotateCcw, Star } from "lucide-react";
 import type { RecipePart } from "../data/dishes";
 import { recipeTotals } from "../data/foods";
 import { FoodPicker } from "./MealBuilder";
@@ -100,6 +100,7 @@ export function FoodSheet({
   const [meal, setMeal] = useState<MealType>(defaultMeal());
   const [parts, setParts] = useState<Part[]>([]);
   const [picking, setPicking] = useState(false);
+  const isFav = useStore((s) => !!food && s.favorites.some((f) => f.id === food.id));
 
   useEffect(() => {
     if (food) {
@@ -188,9 +189,25 @@ export function FoodSheet({
       >
         {food && n && (
           <>
-            <h2 className="h2" style={{ marginTop: 4 }}>
-              {food.name}
-            </h2>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+              <h2 className="h2" style={{ marginTop: 4, flex: 1, minWidth: 0 }}>
+                {food.name}
+              </h2>
+              {!onPick && (
+                <button
+                  className={`icon-btn fav-btn ${isFav ? "on" : ""}`}
+                  aria-pressed={isFav}
+                  aria-label={isFav ? t("Remove from favourites") : t("Add to favourites")}
+                  onClick={() => {
+                    actions.toggleFavorite(food);
+                    haptic("light");
+                    showToast(isFav ? t("Removed from favourites") : t("Added to favourites"));
+                  }}
+                >
+                  <Star size={18} fill={isFav ? "currentColor" : "none"} />
+                </button>
+              )}
+            </div>
 
             <div className="card">
               <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>

@@ -1,5 +1,5 @@
 import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Barcode, ChevronRight, Globe, PencilLine, Plus, Search, Trash2, UtensilsCrossed, X } from "lucide-react";
+import { AlertTriangle, Barcode, ChevronRight, Globe, PencilLine, Plus, Search, Star, Trash2, UtensilsCrossed, X } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { foodConflicts, hasRestrictions } from "../lib/allergens";
 import { useUsda, useWorldFoods } from "../lib/usda";
@@ -14,7 +14,7 @@ import { FoodSheet } from "../components/FoodSheet";
 import { CustomFoodSheet, MealBuilder } from "../components/MealBuilder";
 import { Empty, GRADE_COLORS, GRADE_TEXT, Segmented, haptic, showToast, useShowMore } from "../components/ui";
 
-type View = "recent" | "meals" | "mine" | "browse";
+type View = "recent" | "favorites" | "meals" | "mine" | "browse";
 
 /** One food in a list. Memoised: its grade and warnings only change when the food or the person's diet does. */
 const FoodRow = memo(function FoodRow({ f, onClick }: { f: Food; onClick: (f: Food) => void }) {
@@ -67,8 +67,12 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
 
   const usda = useUsda();
   const world = useWorldFoods();
-  const all = useMemo(() => [...customFoods, ...FOODS, ...world], [customFoods, world]);
-  const byId = useMemo(() => new Map([...all, ...usda].map((f) => [f.id, f])), [all, usda]);
+  const savedList = useStore((s) => s.savedProducts);
+  // Products scanned before are searchable too, even offline.
+  const all = useMemo(() => [...customFoods, ...savedList, ...FOODS, ...world], [customFoods, savedList, world]);
+  const favorites = useStore((s) => s.favorites);
+  const savedProducts = savedList;
+  const byId = useMemo(() => new Map([...savedProducts, ...favorites, ...all, ...usda].map((f) => [f.id, f])), [all, usda, favorites, savedProducts]);
   // Results catch up with the search box a moment later, so typing never stutters.
   const query = useDeferredValue(q);
   const allLocal = useMemo(() => (query.trim() ? searchFoods(all, query) : []), [all, query]);
@@ -168,6 +172,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
               onChange={setView}
               options={[
                 { value: "recent", label: t("Recent") },
+                { value: "favorites", label: <Star size={16} />, ariaLabel: t("Favourites") },
                 { value: "meals", label: t("My Meals") },
                 { value: "mine", label: t("My Foods") },
                 { value: "browse", label: t("Browse") },
@@ -181,6 +186,16 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
                 recent.map((f) => <FoodRow key={f.id} f={f} onClick={setSelected} />)
               ) : (
                 <Empty icon={<Search size={28} />}>{t("Foods you log will show up here for one-tap adding.")}</Empty>
+              )}
+            </div>
+          )}
+
+          {view === "favorites" && (
+            <div className="group" style={{ marginTop: 12 }} data-testid="favorites">
+              {favorites.length ? (
+                favorites.map((f) => <FoodRow key={f.id} f={f} onClick={setSelected} />)
+              ) : (
+                <Empty icon={<Star size={28} />}>{t("Tap the star on any food to keep it here for one-tap logging.")}</Empty>
               )}
             </div>
           )}
@@ -229,8 +244,8 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
           {view === "mine" && (
             <>
               <div className="group" style={{ marginTop: 12 }}>
-                {customFoods.length ? (
-                  customFoods.map((f) => <FoodRow key={f.id} f={f} onClick={setSelected} />)
+                {customFoods.length || savedProducts.length ? (
+                  [...customFoods, ...savedProducts].map((f) => <FoodRow key={f.id} f={f} onClick={setSelected} />)
                 ) : (
                   <Empty icon={<PencilLine size={28} />}>{t("Add your own foods or recipes with their nutrition label.")}</Empty>
                 )}

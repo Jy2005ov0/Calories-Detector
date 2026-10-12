@@ -4,4 +4,6 @@
     <string name="title_activity_main">W</string>
     <string name="package_name">com.caloriesdetector.app</string>
     <string name="custom_url_scheme">com.caloriesdetector.app</string>
+    <string name="widget_name">W · Today</string>
+    <string name="widget_description">Calories left, protein and water today, with one-tap water.</string>
 </resources>

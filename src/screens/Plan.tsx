@@ -6,6 +6,7 @@ import { exName, exTip, useExerciseNames } from "../i18n/exercises";
 import { ExerciseThumb } from "../components/ExercisePicture";
 import { FOODS } from "../data/foods";
 import { FoodSheet } from "../components/FoodSheet";
+import { MealPlanner } from "../components/MealPlanner";
 import { SPRING, Segmented, Stepper, haptic, showToast } from "../components/ui";
 import { mealTiming, recommendedFoods, sampleDay } from "../lib/diet";
 import { dislikeLabel } from "../lib/allergens";
@@ -23,7 +24,7 @@ function dayMark(title: string) {
 
 export function Plan({ go }: { go: (t: Tab) => void }) {
   useLanguage();
-  const [view, setView] = useState<"training" | "nutrition">("training");
+  const [view, setView] = useState<"training" | "nutrition" | "meals">("training");
   return (
     <div className="screen">
       <h1 className="large-title" style={{ marginTop: 14 }}>
@@ -37,10 +38,11 @@ export function Plan({ go }: { go: (t: Tab) => void }) {
           options={[
             { value: "training", label: tr("Training") },
             { value: "nutrition", label: tr("Nutrition") },
+            { value: "meals", label: tr("Meal planner") },
           ]}
         />
       </div>
-      {view === "training" ? <TrainingPlan go={go} /> : <NutritionPlan />}
+      {view === "training" ? <TrainingPlan go={go} /> : view === "nutrition" ? <NutritionPlan /> : <MealPlanner />}
     </div>
   );
 }

@@ -76,6 +76,14 @@ export interface Profile {
   cycle: CycleSettings;
   /** Water added per tap, in ml (250 when unset). */
   waterServingMl?: number;
+  /** Pregnancy or breastfeeding: raises calorie and protein targets and pauses weight-loss deficits. */
+  pregnancy?: "off" | "t1" | "t2" | "t3" | "breastfeeding";
+  /** Count steps with the phone's motion sensor. */
+  stepsOn?: boolean;
+  /** Daily step goal (10,000 when unset). */
+  stepGoal?: number;
+  /** Add calories burned walking (from the step counter) to the day's budget. */
+  stepsInBudget?: boolean;
   /** Profile picture: a small square JPEG as a data URL. */
   photo?: string;
   onboarded: boolean;
@@ -116,6 +124,80 @@ export interface DayStats {
   /** When this item was last changed; sync keeps the newer copy. */
   updatedAt?: number;
   waterMl: number;
+  /** Steps counted by the phone's motion sensor. */
+  steps?: number;
+  /** Morning check-in: hours slept, mood and energy (1–5). */
+  sleepH?: number;
+  mood?: number;
+  energy?: number;
+  /** Supplement doses taken: "<supplement id>@<HH:MM>". */
+  taken?: string[];
+}
+
+/** A supplement or medicine taken at set times each day. */
+export interface Supplement {
+  id: string;
+  name: string;
+  dose?: string;
+  /** "HH:MM", one per dose. */
+  times: string[];
+  remind: boolean;
+  createdAt: number;
+}
+
+/** Body measurements in cm (any can be left out). */
+export interface Measurement {
+  id: string;
+  date: string;
+  waistCm?: number;
+  neckCm?: number;
+  hipCm?: number;
+  chestCm?: number;
+  armCm?: number;
+  thighCm?: number;
+  createdAt: number;
+}
+
+/** A progress photo; the picture itself is kept in the phone's photo store (IndexedDB), not in the backup. */
+export interface ProgressPhoto {
+  id: string;
+  date: string;
+  createdAt: number;
+}
+
+/** One exercise in a saved routine. Exercises sharing a group letter are a superset. */
+export interface RoutineItem {
+  exerciseId: string;
+  name: string;
+  kind: ExerciseKind;
+  met: number;
+  sets: number;
+  reps: string;
+  minutes?: number;
+  group?: string;
+}
+
+export interface Routine {
+  id: string;
+  name: string;
+  items: RoutineItem[];
+  updatedAt?: number;
+}
+
+/** Food planned for a meal on a day of the meal planner. */
+export interface PlannedMeal {
+  id: string;
+  date: string;
+  meal: MealType;
+  items: { foodId: string; name: string; grams: number; per100: Nutrients }[];
+}
+
+export type ChallengeId = "protein7" | "workouts30" | "noSugaryDrinks30" | "water7" | "steps10k7" | "log14";
+
+export interface Challenge {
+  id: ChallengeId;
+  /** First day of the challenge (YYYY-MM-DD). */
+  start: string;
 }
 
 export interface Reminders {
@@ -147,6 +229,8 @@ export interface SetEntry {
   reps: number;
   weightKg: number;
   done: boolean;
+  /** A warm-up set: lighter, not a working set. */
+  warmup?: boolean;
 }
 
 export interface SessionExercise {
@@ -162,6 +246,8 @@ export interface SessionExercise {
   targetReps?: string;
   /** Rest between sets, from the plan. */
   restSec?: number;
+  /** Superset group letter from a routine: exercises sharing it are done back to back. */
+  group?: string;
 }
 
 export interface WorkoutSession {
@@ -174,6 +260,9 @@ export interface WorkoutSession {
   endedAt?: number;
   exercises: SessionExercise[];
   kcal: number;
+  /** Runs and walks tracked with GPS: distance in metres and the route as [lat, lng] points. */
+  distanceM?: number;
+  route?: [number, number][];
 }
 
 export interface CustomMeal {

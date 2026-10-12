@@ -13,12 +13,15 @@ dependencies {
     implementation project(':capacitor-camera')
     implementation project(':capacitor-dialog')
     implementation project(':capacitor-filesystem')
+    implementation project(':capacitor-geolocation')
     implementation project(':capacitor-haptics')
     implementation project(':capacitor-keyboard')
     implementation project(':capacitor-local-notifications')
     implementation project(':capacitor-preferences')
     implementation project(':capacitor-share')
     implementation project(':capacitor-splash-screen')
+    implementation project(':capgo-capacitor-pedometer')
+    implementation project(':capgo-capacitor-speech-recognition')
 
 }
 

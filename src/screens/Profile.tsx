@@ -1,4 +1,6 @@
 import { useRef, useState } from "react";
+import { BadgesRow } from "../components/Badges";
+import { PregnancySection, StepsSettings, SupplementsRow, TextSizeSection } from "../components/ProfileExtras";
 import { PeopleList, PhotoPicker } from "../components/People";
 import { CycleCalendar } from "../components/CycleCalendar";
 import { AnimatePresence, motion } from "motion/react";
@@ -381,10 +383,12 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           </div>
           <div className="row-main">
             <div className="row-title">{t("Progress")}</div>
-            <div className="row-sub">{t("Weight chart, water and streaks")}</div>
+            <div className="row-sub">{t("Weight, body measurements, photos and water")}</div>
           </div>
           <ChevronRight size={16} className="chev" />
         </button>
+        <SupplementsRow />
+        <BadgesRow />
       </div>
 
       <div className="section-header">{t("Goal")}</div>
@@ -414,6 +418,8 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           <Stepper value={p.trainingDays} min={2} max={6} onChange={(trainingDays) => actions.updateProfile({ trainingDays })} />
         </div>
       </div>
+
+      <StepsSettings />
 
       <div className="section-header">{t("Diet")}</div>
       <div className="chips">
@@ -488,6 +494,7 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
       )}
 
       {p.sex === "female" && <CycleSection />}
+      <PregnancySection />
 
       <div className="section-header">
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -535,6 +542,8 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           </button>
         ))}
       </div>
+
+      <TextSizeSection />
 
       <div className="section-header">{t("Data")}</div>
       <div className="group">
@@ -602,7 +611,7 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           {t("Delete all data")}
         </button>
       </div>
-      <p className="footnote">{t("Everything is stored only on this phone, so back up to a file now and then. Photos are sent to the server only for analysis and are not kept.")}</p>
+      <p className="footnote">{t("Everything is stored only on this phone, so back up to a file now and then. Progress photos stay on this phone and aren't included in backups.")}</p>
     </div>
   );
 }

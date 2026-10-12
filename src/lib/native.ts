@@ -5,7 +5,9 @@ import { t } from "../i18n";
 import { buildPlan, sessionFromPlan, sessionKcal } from "./fitness";
 import { isNative, platform } from "./platform";
 import { cycleOf, cycleStatus } from "./cycle";
-import { minutesOf } from "./progress";
+import { minutesOf, waterGoalMl } from "./progress";
+import { sum, targets } from "./nutrition";
+import { WNative, stepKcal } from "./steps";
 import { actions, getState, subscribe, todayKey, weekdayOf, type AppState } from "./store";
 
 // ── Notifications ────────────────────────────────────────
@@ -13,7 +15,7 @@ import { actions, getState, subscribe, todayKey, weekdayOf, type AppState } from
 // Apple Watch or Wear OS watch the phone's notifications appear on the wrist with their
 // action buttons, so "Clock in" and "Clock out" work from the watch.
 
-const ID = { meal: 1000, water: 1100, gym: 1200, workout: 2000, rest: 3000, period: 4000 };
+const ID = { meal: 1000, water: 1100, gym: 1200, workout: 2000, rest: 3000, period: 4000, supplement: 5000 };
 const GYM_TYPE = "GYM_REMINDER";
 const WORKOUT_TYPE = "WORKOUT_RUNNING";
 
@@ -64,7 +66,7 @@ function reminderSchedule(s: AppState): LocalNotificationSchema[] {
       daily(ID.meal + 1, t("Iftar"), t("Break your fast with water and dates, then log your meal."), hm(p.fastTimes.iftar));
     } else {
       daily(ID.meal, t("Breakfast"), t("Log your breakfast to stay on track."), hm(r.breakfast));
-      daily(ID.meal + 1, t("Lunch"), t("What's for lunch? Snap a photo to log it."), hm(r.lunch));
+      daily(ID.meal + 1, t("Lunch"), t("What's for lunch? Log it to stay on track."), hm(r.lunch));
       daily(ID.meal + 2, t("Dinner"), t("Log your dinner and see what's left for today."), hm(r.dinner));
     }
   }
@@ -87,6 +89,12 @@ function reminderSchedule(s: AppState): LocalNotificationSchema[] {
       });
     }
   }
+  // Supplements and medicines: one daily reminder per dose time (up to 20).
+  s.supplements
+    .filter((x) => x.remind)
+    .flatMap((x) => x.times.map((time) => ({ x, time })))
+    .slice(0, 20)
+    .forEach(({ x, time }, i) => daily(ID.supplement + i, t("Time for {name}", { name: x.name }), x.dose ? t("{dose} · tick it off in W", { dose: x.dose }) : t("Tick it off in W when you've taken it."), hm(time)));
   const c = cycleOf(p);
   const cycle = c.on && c.remind ? cycleStatus(c, s.periods ?? [], todayKey()) : null;
   if (cycle) {
@@ -108,13 +116,13 @@ function reminderSchedule(s: AppState): LocalNotificationSchema[] {
 const allReminderIds = () =>
   [...Array(3).keys()]
     .map((i) => ID.meal + i)
-    .concat([...Array(7).keys()].map((i) => ID.water + i), [...Array(7).keys()].map((i) => ID.gym + i), [ID.period, ID.period + 1]);
+    .concat([...Array(7).keys()].map((i) => ID.water + i), [...Array(7).keys()].map((i) => ID.gym + i), [ID.period, ID.period + 1], [...Array(20).keys()].map((i) => ID.supplement + i));
 
 /** Replace scheduled reminders with what the current settings call for. */
 export async function syncReminders(s: AppState = getState()) {
   if (!isNative) return;
   const wanted = reminderSchedule(s);
-  const any = s.reminders.meals || s.reminders.water || s.reminders.gym || (cycleOf(s.profile).on && s.profile.cycle.remind);
+  const any = s.reminders.meals || s.reminders.water || s.reminders.gym || (cycleOf(s.profile).on && s.profile.cycle.remind) || s.supplements.some((x) => x.remind);
   if (any && !(await notificationsReady())) return;
   try {
     await LocalNotifications.cancel({ notifications: allReminderIds().map((id) => ({ id })) });
@@ -184,9 +192,57 @@ export function clockOutFromNotification() {
   if (active) actions.clockOut(active.id, sessionKcal(active, s.profile.weightKg, Date.now()));
 }
 
+// ── Home-screen widget (Android) ─────────────────────────
+
+/** Today's numbers for the widget, with labels in the app's language. */
+export function widgetData(s: AppState, today = todayKey()) {
+  const p = s.profile;
+  const tg = targets(p);
+  const eaten = sum(s.log.filter((e) => e.date === today).map((e) => e.nutrients));
+  const day = s.days.find((d) => d.id === today);
+  const burned =
+    s.sessions.filter((x) => x.date === today).reduce((a, x) => a + (x.endedAt ? x.kcal : sessionKcal(x, p.weightKg)), 0) +
+    (p.stepsOn && p.stepsInBudget ? stepKcal(day?.steps ?? 0, p.weightKg) : 0);
+  return {
+    date: today,
+    kcalTarget: tg.kcal,
+    kcalLeft: Math.round(tg.kcal - eaten.kcal + burned),
+    protein: Math.round(eaten.protein),
+    proteinGoal: tg.protein,
+    waterMl: day?.waterMl ?? 0,
+    waterGoal: waterGoalMl(p),
+    cupMl: p.waterServingMl || 250,
+    leftLabel: t("kcal left"),
+    overLabel: t("kcal over"),
+    proteinLabel: t("Protein"),
+    waterLabel: t("Water"),
+  };
+}
+
+let widgetTimer: ReturnType<typeof setTimeout> | undefined;
+function syncWidget() {
+  if (platform !== "android") return;
+  clearTimeout(widgetTimer);
+  widgetTimer = setTimeout(() => WNative.updateWidget({ json: JSON.stringify(widgetData(getState())) }).catch(() => {}), 1500);
+}
+
+/** Add water tapped on the widget since the app was last open. */
+export async function collectWidgetWater() {
+  if (platform !== "android") return;
+  try {
+    const { ml, date } = await WNative.takeWidgetWater();
+    if (ml > 0 && date === todayKey()) actions.updateDay(date, (d) => ({ ...d, waterMl: d.waterMl + ml }));
+  } catch {
+    /* no widget */
+  }
+}
+
 /** Wire notification buttons and keep notifications in step with the app's data. */
 export function startNativeServices() {
   if (!isNative) return;
+  collectWidgetWater();
+  document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && collectWidgetWater());
+  syncWidget();
   LocalNotifications.addListener("localNotificationActionPerformed", (e) => {
     if (e.actionId === "clock-in") clockInFromReminder();
     if (e.actionId === "clock-out") clockOutFromNotification();
@@ -197,7 +253,8 @@ export function startNativeServices() {
   subscribe(() => {
     const s = getState();
     if (s.activeSessionId !== prev.activeSessionId || s.sessions !== prev.sessions) syncWorkoutNotification(s);
-    if (s.reminders !== prev.reminders || s.profile !== prev.profile || s.split !== prev.split || s.language !== prev.language || s.periods !== prev.periods) syncReminders(s);
+    if (s.reminders !== prev.reminders || s.profile !== prev.profile || s.split !== prev.split || s.language !== prev.language || s.periods !== prev.periods || s.supplements !== prev.supplements) syncReminders(s);
+    if (s.log !== prev.log || s.days !== prev.days || s.sessions !== prev.sessions || s.profile !== prev.profile || s.language !== prev.language || s.personId !== prev.personId) syncWidget();
     prev = s;
   });
 }
