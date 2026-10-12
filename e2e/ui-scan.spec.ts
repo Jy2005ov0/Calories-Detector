@@ -248,6 +248,72 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await audit(page, "Period late · advice (end)", issues);
   await close();
 
+  // ── Everyday extras ────────────────────────────────
+  await tab("Today");
+  for (const [name, title] of [["Quick add", "Quick add"], ["Say it", "Say what you ate"], ["Weekly report", "Weekly report"]] as const) {
+    await page.getByRole("button", { name: new RegExp(name) }).first().click();
+    await expect(page.getByRole("dialog", { name: title })).toBeVisible();
+    await audit(page, `Today · ${name}`, issues);
+    await close();
+  }
+  const ideas = page.getByTestId("meal-ideas");
+  await ideas.scrollIntoViewIfNeeded();
+  await audit(page, "Today · meal ideas", issues);
+  await ideas.getByRole("button", { name: "Meal idea settings" }).click();
+  await audit(page, "Meal ideas · settings", issues);
+  await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, el.scrollHeight));
+  await audit(page, "Meal ideas · settings (end)", issues);
+  await close();
+  await tab("Food");
+  await page.getByRole("tab", { name: "Favourites" }).click();
+  await audit(page, "Food · Favourites", issues);
+  await tab("Train");
+  for (const [name, title] of [["Track a run", "Track a run"], ["Gym tools", "Gym tools"], ["Strength progress", "Strength progress"]] as const) {
+    await page.getByRole("button", { name: new RegExp(name) }).first().click();
+    await expect(page.getByRole("dialog", { name: title })).toBeVisible();
+    await audit(page, `Train · ${name}`, issues);
+    await close();
+  }
+  await page.locator(".section-header", { hasText: "My routines" }).getByRole("button", { name: "New" }).click();
+  await audit(page, "Train · new routine", issues);
+  await close();
+  await tab("Plan");
+  await page.getByRole("tab", { name: "Meal planner" }).click();
+  await audit(page, "Plan · meal planner", issues);
+  await page.getByRole("button", { name: "Grocery list for the week" }).click();
+  await audit(page, "Plan · grocery list", issues);
+  await close();
+  await tab("Profile");
+  for (const name of ["Supplements & medicine", "Badges & challenges"]) {
+    await page.getByRole("button", { name: new RegExp(name) }).first().click();
+    await audit(page, `Profile · ${name}`, issues);
+    await close();
+  }
+  await page.getByRole("radio", { name: "Pregnant · 2nd trimester" }).click();
+  await audit(page, "Profile · pregnancy", issues);
+  await page.getByRole("radio", { name: "Off" }).click();
+  await page.getByRole("tab", { name: "Extra large" }).click();
+  await tab("Today");
+  await audit(page, "Today · extra large text", issues);
+  await page.getByTestId("meal-ideas").scrollIntoViewIfNeeded();
+  await audit(page, "Today · meal ideas, extra large text", issues);
+  await tab("Profile");
+  await page.getByRole("tab", { name: "Normal" }).click();
+  // The new screens in Chinese and Malay.
+  for (const [lang, label, settings] of [["Chinese", "中文", "餐点建议设置"], ["Malay", "Bahasa Melayu", "Tetapan idea hidangan"]] as const) {
+    await page.locator(".section-header", { hasText: /Language|语言|Bahasa/ }).first().scrollIntoViewIfNeeded();
+    await page.getByRole("button", { name: label }).click();
+    await page.getByRole("navigation").getByRole("button").first().click();
+    await page.getByTestId("meal-ideas").scrollIntoViewIfNeeded();
+    await audit(page, `${lang} · meal ideas`, issues);
+    await page.getByTestId("meal-ideas").getByRole("button", { name: settings }).click();
+    await audit(page, `${lang} · meal idea settings`, issues);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await page.getByRole("navigation").getByRole("button").last().click();
+  }
+  await page.getByRole("button", { name: "English" }).click();
+
   await ctx.close();
   return issues;
 }

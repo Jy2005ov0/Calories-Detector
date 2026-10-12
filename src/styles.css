@@ -2341,6 +2341,20 @@ html[data-text="large"] body {
 html[data-text="xlarge"] body {
   zoom: 1.25;
 }
+/* With large text on a narrow phone, the calorie numbers move under the ring. */
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+.summary-stats {
+  display: grid;
+  gap: 12px;
+  flex: 1 1 130px;
+  min-width: 0;
+}
 
 .sr-only {
   position: absolute;
@@ -2591,11 +2605,11 @@ html[data-text="xlarge"] body {
   color: var(--blue);
 }
 .day-strip button.active {
-  background: var(--blue);
-  color: #fff;
+  background: var(--label);
+  color: var(--bg-elev);
 }
 .day-strip button.active strong {
-  color: #fff;
+  color: var(--bg-elev);
 }
 .day-strip .dot {
   width: 5px;
@@ -2766,7 +2780,7 @@ html[data-text="xlarge"] body {
 .idea-reason {
   margin-top: 4px;
   font-size: 0.8125rem;
-  color: var(--green);
+  color: var(--green-ink);
 }
 .idea-reason::before {
   content: "✓ ";
@@ -2779,7 +2793,7 @@ html[data-text="xlarge"] body {
   margin-top: 12px;
 }
 .idea-actions .icon-btn.on {
-  color: var(--green);
+  color: var(--green-ink);
 }
 .idea-grams {
   margin-top: 4px;

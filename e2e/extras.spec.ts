@@ -388,13 +388,13 @@ test("Meal ideas: swap, like, never again, log it, and preferences that change t
   await expect(s).toContainText(third);
   await s.getByRole("button", { name: "Restore" }).click();
   await expect(s.getByText("Not suggested")).toHaveCount(0);
-  await s.getByRole("button", { name: "Done" }).click();
+  await s.getByRole("button", { name: "Close", exact: true }).click();
   await expect(card).toContainText("Lower carb · Japanese · Something new");
 
   // Turned off: the card goes, and Profile says so.
   await card.getByRole("button", { name: "Meal idea settings" }).click();
   await sheet(page, "Meal ideas").getByRole("switch", { name: "Show meal ideas on Today" }).click();
-  await sheet(page, "Meal ideas").getByRole("button", { name: "Done" }).click();
+  await sheet(page, "Meal ideas").getByRole("button", { name: "Close", exact: true }).click();
   await expect(card).toHaveCount(0);
   await tab(page, "Profile");
   await expect(page.getByRole("button", { name: /Meal ideas\s*Off/ })).toBeVisible();

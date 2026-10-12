@@ -228,7 +228,18 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 | **Training plans** | Body-part split (Chest / Back / Legs / Shoulders / Arms), Push-Pull-Legs, Upper/Lower or Full Body, set for 2–6 days a week. Sets, reps, rest and RIR follow your goal and experience. Start any day with one tap. |
 | **Nutrition plan** | Calorie target (Mifflin-St Jeor × activity, ±goal), protein/carb/fat targets, foods to eat and limit, a sample day scaled to your target, and tips on meal timing. Supports halal, vegetarian and vegan diets. |
 | **Barcode scanner** | Point the camera at a packaged food (EAN/UPC) or type the number. The product's nutrition comes from Open Food Facts; unknown products can be added as a new food. |
-| **Progress** | Log your weight and see a chart with your weekly trend and whether it's on pace for your goal. Water against a goal of ~35 ml per kg, and 7-day charts. (W doesn't count steps: Apple Health can't be used by sideloaded apps.) |
+| **Daily meal ideas** | A card on Today suggests a real dish for each meal still ahead (breakfast, lunch, dinner, snack — or sahur, iftar and moreh), sized to the calories and protein you have left, with a reason ("38 g protein towards your 120 g goal", "You often have this"). **Log it** in one tap, **Another idea** to swap, 👍 to see a dish more often, 👎 to never see it again. Settings: style (balanced, high protein, lower carb, light, more plants), cuisines (Malaysian, Chinese, Indian, Japanese, Korean, Thai & Vietnamese, Western, Middle Eastern, Mexican, African & Caribbean…), variety (my usual foods, a mix, something new) and no spicy food. It learns from likes, swaps and what you log, and always respects allergies, halal, vegetarian, vegan and foods you don't eat. Works offline. |
+| **Progress** | Log your weight and see a chart with your weekly trend and whether it's on pace for your goal. Water against a goal of ~35 ml per kg, and 7-day charts. Body measurements (waist, neck, hips, chest, arm, thigh) with a US Navy body-fat estimate and charts, and progress photos kept only on the phone with a before/after slider. |
+| **Steps** | Counted by the phone's own motion sensor (no Apple Health or Google Fit needed), with a daily goal; walking calories can be added to the day's budget. |
+| **Faster logging** | Quick add (just calories), say or type a meal in English, Malay or Chinese ("dua roti canai dan teh tarik"), copy yesterday's meal with Undo, and starred favourites. Barcodes scanned once work offline. |
+| **Daily habits** | Morning check-in (sleep, mood, energy) with a sleep-and-training insight, and supplements or medicine with reminders and a tick-off list. |
+| **Weekly report** | The last 7 days against your targets: averages, best and toughest day, workouts, water, steps and sleep, and the one thing to work on next week. |
+| **Training tools** | Routines with supersets, warm-up sets, plate calculator, 1-rep max calculator, strength charts per lift, a 12-week workout calendar, and GPS run/walk tracking with distance, pace, calories and a route sketch. |
+| **Meal planner** | Plan the week's meals, log a planned meal in one tap, and share a grocery list. |
+| **Pregnancy & breastfeeding** | Raises calorie and protein targets by trimester and pauses any weight-loss deficit. |
+| **Badges & challenges** | Badges for streaks, protein, water, workouts and runs; challenges such as 7 days hitting protein or a month without sugary drinks. |
+| **Android widget** | Calories left, protein and water on the home screen, with one-tap water. (An iPhone widget needs a paid Apple developer account, so there isn't one.) |
+| **Larger text** | Normal, large and extra large text sizes. |
 | **Streaks** | A logging streak on Today and a weekly gym streak in Progress. |
 | **Reminders** | Meal, water and gym-day reminders at times you choose (in the iPhone and Android apps). |
 | **Clock in/out from your watch** | Gym reminders carry a **Clock in** button and a running workout shows a **Clock out** button. Both appear on a paired **Apple Watch** or **Wear OS** watch, because the watch mirrors the phone's notifications. |
@@ -331,6 +342,9 @@ npm run typecheck
 - **Calorie target**: BMR (Mifflin-St Jeor) × activity factor, then −20 % to lose fat, +10 % to build muscle. There is a floor of 1,500 kcal for men and 1,200 kcal for women.
 - **Protein**: 2.0 g/kg while cutting, otherwise 1.8 g/kg. Fat is 27–28 % of calories and carbs fill the rest.
 - **Limits**: free sugar under 10 % of calories and saturated fat under 10 % (WHO). Sodium under 2,000 mg.
+- **Pregnancy**: maintenance plus 340 kcal in the 2nd trimester, 452 kcal in the 3rd and 330 kcal while breastfeeding (Institute of Medicine), with no deficit.
+- **Meal ideas**: what's left of the day's calories and protein is shared over the meals still ahead (breakfast 25 %, lunch 35 %, dinner 30 %, snack 10 %; snacks stay under 300 kcal). Dishes are scored on fit, protein, a nutrient-density score, your style and cuisines, and what you like, skip and log.
+- **Walking**: about 0.5 kcal per kg of body weight per 1,000 steps.
 - **Exercise calories**: MET × body weight (kg) × hours. Each completed strength set counts as 2 minutes, including rest. Clocked-in time with no exercise logged counts as general gym training (3.5 MET).
 
 This is general guidance, not medical advice.
@@ -347,6 +361,7 @@ src/data/exercises.ts    Exercise & activity database
 src/lib/nutrition.ts     Targets, health score, suitability, search
 src/lib/fitness.ts       Session calories, plan generator
 src/lib/diet.ts          Food recommendations & sample day
+src/lib/ideas.ts         Daily meal ideas (scoring, sizing, learning from likes and logs)
 src/lib/store.ts         localStorage-backed state
 src/screens/*            Today, Food, Train, Plan, Profile (+ onboarding)
 src/components/*         Sheet, segmented control, rings, food/meal sheets

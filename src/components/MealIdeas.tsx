@@ -308,7 +308,6 @@ export function MealIdeasSheet({
       open={open}
       onClose={onClose}
       title={t("Meal ideas")}
-      right={<button onClick={onClose}>{t("Done")}</button>}
     >
       <div className="group">
         <div className="field">

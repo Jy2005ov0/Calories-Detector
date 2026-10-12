@@ -466,7 +466,7 @@ export function Today({
       <div className="card">
         <div
           data-tour="summary"
-          style={{ display: "flex", alignItems: "center", gap: 18 }}
+          className="summary"
         >
           <Ring
             progress={eaten.kcal / (tg.kcal + burned)}
@@ -488,7 +488,7 @@ export function Today({
               </div>
             </div>
           </Ring>
-          <div style={{ display: "grid", gap: 12, flex: 1 }}>
+          <div className="summary-stats">
             <div className="stat">
               <span className="stat-label">
                 <Utensils size={13} /> {t("Eaten")}
