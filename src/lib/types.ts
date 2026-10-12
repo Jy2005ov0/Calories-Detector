@@ -28,6 +28,8 @@ export interface Food {
   dataset?: "usda";
   /** An everyday staple from the core list; ranked first in search. */
   staple?: boolean;
+  /** From the extra world list (loaded on demand); ranked after the core list's foods. */
+  extra?: boolean;
   /** Parts of a mixed dish (rice, sambal, egg…) the user can adjust. */
   recipe?: import("../data/dishes").RecipePart[];
 }

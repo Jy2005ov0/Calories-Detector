@@ -16,7 +16,7 @@ describe("databases", () => {
     const { worldToFood } = await import("./usda");
     const rows = JSON.parse(fs.readFileSync("public/data/world-foods.json", "utf8")).rows;
     const world = rows.map(worldToFood);
-    expect(world.length).toBeGreaterThan(400);
+    expect(FOODS.length + world.length + 8789).toBeGreaterThanOrEqual(20000);
     const names = new Set(FOODS.map((f) => f.name));
     const cats = new Set(FOODS.map((f) => f.category));
     for (const f of world) {

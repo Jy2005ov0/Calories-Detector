@@ -18,7 +18,7 @@ export const INTRO_SLIDES: Slide[] = [
     colors: ["#0a84ff", "#5e5ce6"],
     title: "Search or scan your food",
     body: "Look up any food, or scan the barcode on a packet, to see its calories and whether it suits you.",
-    points: ["13,000+ foods from around the world", "Millions of packaged products online", "Build and save your own meals"],
+    points: ["21,000+ foods from around the world", "Millions of packaged products online", "Build and save your own meals"],
   },
   {
     Icon: HeartPulse,

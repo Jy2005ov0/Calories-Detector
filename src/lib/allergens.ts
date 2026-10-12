@@ -17,7 +17,11 @@ const RULES: Record<Tag, { include: RegExp; exclude?: RegExp }> = {
     // Beef and lamb ribs, and chicken versions of usually-pork dishes.
     exclude: /(beef|lamb|mutton) (short )?ribs|galbi|asado|chicken bak kut teh|banh mi \((chicken|tofu|beef)/i,
   },
-  alcohol: { include: /\bbeer\b|\bwine\b|bourguignon|\bsake\b|soju|whisk(e)?y|vodka|\brum\b|cocktail/i },
+  alcohol: {
+    include: /\bbeer\b|\bwine\b|bourguignon|\bsake\b|soju|whisk(e)?y|vodka|\brum\b|cocktail|\balcohol(ic)?\b|liqueur|\bcider\b|shochu|chu-hi|\braki\b|guinness|(?<!ginger )\bale\b|\blager\b|\bstout\b|brandy|cognac|tequila|\bgin\b|mezcal|makgeolli|baijiu|\bmirin\b|sangria|champagne|prosecco|\bport\b|sherry|vermouth|grand marnier|kirsch|amaretto|baileys/i,
+    // Not drinks: root beer, fruit and seafood "cocktails", salmon (sake) sushi, cider vinegar, wine gums.
+    exclude: /non-alcoholic|alcohol-free|sugar alcohol|0\.0%|root beer|ginger beer|fruit cocktail|(shrimp|prawn|seafood|chicken) cocktail|campechana|cocktail (bun|sausage)|cocktail, pork|wine gums|cider vinegar|gin thoke|nigiri \(sake\)|sake (maki|flake)/i,
+  },
   meat: {
     include:
       /chicken|beef|pork|lamb|mutton|duck|turkey|bacon|\bham\b|sausage|meat|rendang|kambing|ayam|daging|venison|jerky|pepperoni|prosciutto|kebab|kofta|shawarma|gyro|satay|suya|bulgogi|steak|patty|burger|char siu|bak kut teh|liver|doner|souvlaki|yakitori|chicken rice|nasi kandar|nasi campur|nasi padang|mansaf|kabsa|bobotie|bunny chow|chili con carne|goulash|lasagna|bolognese|moussaka|shepherd|cornish pasty|empanada|tacos|burrito|enchilada|fajitas|quesadilla|philly|cheesesteak|schnitzel|meatball|bratwurst|bangers|hot dog|katsu|oyakodon|gyudon|tamales|feijoada|nuggets|wings|ramly|murtabak|roti john|siu mai|xiaolongbao|dumplings|jiaozi|wonton|wantan|gyoza|pho\b|bun cha|banh mi|larb|adobo|sinigang|bakso|tom kha gai|green curry|red curry|massaman|pad kra pao|kung pao|general tso|orange chicken|sesame chicken|mongolian|dakgalbi|galbi|samgyeopsal|lo mai kai|claypot|soto|congee with|dan dan|bao\b|mapo tofu|hainanese|biryani|briyani|korma|tikka|tandoori|vindaloo|rogan josh|chicken 65|doro wat|jollof|couscous royale|tagine|jerk|club sandwich|blt|cobb|caesar wrap|full english|steamboat|yong tau foo|ramen|tonkotsu/i,

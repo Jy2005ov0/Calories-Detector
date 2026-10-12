@@ -228,8 +228,9 @@ export function searchFoods(foods: Food[], query: string, limit = 60): Food[] {
     if (head === q || head === `${q}s` || head === `${q}es`) s += 60;
     // English puts the main noun last: "rice" → "White rice" before "Rice vermicelli".
     else if (head.endsWith(` ${q}`) || head.endsWith(` ${q}s`)) s += 45;
-    // Everyday staples before regional variations.
+    // Everyday staples before regional variations, and the core list before the extra world list.
     if (f.staple) s += 20;
+    if (f.extra) s -= 50;
     // Everyday forms before processed ones.
     if (/\b(raw|cooked|boiled|steamed|roasted|grilled|baked|whole)\b/.test(name)) s += 6;
     if (/\b(dried|dehydrated|dry mix|powder|concentrate|babyfood|baby food|infant|freeze-dried|imitation)\b/.test(name) && !q.includes("dried") && !q.includes("powder")) s -= 25;

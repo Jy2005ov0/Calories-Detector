@@ -68,6 +68,7 @@ export const worldToFood = (r: WorldRow, i: number): Food => ({
   servings: r[10] === "100 g" ? [{ label: "100 g", grams: 100 }] : [{ label: r[10], grams: r[11] }, { label: "100 g", grams: 100 }],
   aliases: r[12],
   source: "db",
+  extra: true,
 });
 
 export function loadWorldFoods(): Promise<Food[]> {
