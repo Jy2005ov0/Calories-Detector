@@ -144,7 +144,7 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   await audit(page, "Food · avoid filter", issues);
   await page.getByRole("button", { name: /Hiding foods you avoid/ }).click();
   await audit(page, "Food · avoid flags", issues);
-  await page.locator(".row", { hasText: "Char siu" }).first().click();
+  await page.locator(".row", { hasText: /pork/i }).first().click();
   await audit(page, "Food detail · not halal", issues);
   await close();
   await page.getByRole("button", { name: /Showing all foods/ }).click();

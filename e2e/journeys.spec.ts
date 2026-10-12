@@ -591,7 +591,7 @@ test("Hafiz: customises his nasi lemak — extra egg, no peanuts, add rendang", 
   await parts.getByRole("button", { name: "Add an ingredient" }).click();
   const picker = page.getByRole("dialog", { name: "Add food" });
   await picker.getByPlaceholder("Search foods").fill("rendang");
-  await picker.locator(".row", { hasText: "Beef rendang" }).click();
+  await picker.locator(".row", { hasText: /Beef rendang(?! tok)/ }).click();
   await expect(parts).toContainText("Beef rendang");
   await expect(sheet.locator(".big-number")).toHaveText("715");
   await expect(sheet).toContainText("Changed: Boiled egg: 1 egg · no Peanuts · + Beef rendang");
