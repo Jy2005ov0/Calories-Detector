@@ -75,7 +75,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/09-barcode-scanner.jpg" width="190" alt="Scan a barcode"><br><sub>Scan a barcode</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/10-barcode-product.jpg" width="190" alt="Packaged food from its barcode"><br><sub>Packaged food from its barcode</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/14-food.jpg" width="190" alt="Food home"><br><sub>Food home</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/15-food-search.jpg" width="190" alt="Search 13,000+ foods"><br><sub>Search 13,000+ foods</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/15-food-search.jpg" width="190" alt="Search 11,000+ foods"><br><sub>Search 11,000+ foods</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/16-food-health-check.jpg" width="190" alt="Health grade and goal check"><br><sub>Health grade and goal check</sub></td>
 </tr></table>
 
@@ -119,6 +119,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/36-profile-cycle.jpg" width="190" alt="Cycle tracking settings"><br><sub>Cycle tracking settings</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/37-cycle-today.jpg" width="190" alt="Cycle day, phase and tips"><br><sub>Cycle day, phase and tips</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/38-period-calendar.jpg" width="190" alt="Period calendar"><br><sub>Period calendar</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/45-period-late-advice.jpg" width="190" alt="Advice when a period is late"><br><sub>Advice when a period is late</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/39-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/40-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/41-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
@@ -157,7 +158,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/09-barcode-scanner.jpg" width="190" alt="Scan a barcode"><br><sub>Scan a barcode</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/10-barcode-product.jpg" width="190" alt="Packaged food from its barcode"><br><sub>Packaged food from its barcode</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/14-food.jpg" width="190" alt="Food home"><br><sub>Food home</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/15-food-search.jpg" width="190" alt="Search 13,000+ foods"><br><sub>Search 13,000+ foods</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/15-food-search.jpg" width="190" alt="Search 11,000+ foods"><br><sub>Search 11,000+ foods</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/16-food-health-check.jpg" width="190" alt="Health grade and goal check"><br><sub>Health grade and goal check</sub></td>
 </tr></table>
 
@@ -201,6 +202,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/36-profile-cycle.jpg" width="190" alt="Cycle tracking settings"><br><sub>Cycle tracking settings</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/37-cycle-today.jpg" width="190" alt="Cycle day, phase and tips"><br><sub>Cycle day, phase and tips</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/38-period-calendar.jpg" width="190" alt="Period calendar"><br><sub>Period calendar</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/45-period-late-advice.jpg" width="190" alt="Advice when a period is late"><br><sub>Advice when a period is late</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/39-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/40-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/41-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
