@@ -24,7 +24,7 @@ export interface AppState {
   weights: WeightEntry[];
   /** First days of logged periods (cycle tracking). */
   periods: PeriodEntry[];
-  /** Water and steps per day. */
+  /** Water per day. */
   days: DayStats[];
   reminders: Reminders;
   /** IDs of deleted entries, so a delete on one device isn't undone by another during sync. */

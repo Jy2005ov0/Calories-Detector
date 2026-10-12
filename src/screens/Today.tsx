@@ -27,6 +27,7 @@ import { bmi, round, sum, targets } from "../lib/nutrition";
 import {
   cycleOf,
   cycleStatus,
+  lateAdvice,
   periodDue,
   phaseName,
   phaseTip,
@@ -40,12 +41,14 @@ import {
   MacroBars,
   Ring,
   SPRING,
+  Sheet,
   showToast,
   useNow,
 } from "../components/ui";
 import { WaterControl } from "../components/ProgressSheet";
 import { LogEntrySheet, deleteLogEntry } from "../components/LogEntrySheet";
 import { CycleCalendar } from "../components/CycleCalendar";
+import { LateAdviceSheetBody } from "../components/LateAdviceSheet";
 import { PeopleSheet, PersonAvatar, householdSize } from "../components/People";
 import type { SheetKind, Tab } from "../App";
 
@@ -106,7 +109,11 @@ const longDate = (key: string) => {
 function CycleCard({ today }: { today: string }) {
   const profile = useStore((s) => s.profile);
   const periods = useStore((s) => s.periods);
+  const log = useStore((s) => s.log);
+  const weights = useStore((s) => s.weights);
+  const sessions = useStore((s) => s.sessions);
   const [calendar, setCalendar] = useState(false);
+  const [adviceOpen, setAdviceOpen] = useState(false);
   const cycle = cycleOf(profile);
   if (!cycle.on) return null;
   const calendarButton = (
@@ -119,14 +126,35 @@ function CycleCard({ today }: { today: string }) {
     </button>
   );
   // Always the same element in the same place, so marking a day (which changes the card) doesn't reset it.
-  const sheet = (
-    <CycleCalendar open={calendar} onClose={() => setCalendar(false)} />
-  );
   const c = cycleStatus(cycle, periods, today);
-  const log = () => {
+  const advice = lateAdvice(c, {
+    periods,
+    weights,
+    log,
+    sessions,
+    profile,
+    kcalTarget: targets(profile).kcal,
+    today,
+  });
+  const logStart = () => {
     actions.logPeriod(today);
+    setAdviceOpen(false);
     showToast(t("Period logged · day 1"));
   };
+  const sheet = (
+    <>
+      <CycleCalendar open={calendar} onClose={() => setCalendar(false)} />
+      <Sheet
+        open={adviceOpen && !!advice}
+        onClose={() => setAdviceOpen(false)}
+        title={t("Period late")}
+      >
+        {advice && (
+          <LateAdviceSheetBody advice={advice} onStarted={logStart} />
+        )}
+      </Sheet>
+    </>
+  );
   if (!c) {
     return (
       <>
@@ -152,7 +180,7 @@ function CycleCard({ today }: { today: string }) {
             <button
               className="btn small secondary"
               style={{ marginTop: 10 }}
-              onClick={log}
+              onClick={logStart}
             >
               {t("Started today")}
             </button>
@@ -199,12 +227,21 @@ function CycleCard({ today }: { today: string }) {
           {phaseTip(c)}
         </p>
         <div className="btn-row">
+          {advice && (
+            <button
+              className="btn small"
+              style={{ marginTop: 10 }}
+              onClick={() => setAdviceOpen(true)}
+            >
+              {t("What to do")}
+            </button>
+          )}
           {calendarButton}
           {periodDue(c) && (
             <button
               className="btn small secondary"
               style={{ marginTop: 10 }}
-              onClick={log}
+              onClick={logStart}
             >
               {t("Started today")}
             </button>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FOOD_BY_NAME } from "../data/foods";
 import { conflicts, dislikesIn, foodConflicts, foodTags, parseDislike } from "./allergens";
-import { averageLength, cycleOf, cycleStatus, periodDays, periodDue, periodLength, phaseTip, predictedDays, togglePeriodDay } from "./cycle";
+import { averageLength, cycleOf, cycleRange, cycleStatus, lateAdvice, periodDays, periodDue, periodLength, phaseTip, predictedDays, togglePeriodDay } from "./cycle";
 import { recommendedFoods, sampleDay } from "./diet";
 import { fromBackup, toBackup, toCsv } from "./export";
 import { fastStatus, logStreak, waterGoalMl, weightTrend, workoutWeekStreak } from "./progress";
@@ -294,5 +294,56 @@ describe("cycle tracking", () => {
     expect(periodDue(cycleStatus(on, p("2026-10-01"), "2026-10-27"))).toBe(true);
     expect(periodDue(cycleStatus(on, p("2026-10-01"), "2026-11-02"))).toBe(true);
     expect(phaseTip(cycleStatus(on, p("2026-10-01"), "2026-11-02")!)).toMatch(/^4 days late/);
+  });
+
+  describe("late period advice", () => {
+    const base = {
+      weights: [] as { date: string; kg: number }[],
+      log: [] as { date: string; meal: string; nutrients: { kcal: number } }[],
+      sessions: [] as { date: string }[],
+      profile: { age: 25, heightCm: 165, weightKg: 58, fasting: "off" as "off" | "ramadan" | "16:8" },
+      kcalTarget: 1800,
+    };
+    const advise = (today: string, extra: Partial<typeof base> = {}, periods = p("2026-10-01")) =>
+      lateAdvice(cycleStatus(on, periods, today), { ...base, ...extra, periods, today });
+
+    it("is only given when the period is late", () => {
+      expect(advise("2026-10-20")).toBeNull();
+      expect(advise("2026-10-29")).toBeNull(); // due today
+    });
+
+    it("grows more serious the later it gets", () => {
+      expect(advise("2026-10-31")).toMatchObject({ level: "few", daysLate: 2 });
+      expect(advise("2026-11-03")).toMatchObject({ level: "late", daysLate: 5 });
+      expect(advise("2026-11-12")).toMatchObject({ level: "long", daysLate: 14 });
+      expect(advise("2026-12-30")).toMatchObject({ level: "missed", sinceLast: 90 });
+    });
+
+    it("points at eating too little, quick weight loss and hard training from the logs", () => {
+      const log = Array.from({ length: 10 }, (_, i) => [
+        { date: `2026-11-${String(i + 1).padStart(2, "0")}`, meal: "breakfast", nutrients: { kcal: 400 } },
+        { date: `2026-11-${String(i + 1).padStart(2, "0")}`, meal: "dinner", nutrients: { kcal: 600 } },
+      ]).flat();
+      const weights = [{ date: "2026-09-20", kg: 62 }, { date: "2026-11-08", kg: 58 }];
+      const sessions = Array.from({ length: 18 }, (_, i) => ({ date: `2026-10-${String(15 + (i % 15)).padStart(2, "0")}` }));
+      const kinds = advise("2026-11-10", { log, weights, sessions })!.signals.map((s) => s.kind);
+      expect(kinds).toEqual(["lowIntake", "weightLoss", "training"]);
+      expect(advise("2026-11-10", { log })!.signals[0]).toMatchObject({ kind: "lowIntake", kcal: 1000, target: 1800, days: 10 });
+    });
+
+    it("doesn't blame eating on a half-logged week", () => {
+      // One meal a day logged: not enough to judge intake.
+      const log = Array.from({ length: 10 }, (_, i) => ({ date: `2026-11-${String(i + 1).padStart(2, "0")}`, meal: "lunch", nutrients: { kcal: 500 } }));
+      expect(advise("2026-11-10", { log })!.signals).toEqual([]);
+    });
+
+    it("notes a low BMI, fasting, irregular cycles and perimenopause age", () => {
+      const a = advise("2026-11-05", { profile: { age: 44, heightCm: 165, weightKg: 48, fasting: "ramadan" } })!;
+      expect(a.signals.map((s) => s.kind)).toEqual(["underweight", "fasting"]);
+      expect(a.over40).toBe(true);
+      const periods = p("2026-05-01", "2026-05-25", "2026-07-05", "2026-08-01", "2026-09-12");
+      expect(cycleRange(periods)).toEqual({ min: 24, max: 42 });
+      expect(advise("2026-11-20", {}, periods)!.signals).toContainEqual({ kind: "irregular", min: 24, max: 42 });
+    });
   });
 });

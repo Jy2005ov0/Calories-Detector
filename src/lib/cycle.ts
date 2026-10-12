@@ -148,3 +148,99 @@ export function phaseTip(s: CycleStatus): string {
 
 /** Show the "Period started" button when it's due soon, due today or late. */
 export const periodDue = (s: CycleStatus | null) => !!s && s.phase !== "period" && s.daysUntil <= 3;
+
+// ── A late or missed period ─────────────────────────────
+
+/** How late, in bands that change the advice. */
+export type LateLevel = "few" | "late" | "long" | "missed";
+
+/** Something in the person's own data that can delay a period. */
+export type LateSignal =
+  | { kind: "lowIntake"; kcal: number; target: number; days: number }
+  | { kind: "weightLoss"; kg: number }
+  | { kind: "training"; sessions: number }
+  | { kind: "underweight"; bmi: number }
+  | { kind: "fasting" }
+  | { kind: "irregular"; min: number; max: number };
+
+export interface LateAdvice {
+  level: LateLevel;
+  daysLate: number;
+  /** Days since the last period started. */
+  sinceLast: number;
+  signals: LateSignal[];
+  /** Old enough that perimenopause is a possible reason. */
+  over40: boolean;
+}
+
+/** Shortest and longest of the recent cycles (gaps up to 90 days count here), when there are at least three. */
+export function cycleRange(periods: Pick<PeriodEntry, "date">[]): { min: number; max: number } | null {
+  const s = starts(periods).map(toDay);
+  const gaps: number[] = [];
+  for (let i = 1; i < s.length; i++) {
+    const g = s[i] - s[i - 1];
+    if (g >= 18 && g <= 90) gaps.push(g);
+  }
+  const recent = gaps.slice(-6);
+  return recent.length >= 3 ? { min: Math.min(...recent), max: Math.max(...recent) } : null;
+}
+
+export interface LateInput {
+  periods: Pick<PeriodEntry, "date">[];
+  weights: { date: string; kg: number }[];
+  log: { date: string; meal: string; nutrients: { kcal: number } }[];
+  sessions: { date: string }[];
+  profile: Pick<Profile, "age" | "heightCm" | "weightKg" | "fasting">;
+  kcalTarget: number;
+  today: string;
+}
+
+/**
+ * Advice for a period that hasn't come when expected: how late it is, and what in the person's own
+ * logs (eating, weight, training, fasting) could explain it. Null unless the period is late.
+ */
+export function lateAdvice(status: CycleStatus | null, d: LateInput): LateAdvice | null {
+  if (!status || status.phase !== "late") return null;
+  const daysLate = -status.daysUntil;
+  const sinceLast = status.day - 1;
+  const level: LateLevel = sinceLast >= 90 ? "missed" : daysLate >= 14 ? "long" : daysLate >= 5 ? "late" : "few";
+  const now = toDay(d.today);
+  const within = (date: string, days: number) => now - toDay(date) < days && toDay(date) <= now;
+  const signals: LateSignal[] = [];
+
+  // Eating: the last four weeks, counting only days logged fully enough to mean something (2+ meals).
+  const byDay = new Map<string, { kcal: number; meals: Set<string> }>();
+  for (const e of d.log) {
+    if (!within(e.date, 28)) continue;
+    const day = byDay.get(e.date) ?? { kcal: 0, meals: new Set<string>() };
+    day.kcal += e.nutrients.kcal;
+    day.meals.add(e.meal);
+    byDay.set(e.date, day);
+  }
+  const full = [...byDay.values()].filter((x) => x.meals.size >= 2);
+  if (full.length >= 7) {
+    const avg = Math.round(full.reduce((a, x) => a + x.kcal, 0) / full.length / 10) * 10;
+    if (avg < Math.max(1200, d.kcalTarget * 0.8)) signals.push({ kind: "lowIntake", kcal: avg, target: d.kcalTarget, days: full.length });
+  }
+
+  // Weight: lost 5% or more over about two months.
+  const recent = d.weights.filter((w) => within(w.date, 63)).sort((a, b) => a.date.localeCompare(b.date));
+  if (recent.length >= 2) {
+    const lost = recent[0].kg - recent[recent.length - 1].kg;
+    if (lost >= recent[0].kg * 0.05) signals.push({ kind: "weightLoss", kg: Math.round(lost * 10) / 10 });
+  }
+
+  // Training: four or more sessions a week for the last four weeks.
+  const sessions = d.sessions.filter((s) => within(s.date, 28)).length;
+  if (sessions >= 16) signals.push({ kind: "training", sessions });
+
+  const m = d.profile.heightCm / 100;
+  const bmi = m > 0 ? d.profile.weightKg / (m * m) : 0;
+  if (bmi > 0 && bmi < 18.5) signals.push({ kind: "underweight", bmi: Math.round(bmi * 10) / 10 });
+  if (d.profile.fasting !== "off") signals.push({ kind: "fasting" });
+
+  const range = cycleRange(d.periods);
+  if (range && range.max - range.min >= 9) signals.push({ kind: "irregular", ...range });
+
+  return { level, daysLate, sinceLast, signals, over40: d.profile.age >= 40 };
+}
