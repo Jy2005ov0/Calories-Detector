@@ -11,6 +11,28 @@ import type { Profile, WorkoutSession } from "./types";
 const profile: Profile = { ...DEFAULT_PROFILE, sex: "male", age: 25, heightCm: 175, weightKg: 75, activity: 1.55, goal: "maintain" };
 
 describe("databases", () => {
+  it("has thousands more world foods, loaded on demand, with unique and sane entries", async () => {
+    const fs = await import("node:fs");
+    const { worldToFood } = await import("./usda");
+    const rows = JSON.parse(fs.readFileSync("public/data/world-foods.json", "utf8")).rows;
+    const world = rows.map(worldToFood);
+    expect(world.length).toBeGreaterThan(400);
+    const names = new Set(FOODS.map((f) => f.name));
+    const cats = new Set(FOODS.map((f) => f.category));
+    for (const f of world) {
+      expect(names.has(f.name), `duplicate: ${f.name}`).toBe(false);
+      names.add(f.name);
+      expect(cats.has(f.category), `${f.name}: ${f.category}`).toBe(true);
+      const { kcal, protein, carbs, fat, fiber, sugar, satFat, sodium } = f.per100;
+      for (const v of [kcal, protein, carbs, fat, fiber, sugar, satFat, sodium]) expect(v, f.name).toBeGreaterThanOrEqual(0);
+      expect(sugar, f.name).toBeLessThanOrEqual(carbs);
+      expect(satFat, f.name).toBeLessThanOrEqual(fat);
+      const est = protein * 4 + carbs * 4 + fat * 9;
+      const alcohol = /\balcohol\b/.test(f.aliases ?? "");
+      if (kcal > 30 && f.category !== "Drinks" && !alcohol) expect(Math.min(Math.abs(est - kcal), Math.abs(est - 2 * fiber - kcal)) / kcal, f.name).toBeLessThan(0.3);
+    }
+  });
+
   it("has a large food database with unique, sane entries", () => {
     expect(FOODS.length).toBeGreaterThan(380);
     expect(new Set(FOODS.map((f) => f.name)).size).toBe(FOODS.length);

@@ -2,7 +2,7 @@ import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Barcode, ChevronRight, Globe, PencilLine, Plus, Search, Trash2, UtensilsCrossed, X } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { foodConflicts, hasRestrictions } from "../lib/allergens";
-import { useUsda } from "../lib/usda";
+import { useUsda, useWorldFoods } from "../lib/usda";
 import type { SheetKind } from "../App";
 import { FOODS, FOOD_CATEGORIES } from "../data/foods";
 import { defaultMeal, mealLabel, searchOnline } from "../lib/api";
@@ -66,7 +66,8 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
   const [online, setOnline] = useState<{ loading: boolean; items: Food[]; error?: string }>({ loading: false, items: [] });
 
   const usda = useUsda();
-  const all = useMemo(() => [...customFoods, ...FOODS], [customFoods]);
+  const world = useWorldFoods();
+  const all = useMemo(() => [...customFoods, ...FOODS, ...world], [customFoods, world]);
   const byId = useMemo(() => new Map([...all, ...usda].map((f) => [f.id, f])), [all, usda]);
   // Results catch up with the search box a moment later, so typing never stutters.
   const query = useDeferredValue(q);
@@ -75,7 +76,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
   const local = useMemo(() => fits(allLocal), [allLocal, restricted, hideAvoid, profile.allergies, profile.diet]);
   const [localShown, localMore] = useShowMore(local);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const browse = useMemo(() => fits(FOODS.filter((f) => f.category === category)), [category, restricted, hideAvoid, profile.allergies, profile.diet]);
+  const browse = useMemo(() => fits([...FOODS, ...world].filter((f) => f.category === category)), [category, world, restricted, hideAvoid, profile.allergies, profile.diet]);
   const [browseShown, browseMore] = useShowMore(browse);
   // The USDA reference database (~8,800 foods) gets its own section so it doesn't crowd out dishes.
   const allUsda = useMemo(() => (query.trim().length >= 2 ? searchFoods(usda, query, 40) : []), [usda, query]);
@@ -120,7 +121,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
       <h1 className="large-title" style={{ marginTop: 14 }}>
         {t("Food")}
       </h1>
-      <p className="subtitle">{t("{foods} foods from {groups} cuisines and groups, plus millions of packaged products online.", { foods: (FOODS.length + usda.length).toLocaleString(locale()), groups: FOOD_CATEGORIES.length })}</p>
+      <p className="subtitle">{t("{foods} foods from {groups} cuisines and groups, plus millions of packaged products online.", { foods: (FOODS.length + world.length + usda.length).toLocaleString(locale()), groups: FOOD_CATEGORIES.length })}</p>
 
       <div className="search" data-tour="food-search">
         <Search size={17} />

@@ -51,6 +51,53 @@ export function useUsda(): Food[] {
   return foods;
 }
 
+// ── More foods from around the world ────────────────────
+// Thousands more dishes, brands, drinks and ingredients (public/data/world-foods.json), loaded on
+// first search like the USDA list so they don't slow down opening the app. IDs are positional:
+// new rows are only ever appended at the end.
+type WorldRow = [string, string, number, number, number, number, number, number, number, number, string, number, string?];
+
+let worldCache: Food[] | null = null;
+let worldPending: Promise<Food[]> | null = null;
+
+export const worldToFood = (r: WorldRow, i: number): Food => ({
+  id: `x-${i}`,
+  name: r[0],
+  category: r[1],
+  per100: { kcal: r[2], protein: r[3], carbs: r[4], fat: r[5], fiber: r[6], sugar: r[7], satFat: r[8], sodium: r[9] },
+  servings: r[10] === "100 g" ? [{ label: "100 g", grams: 100 }] : [{ label: r[10], grams: r[11] }, { label: "100 g", grams: 100 }],
+  aliases: r[12],
+  source: "db",
+});
+
+export function loadWorldFoods(): Promise<Food[]> {
+  if (worldCache) return Promise.resolve(worldCache);
+  worldPending ??= fetch(`${import.meta.env.BASE_URL}data/world-foods.json`)
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`World foods ${r.status}`))))
+    .then((d: { rows: WorldRow[] }) => (worldCache = d.rows.map(worldToFood)))
+    .catch((e) => {
+      worldPending = null;
+      throw e;
+    });
+  return worldPending;
+}
+
+/** The extra world foods once loaded (empty until then). Starts loading on first use. */
+export function useWorldFoods(): Food[] {
+  const [foods, setFoods] = useState<Food[]>(worldCache ?? []);
+  useEffect(() => {
+    if (worldCache) return;
+    let alive = true;
+    loadWorldFoods()
+      .then((f) => alive && setFoods(f))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return foods;
+}
+
 // ── Exercise instructions (free-exercise-db, public domain) ─────────────
 
 const steps: Record<string, Record<string, string[]>> = {};

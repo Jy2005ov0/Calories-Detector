@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Trash2, UtensilsCrossed } from "lucide-react";
 import { FOODS } from "../data/foods";
-import { useUsda } from "../lib/usda";
+import { useUsda, useWorldFoods } from "../lib/usda";
 import { t, useLanguage } from "../i18n";
 import { defaultMeal, mealOptions } from "../lib/api";
 import { healthReport, round, scale, searchFoods, suitability, sum, targets } from "../lib/nutrition";
@@ -148,7 +148,8 @@ export function FoodPicker({ open, onClose, onPick }: { open: boolean; onClose: 
     if (open) setQ("");
   }, [open]);
   const usda = useUsda();
-  const all = useMemo(() => [...customFoods, ...FOODS], [customFoods]);
+  const world = useWorldFoods();
+  const all = useMemo(() => [...customFoods, ...FOODS, ...world], [customFoods, world]);
   // App foods first, then matches from the USDA reference database.
   const results = useMemo(() => [...searchFoods(all, q, 40), ...(q.trim().length >= 2 ? searchFoods(usda, q, 20) : [])], [all, usda, q]);
   return (
