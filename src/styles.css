@@ -2799,3 +2799,6 @@ html[data-text="xlarge"] body {
   margin-top: 4px;
   font-size: 0.9375rem;
 }
+.idea-item .row-main .muted {
+  white-space: nowrap;
+}

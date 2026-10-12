@@ -210,6 +210,16 @@ for (const set of SETS) {
     await page.waitForTimeout(500);
     await shot("edit-food");
     await closeSheet();
+    // Meal ideas and the weekly report
+    const ideas = page.getByTestId("meal-ideas");
+    await ideas.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 70));
+    await shot("meal-ideas");
+    await ideas.getByRole("button", { name: "Meal idea settings" }).click();
+    await shot("meal-ideas-settings");
+    await closeSheet();
+    await page.getByRole("button", { name: /Weekly report/ }).click();
+    await shot("weekly-report");
+    await closeSheet();
     await page.evaluate(() => window.scrollTo(0, 0));
 
     // Barcode
@@ -299,6 +309,12 @@ for (const set of SETS) {
     await page.getByRole("button", { name: "Finish workout" }).click();
     await expect(page.locator(".toast")).toHaveCount(0, { timeout: 15_000 });
     await shot("workout-done-records");
+    await page.getByRole("button", { name: /Gym tools/ }).click();
+    await shot("gym-tools");
+    await closeSheet();
+    await page.getByRole("button", { name: /Track a run/ }).click();
+    await shot("run-tracker");
+    await closeSheet();
 
     // Plan
     await tab("Plan");
@@ -307,6 +323,9 @@ for (const set of SETS) {
     await shot("nutrition-plan");
     await page.evaluate(() => window.scrollTo(0, 1500));
     await shot("sample-day");
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.getByRole("tab", { name: "Meal planner" }).click();
+    await shot("meal-planner");
 
     // Body check & profile
     await tab("Today");
