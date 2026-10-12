@@ -186,9 +186,6 @@ export const CORE: AreaDict = {
     "Get started": "Mula",
     "You can replay the guide from the ? button any time.": "Anda boleh main semula panduan melalui butang ? bila-bila masa.",
     "Snap or search your food": "Snap atau cari makanan anda",
-    "21,000+ foods from around the world": "21,000+ makanan dari seluruh dunia",
-    "Millions of packaged products online": "Berjuta-juta produk berbungkus dalam talian",
-    "Build and save your own meals": "Bina dan simpan hidangan anda sendiri",
     "Know if it's good for you": "Ketahui sama ada ia baik untuk anda",
     "Every food and meal gets a health grade from A to E and a verdict on whether it suits your goal today.":
       "Setiap makanan dan hidangan mendapat gred kesihatan A hingga E serta penilaian sama ada ia sesuai dengan matlamat anda hari ini.",
@@ -198,7 +195,6 @@ export const CORE: AreaDict = {
     "Start a workout with one tap. A live timer counts your time and calories while you log sets and weights.":
       "Mulakan latihan dengan satu ketikan. Pemasa langsung mengira masa dan kalori semasa anda mencatat set dan berat.",
     "1,900+ exercises and sports": "1,900+ senaman dan sukan",
-    "Calories from real activity data": "Kalori daripada data aktiviti sebenar",
     "Workouts add calories back to your day": "Latihan menambah semula kalori ke hari anda",
     "A plan made for your body": "Pelan yang dibuat untuk badan anda",
     "Enter your height and weight to get your BMI, a training split and what to eat — chest, back, legs, arms and more.":
@@ -439,9 +435,6 @@ export const CORE: AreaDict = {
     "Get started": "开始",
     "You can replay the guide from the ? button any time.": "随时可通过 ? 按钮重新查看指南。",
     "Snap or search your food": "拍照或搜索食物",
-    "21,000+ foods from around the world": "21,000+ 种世界各地的食物",
-    "Millions of packaged products online": "数百万种在线包装食品",
-    "Build and save your own meals": "创建并保存自己的餐食",
     "Know if it's good for you": "了解是否健康",
     "Every food and meal gets a health grade from A to E and a verdict on whether it suits your goal today.":
       "每种食物和餐食都有 A 到 E 的健康评分，并告诉你今天是否适合你的目标。",
@@ -451,7 +444,6 @@ export const CORE: AreaDict = {
     "Start a workout with one tap. A live timer counts your time and calories while you log sets and weights.":
       "一键开始训练。记录组数和重量时，实时计时器会统计时间和热量。",
     "1,900+ exercises and sports": "1,900+ 种运动项目",
-    "Calories from real activity data": "热量基于真实运动数据",
     "Workouts add calories back to your day": "训练会把热量加回当天",
     "A plan made for your body": "为你的身体定制的计划",
     "Enter your height and weight to get your BMI, a training split and what to eat — chest, back, legs, arms and more.":

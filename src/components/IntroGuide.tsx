@@ -16,9 +16,9 @@ export const INTRO_SLIDES: Slide[] = [
   {
     Icon: Search,
     colors: ["#0a84ff", "#5e5ce6"],
-    title: "Search or scan your food",
-    body: "Look up any food, or scan the barcode on a packet, to see its calories and whether it suits you.",
-    points: ["21,000+ foods from around the world", "Millions of packaged products online", "Build and save your own meals"],
+    title: "Log food your way",
+    body: "Search any food, say what you ate, or point the camera at a packet's barcode to see its calories and whether it suits you.",
+    points: ["21,000+ foods, each with a picture", "Meal ideas for today, made for you", "Barcodes for packaged food"],
   },
   {
     Icon: HeartPulse,
@@ -32,7 +32,7 @@ export const INTRO_SLIDES: Slide[] = [
     colors: ["#ff9f0a", "#ff375f"],
     title: "Clock in at the gym",
     body: "Start a workout with one tap. A live timer counts your time and calories while you log sets and weights.",
-    points: ["1,900+ exercises and sports", "Calories from real activity data", "Workouts add calories back to your day"],
+    points: ["1,900+ exercises and sports", "GPS runs and walks, steps and routines", "Workouts add calories back to your day"],
   },
   {
     Icon: Target,

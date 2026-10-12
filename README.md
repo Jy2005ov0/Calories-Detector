@@ -4,7 +4,7 @@
 
 **W** is a calorie, training and fitness app. The logo is a **W** pressing a barbell overhead (training) with a flame at its heart (calories burned).
 
-A mobile-first calorie and gym app with an Apple-style interface. It counts calories with a **search** or a **barcode scan**, tracks gym sessions with **clock in / clock out**, builds a **training split** (chest, back, arms, legs…) and a matching **meal plan**, and tells you whether a meal is **healthy and right for your goal**.
+A mobile-first calorie and gym app with an Apple-style interface. It counts calories with a **search** (21,000+ foods, each with a picture), by **voice** or with a **barcode**, suggests **daily meal ideas** that learn what you like, tracks gym sessions with **clock in / clock out**, builds a **training split** (chest, back, arms, legs…) and a matching **meal plan**, and tells you whether a meal is **healthy and right for your goal**.
 
 Runs on **iOS and Android** three ways:
 

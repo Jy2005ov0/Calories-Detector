@@ -275,7 +275,13 @@ export const EXTRAS: AreaDict = {
     "A mix": "Campuran",
     "Something new": "Sesuatu yang baharu",
     "{g} g": "{g} g",
-    "Your run keeps going. Open Track a run to see it.": "Larian anda diteruskan. Buka Jejak larian untuk melihatnya."
+    "Your run keeps going. Open Track a run to see it.": "Larian anda diteruskan. Buka Jejak larian untuk melihatnya.",
+    "Log food your way": "Catat makanan cara anda",
+    "Search any food, say what you ate, or point the camera at a packet's barcode to see its calories and whether it suits you.": "Cari apa-apa makanan, sebut apa yang anda makan, atau halakan kamera ke kod bar pada bungkusan untuk melihat kalorinya dan sama ada ia sesuai untuk anda.",
+    "21,000+ foods, each with a picture": "21,000+ makanan, setiap satu dengan gambar",
+    "Meal ideas for today, made for you": "Idea hidangan hari ini, khas untuk anda",
+    "Barcodes for packaged food": "Kod bar untuk makanan berbungkus",
+    "GPS runs and walks, steps and routines": "Larian dan jalan kaki GPS, langkah dan rutin"
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -549,6 +555,12 @@ export const EXTRAS: AreaDict = {
     "A mix": "混合",
     "Something new": "新口味",
     "{g} g": "{g} 克",
-    "Your run keeps going. Open Track a run to see it.": "跑步仍在继续。打开“记录跑步”即可查看。"
+    "Your run keeps going. Open Track a run to see it.": "跑步仍在继续。打开“记录跑步”即可查看。",
+    "Log food your way": "用你的方式记录饮食",
+    "Search any food, say what you ate, or point the camera at a packet's barcode to see its calories and whether it suits you.": "搜索任何食物、说出你吃了什么，或用相机扫描包装上的条形码，查看热量以及是否适合你。",
+    "21,000+ foods, each with a picture": "21,000+ 种食物，每种都有图片",
+    "Meal ideas for today, made for you": "为你定制的今日餐点建议",
+    "Barcodes for packaged food": "包装食品条形码",
+    "GPS runs and walks, steps and routines": "GPS 跑步和步行、步数和训练计划"
   }
 };

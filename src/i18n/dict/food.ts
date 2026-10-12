@@ -103,8 +103,6 @@ export const FOOD: AreaDict = {
     "scan its barcode": "imbas kod barnya",
     "Scan a barcode": "Imbas kod bar",
     "Point the camera at the barcode on packaged food to get its calories and nutrition. You can also type the number.": "Halakan kamera ke kod bar pada makanan berbungkus untuk melihat kalori dan nutrisinya. Anda juga boleh taip nombornya.",
-    "Search or scan your food": "Cari atau imbas makanan anda",
-    "Look up any food, or scan the barcode on a packet, to see its calories and whether it suits you.": "Cari apa-apa makanan, atau imbas kod bar pada bungkusan, untuk melihat kalorinya dan sama ada ia sesuai untuk anda.",
     or: "atau",
 
     // Food categories
@@ -307,8 +305,6 @@ export const FOOD: AreaDict = {
     "scan its barcode": "扫描条形码",
     "Scan a barcode": "扫描条形码",
     "Point the camera at the barcode on packaged food to get its calories and nutrition. You can also type the number.": "将相机对准包装食品上的条形码，即可查看热量和营养。也可以手动输入号码。",
-    "Search or scan your food": "搜索或扫描食物",
-    "Look up any food, or scan the barcode on a packet, to see its calories and whether it suits you.": "搜索任何食物，或扫描包装上的条形码，查看热量以及是否适合你。",
     or: "或",
 
     // Food categories
