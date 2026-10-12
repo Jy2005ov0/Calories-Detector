@@ -2,6 +2,11 @@ import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 4321;
 
+// The phones run on Malaysian time (timezoneId below). Tests build "today" with Node's clock, so
+// Node must use the same time zone, or between 4 pm and midnight UTC the test's "today" is the
+// app's yesterday. Workers inherit this.
+process.env.TZ = "Asia/Kuala_Lumpur";
+
 // User-journey tests run the production build on emulated phones.
 // Chromium is used for every device so the suite runs anywhere; the device profiles
 // supply the real viewport, pixel ratio, touch and user agent.
