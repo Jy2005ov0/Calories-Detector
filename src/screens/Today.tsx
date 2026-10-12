@@ -56,6 +56,7 @@ import { PeopleSheet, PersonAvatar, householdSize } from "../components/People";
 import { QuickAddSheet, VoiceLogSheet } from "../components/QuickLog";
 import { CheckInCard, StepsCard, SupplementsCard } from "../components/Daily";
 import { WeeklyReportSheet } from "../components/WeeklyReport";
+import { MealIdeasCard } from "../components/MealIdeas";
 import { stepKcal, useStepUpdates } from "../lib/steps";
 import { addDays } from "../lib/progress";
 import type { SheetKind, Tab } from "../App";
@@ -567,6 +568,8 @@ export function Today({
           </div>
         </button>
       </div>
+
+      <MealIdeasCard today={today} meals={meals} burned={burned} now={now} />
 
       <div className="card" style={{ marginTop: 12 }} data-tour="water">
         <WaterControl compact />

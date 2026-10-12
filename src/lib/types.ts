@@ -272,3 +272,20 @@ export interface CustomMeal {
   name: string;
   items: { foodId: string; name: string; grams: number; per100: Nutrients }[];
 }
+
+/** What the daily meal ideas should favour. Changed in their settings, and learned from likes, swaps and the food log. */
+export interface MealPrefs {
+  /** Show the meal ideas card on Today. */
+  on: boolean;
+  /** Cuisines to pick from (all when empty). */
+  cuisines: string[];
+  style: "balanced" | "highProtein" | "lowCarb" | "light" | "plant";
+  /** Stick to what the person often eats, a mix, or new things. */
+  variety: "familiar" | "mix" | "new";
+  /** Dishes they liked (by name). */
+  liked: string[];
+  /** Dishes never to suggest again. */
+  hidden: string[];
+  /** Dishes they swapped away recently, newest first; each one is suggested a little less. */
+  skipped: string[];
+}

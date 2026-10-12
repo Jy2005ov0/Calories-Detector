@@ -340,3 +340,99 @@ test("A barcode scanned once still works offline", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Milo 3in1" })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test("Meal ideas: swap, like, never again, log it, and preferences that change the picks", async ({ page }) => {
+  const state = seedState();
+  // Only breakfast logged, so there's room for lunch, dinner or a snack (whichever is still ahead).
+  state.log = state.log.filter((e) => e.meal === "breakfast");
+  const errors = await open(page, state);
+  const card = page.getByTestId("meal-ideas");
+  await card.scrollIntoViewIfNeeded();
+  await expect(card).toContainText("Meal ideas for today");
+  const title = card.getByTestId("idea-title");
+  const first = await title.innerText();
+  // Halal profile: nothing with pork or alcohol.
+  expect(first).not.toMatch(/pork|bacon|\bham\b|wine|beer|char siu/i);
+
+  // Another idea: a different dish.
+  await card.getByRole("button", { name: "Another idea" }).click();
+  await expect(title).not.toHaveText(first);
+  const second = await title.innerText();
+
+  // Like it: remembered, and pressed.
+  await card.getByRole("button", { name: "I like this" }).click();
+  await expect(card.getByRole("button", { name: "I like this" })).toHaveAttribute("aria-pressed", "true");
+
+  // Never again: gone, with Undo.
+  await card.getByRole("button", { name: "Another idea" }).click();
+  const third = await title.innerText();
+  await card.getByRole("button", { name: "Don't suggest this again" }).click();
+  await expect(page.getByRole("status").filter({ hasText: /Won't suggest/ })).toBeVisible();
+  await expect(title).not.toHaveText(third);
+
+  // Log it: the day's calories go down by the idea's calories.
+  const before = await kcalLeft(page);
+  const ideaKcal = Number((await card.getByTestId("idea-macros").innerText()).match(/^(\d+)/)![1]);
+  await card.getByRole("button", { name: "Log it" }).click();
+  await expect(page.getByRole("status").filter({ hasText: /Logged to/ })).toBeVisible();
+  await expect.poll(() => kcalLeft(page)).toBe(before - ideaKcal);
+
+  // Preferences: lower carb, Japanese, something new.
+  await card.getByRole("button", { name: "Meal idea settings" }).click();
+  const s = sheet(page, "Meal ideas");
+  await s.getByRole("radio", { name: /Lower carb/ }).click();
+  await s.getByRole("button", { name: "Japanese", exact: true }).click();
+  await expect(s.getByRole("button", { name: "Japanese", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await s.getByRole("tab", { name: "Something new" }).click();
+  await expect(s).toContainText(second);
+  await expect(s).toContainText(third);
+  await s.getByRole("button", { name: "Restore" }).click();
+  await expect(s.getByText("Not suggested")).toHaveCount(0);
+  await s.getByRole("button", { name: "Done" }).click();
+  await expect(card).toContainText("Lower carb · Japanese · Something new");
+
+  // Turned off: the card goes, and Profile says so.
+  await card.getByRole("button", { name: "Meal idea settings" }).click();
+  await sheet(page, "Meal ideas").getByRole("switch", { name: "Show meal ideas on Today" }).click();
+  await sheet(page, "Meal ideas").getByRole("button", { name: "Done" }).click();
+  await expect(card).toHaveCount(0);
+  await tab(page, "Profile");
+  await expect(page.getByRole("button", { name: /Meal ideas\s*Off/ })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("Meal ideas respect a vegan diet and allergies", async ({ page }) => {
+  const state = seedState();
+  state.log = [];
+  Object.assign(state.profile, { diet: "vegan", allergies: ["peanuts", "soy"] });
+  const errors = await open(page, state);
+  const card = page.getByTestId("meal-ideas");
+  await card.scrollIntoViewIfNeeded();
+  for (let i = 0; i < 6; i++) {
+    const text = (await card.locator(".idea-title, .idea-items").allInnerTexts()).join("\n");
+    expect(text).not.toMatch(/chicken|beef|lamb|fish|prawn|egg|cheese|yogurt|milk(?! \()|tofu|soy|tempeh|edamame|peanut/i);
+    await card.getByRole("button", { name: "Another idea" }).click();
+  }
+  expect(errors).toEqual([]);
+});
+
+test("Meal ideas in the morning: one idea per meal still ahead", async ({ page }) => {
+  await page.clock.setFixedTime(new Date(`${dayKey(0)}T09:00:00+08:00`));
+  const state = seedState();
+  state.log = [];
+  state.sessions = [];
+  const errors = await open(page, state);
+  const card = page.getByTestId("meal-ideas");
+  await card.scrollIntoViewIfNeeded();
+  const chips = card.getByRole("tab");
+  await expect(chips).toHaveText(["Breakfast", "Lunch", "Dinner", "Snack"]);
+  await expect(chips.first()).toHaveAttribute("aria-selected", "true");
+  const breakfast = await card.getByTestId("idea-title").innerText();
+  await chips.nth(2).click();
+  await expect(card.getByTestId("idea-title")).not.toHaveText(breakfast);
+  await card.getByRole("button", { name: "Log it" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Logged to Dinner" })).toBeVisible();
+  // Dinner is logged, so its chip goes.
+  await expect(chips).toHaveText(["Breakfast", "Lunch", "Snack"]);
+  expect(errors).toEqual([]);
+});

@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { SplitId } from "./fitness";
 import { readDurable, writeDurable } from "./platform";
-import type { Challenge, CustomMeal, DayStats, Food, LogEntry, Measurement, PeriodEntry, PlannedMeal, Profile, ProgressPhoto, Reminders, Routine, Supplement, WeightEntry, WorkoutSession } from "./types";
+import type { Challenge, CustomMeal, DayStats, Food, LogEntry, MealPrefs, Measurement, PeriodEntry, PlannedMeal, Profile, ProgressPhoto, Reminders, Routine, Supplement, WeightEntry, WorkoutSession } from "./types";
 
 export interface AppState {
   profile: Profile;
@@ -39,6 +39,8 @@ export interface AppState {
   mealPlan: PlannedMeal[];
   groceryDone: string[];
   challenges: Challenge[];
+  /** Preferences for the daily meal ideas. */
+  mealPrefs: MealPrefs;
   /** Text size for easier reading (shared by everyone on the phone). */
   textSize: "normal" | "large" | "xlarge";
   /** IDs of deleted entries, so a delete on one device isn't undone by another during sync. */
@@ -92,6 +94,7 @@ const fill = (d: Partial<PersonData>): PersonData => ({
   resetAt: d.resetAt,
   profile: { ...DEFAULT_PROFILE, ...d.profile },
   reminders: { ...DEFAULT_REMINDERS, ...d.reminders },
+  mealPrefs: { ...DEFAULT_MEAL_PREFS, ...d.mealPrefs },
 });
 
 const KEY = "calories-detector:v1";
@@ -124,6 +127,8 @@ export const DEFAULT_REMINDERS: Reminders = {
   gymTime: "18:00",
 };
 
+export const DEFAULT_MEAL_PREFS: MealPrefs = { on: true, cuisines: [], style: "balanced", variety: "mix", liked: [], hidden: [], skipped: [] };
+
 const initial: AppState = {
   profile: DEFAULT_PROFILE,
   log: [],
@@ -150,6 +155,7 @@ const initial: AppState = {
   mealPlan: [],
   groceryDone: [],
   challenges: [],
+  mealPrefs: DEFAULT_MEAL_PREFS,
   textSize: "normal",
   deleted: [],
   stamps: {},
@@ -169,6 +175,7 @@ export function parseState(raw: string | null): AppState | null {
       ...parsed,
       profile: { ...DEFAULT_PROFILE, ...parsed.profile },
       reminders: { ...DEFAULT_REMINDERS, ...parsed.reminders },
+      mealPrefs: { ...DEFAULT_MEAL_PREFS, ...parsed.mealPrefs },
       people: (parsed.people ?? []).map((p) => ({ id: p.id, data: fill(p.data) })),
     };
   } catch {
@@ -511,6 +518,30 @@ export const actions = {
     setState((s) => ({ challenges: s.challenges.filter((c) => c.id !== id) }));
   },
 
+  // ── Daily meal ideas ──
+  setMealPrefs(p: Partial<MealPrefs>) {
+    setState((s) => ({ mealPrefs: { ...s.mealPrefs, ...p } }));
+  },
+  /** Like a suggested dish (again to undo). */
+  toggleLikedIdea(name: string) {
+    setState((s) => {
+      const liked = s.mealPrefs.liked.includes(name) ? s.mealPrefs.liked.filter((n) => n !== name) : [name, ...s.mealPrefs.liked].slice(0, 100);
+      return { mealPrefs: { ...s.mealPrefs, liked, hidden: s.mealPrefs.hidden.filter((n) => n !== name) } };
+    });
+  },
+  /** Never suggest this dish again (until it's restored in the settings). */
+  hideIdea(name: string) {
+    setState((s) => ({
+      mealPrefs: { ...s.mealPrefs, hidden: [name, ...s.mealPrefs.hidden.filter((n) => n !== name)].slice(0, 200), liked: s.mealPrefs.liked.filter((n) => n !== name) },
+    }));
+  },
+  unhideIdea(name: string) {
+    setState((s) => ({ mealPrefs: { ...s.mealPrefs, hidden: s.mealPrefs.hidden.filter((n) => n !== name) } }));
+  },
+  /** Swapped away: suggested a little less for a while. */
+  skipIdea(name: string) {
+    setState((s) => ({ mealPrefs: { ...s.mealPrefs, skipped: [name, ...s.mealPrefs.skipped].slice(0, 60) } }));
+  },
   setTextSize(textSize: AppState["textSize"]) {
     setState({ textSize });
   },

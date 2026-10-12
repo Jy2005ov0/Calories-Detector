@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { BadgesRow } from "../components/Badges";
 import { PregnancySection, StepsSettings, SupplementsRow, TextSizeSection } from "../components/ProfileExtras";
+import { MealIdeasRow } from "../components/MealIdeas";
 import { PeopleList, PhotoPicker } from "../components/People";
 import { CycleCalendar } from "../components/CycleCalendar";
 import { AnimatePresence, motion } from "motion/react";
@@ -387,6 +388,7 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
           </div>
           <ChevronRight size={16} className="chev" />
         </button>
+        <MealIdeasRow />
         <SupplementsRow />
         <BadgesRow />
       </div>

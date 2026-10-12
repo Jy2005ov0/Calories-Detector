@@ -2719,3 +2719,69 @@ html[data-text="xlarge"] body {
   font-size: 13px;
   color: var(--label-2);
 }
+
+/* ── Meal ideas ─────────────────────────────────────── */
+.chip-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip-wrap .chip {
+  height: auto;
+  min-height: 32px;
+  padding: 6px 14px;
+  white-space: normal;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.idea-title {
+  margin-top: 12px;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.idea-items {
+  margin-top: 6px;
+}
+.idea-item {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 0.9375rem;
+  padding: 3px 0;
+  min-width: 0;
+}
+.idea-item .row-main {
+  overflow-wrap: anywhere;
+}
+.idea-item > .muted {
+  flex: none;
+}
+.idea-total {
+  margin-top: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--label-2);
+}
+.idea-reason {
+  margin-top: 4px;
+  font-size: 0.8125rem;
+  color: var(--green);
+}
+.idea-reason::before {
+  content: "✓ ";
+}
+.idea-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.idea-actions .icon-btn.on {
+  color: var(--green);
+}
+.idea-grams {
+  margin-top: 4px;
+  font-size: 0.9375rem;
+}
