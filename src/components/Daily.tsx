@@ -58,6 +58,9 @@ export function StepsCard({ today }: { today: string }) {
   );
 }
 
+// A selector must return the same value each time it's read, or React re-renders forever.
+const NONE: string[] = [];
+
 const FACES = ["😫", "🙁", "😐", "🙂", "😄"];
 const BOLTS = ["1", "2", "3", "4", "5"];
 
@@ -143,7 +146,7 @@ export function CheckInCard({ today }: { today: string }) {
 export function SupplementsCard({ today }: { today: string }) {
   useLanguage();
   const list = useStore((s) => s.supplements);
-  const taken = useStore((s) => s.days.find((d) => d.id === today)?.taken ?? []);
+  const taken = useStore((s) => s.days.find((d) => d.id === today)?.taken) ?? NONE;
   const [manage, setManage] = useState(false);
   if (!list.length) return null;
   const doses = list.flatMap((x) => x.times.map((time) => ({ x, time, key: `${x.id}@${time}` }))).sort((a, b) => a.time.localeCompare(b.time));
