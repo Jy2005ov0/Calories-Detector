@@ -373,6 +373,16 @@ for (const set of SETS) {
     await page.keyboard.press("Escape");
     await nav.last().click();
     await page.getByRole("button", { name: "English" }).click();
+    await page.context().close();
+
+    // A late period, on a fresh copy of the seeded day: irregular recent cycles, 8 days late.
+    const late = seed();
+    late.profile = { ...late.profile, cycle: { on: true, length: 28, periodDays: 5, remind: true } };
+    late.periods = [-128, -104, -68, -38].map((d, i) => ({ id: `p${i}`, date: dayKey(d), createdAt: i }));
+    page = await open(late);
+    await page.getByTestId("cycle-card").getByRole("button", { name: "What to do" }).click();
+    await page.waitForTimeout(500);
+    await shot("period-late-advice");
 
     await page.context().close();
   });

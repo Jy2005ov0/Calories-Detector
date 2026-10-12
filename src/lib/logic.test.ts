@@ -17,8 +17,10 @@ describe("databases", () => {
     for (const f of FOODS) {
       const { kcal, protein, carbs, fat } = f.per100;
       // Atwater check: macros should roughly explain the calories (alcohol/fibre aside).
+      // Fibre gives about 2 kcal/g, not 4, which matters for fibre-rich herbs and spices.
       const est = protein * 4 + carbs * 4 + fat * 9;
-      if (kcal > 30 && f.category !== "Drinks") expect(Math.abs(est - kcal) / kcal, f.name).toBeLessThan(0.3);
+      const estFibre = est - 2 * f.per100.fiber;
+      if (kcal > 30 && f.category !== "Drinks") expect(Math.min(Math.abs(est - kcal), Math.abs(estFibre - kcal)) / kcal, f.name).toBeLessThan(0.3);
       expect(f.servings[0].grams, f.name).toBeGreaterThan(0);
     }
   });

@@ -1,5 +1,5 @@
 import { devices, expect, test, type Browser } from "@playwright/test";
-import { audit, seedState, type Issue } from "./support/audit";
+import { audit, dayKey, seedState, type Issue } from "./support/audit";
 
 /**
  * Deep UI scan: visits every screen and sheet on small, regular and large iPhones and
@@ -230,6 +230,23 @@ async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: 
   // Profile with a photo, and the backup rows.
   await page.locator(".section-header", { hasText: "Data" }).scrollIntoViewIfNeeded();
   await audit(page, "Profile · data and backup", issues);
+
+  // A late period: the advice on Today, with reasons from her logs (she's now fasting 16:8).
+  await page.evaluate((periods) => {
+    const s = JSON.parse(localStorage.getItem("calories-detector:v1")!);
+    s.periods = periods;
+    s.profile = { ...s.profile, fasting: "16:8" };
+    localStorage.setItem("calories-detector:v1", JSON.stringify(s));
+  }, [-81, -53].map((d, i) => ({ id: `late${i}`, date: dayKey(d), createdAt: i })));
+  await page.reload();
+  await tab("Today");
+  await page.getByTestId("cycle-card").scrollIntoViewIfNeeded();
+  await audit(page, "Today · period late", issues);
+  await page.getByTestId("cycle-card").getByRole("button", { name: "What to do" }).click();
+  await audit(page, "Period late · advice", issues);
+  await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, el.scrollHeight));
+  await audit(page, "Period late · advice (end)", issues);
+  await close();
 
   await ctx.close();
   return issues;

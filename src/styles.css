@@ -477,6 +477,12 @@ button.row:active,
   display: flex;
   gap: 10px;
 }
+/* The cycle card can show three buttons; they wrap on narrow phones. */
+.cycle-card .btn-row {
+  flex-wrap: wrap;
+  column-gap: 8px;
+  row-gap: 0;
+}
 
 .link {
   color: var(--blue);

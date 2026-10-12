@@ -363,6 +363,39 @@ test("Aisyah: tracks her cycle — logs a period, sees her phase and tips, and l
   await expect(page.getByRole("switch", { name: "Track my cycle" })).toHaveCount(0);
 });
 
+test("Nurul: her period is late, so she gets advice on what to do, then logs it when it starts", async ({ page }) => {
+  await start(page);
+  await onboard(page, "Nurul");
+  await tab(page, "Profile");
+  await page.getByRole("switch", { name: "Track my cycle" }).click();
+  await tab(page, "Today");
+
+  // Her last period was 1–4 September; with a 28-day cycle it was due 29 September: 13 days ago.
+  const card = page.getByTestId("cycle-card");
+  await card.getByRole("button", { name: "Period calendar" }).click();
+  const calendar = sheet(page, "Period calendar");
+  await calendar.getByRole("button", { name: "Previous month" }).click();
+  for (const d of [1, 2, 3, 4]) await calendar.getByRole("button", { name: `${d} September`, exact: true }).click();
+  await calendar.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(card).toContainText("Period late · day 42");
+
+  await card.getByRole("button", { name: "What to do" }).click();
+  const advice = sheet(page, "Period late");
+  await expect(advice.getByTestId("late-advice")).toContainText("13 days late");
+  await expect(advice).toContainText("take a home pregnancy test");
+  await expect(advice).toContainText("Other common reasons");
+  await expect(advice).toContainText("See a doctor straight away");
+  // Nothing in her logs points at a reason yet.
+  await expect(advice.getByTestId("late-signals")).toHaveCount(0);
+
+  // It starts: one tap logs it and the advice goes away.
+  await advice.getByRole("button", { name: "It started today" }).click();
+  await expect(advice).toBeHidden();
+  await expect(card).toContainText("Period · day 1");
+  await expect(card.getByRole("button", { name: "What to do" })).toHaveCount(0);
+  await expect(page.locator("body")).toHaveCSS("overflow", "visible");
+});
+
 test("Family: Aina adds her mum, each gets their own plan and log, and they switch from Today", async ({ page }) => {
   await start(page);
   await onboard(page, "Aina", { weight: "58" });

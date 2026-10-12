@@ -152,7 +152,7 @@ export const PROFILE: AreaDict = {
     "Snap or search your food, track your training, and get a plan that fits your body.":
       "Ambil gambar atau cari makanan anda, jejak latihan anda dan dapatkan pelan yang sesuai dengan badan anda.",
     "Count calories": "Kira kalori",
-    "Photo recognition and 11,000+ foods from around the world": "Pengecaman foto dan 11,000+ makanan dari seluruh dunia",
+    "Search 13,000+ foods from around the world or scan a barcode": "Cari 13,000+ makanan dari seluruh dunia atau imbas kod bar",
     "Clock in at the gym": "Daftar masuk di gim",
     "Live timer and calories for 1,900+ exercises and sports": "Pemasa langsung dan kalori untuk 1,900+ senaman dan sukan",
     "Get a plan": "Dapatkan pelan",
@@ -322,7 +322,7 @@ export const PROFILE: AreaDict = {
     // Onboarding
     "Snap or search your food, track your training, and get a plan that fits your body.": "拍照或搜索食物，记录训练，获取适合你身体的计划。",
     "Count calories": "计算卡路里",
-    "Photo recognition and 11,000+ foods from around the world": "拍照识别，收录全球 11,000+ 种食物",
+    "Search 13,000+ foods from around the world or scan a barcode": "搜索全球 13,000+ 种食物，或扫描条形码",
     "Live timer and calories for 1,900+ exercises and sports": "实时计时，1,900+ 种运动的卡路里",
     "Get a plan": "获取计划",
     "Chest, back, arms, legs splits and a matching meal plan": "胸、背、手臂、腿部分化训练及配套饮食计划",
