@@ -230,9 +230,21 @@ test("GPS run: start, move, pause, finish, and it's saved with distance and pace
     await context.setGeolocation({ latitude: start.latitude + i * 0.000225, longitude: start.longitude, accuracy: 5 });
   }
   await expect.poll(async () => Number((await run.getByTestId("run-stats").locator(".stat-value").first().innerText()).replace(/[^\d.]/g, ""))).toBeGreaterThan(0.15);
+  // Closing the sheet mid-run doesn't stop or lose the run.
+  await close(page);
+  await expect(page.getByRole("status").filter({ hasText: "Your run keeps going" })).toBeVisible();
+  await page.getByRole("button", { name: /Track a run/ }).click();
+  await expect(run.getByRole("button", { name: "Pause" })).toBeVisible();
   await run.getByRole("button", { name: "Pause" }).click();
+  // About 40 seconds, not decades (a pause once added the time since 1970).
+  const time = run.getByTestId("run-stats").locator(".stat-value").nth(1);
+  await expect(time).toHaveText(/^0:[3-5]\d$|^1:[0-2]\d$/);
+  await page.waitForTimeout(2500);
+  await expect(time).toHaveText(/^0:[3-5]\d$|^1:[0-2]\d$/);
   await run.getByRole("button", { name: "Finish and save" }).click();
-  await expect(page.getByRole("status").filter({ hasText: /Saved 0\.\d\d km/ })).toBeVisible();
+  const saved = page.getByRole("status").filter({ hasText: /Saved 0\.\d\d km/ });
+  await expect(saved).toBeVisible();
+  expect(Number((await saved.innerText()).match(/(\d+) kcal/)![1])).toBeLessThan(60);
   await expect(page.locator(".row", { hasText: "Run" }).first()).toContainText("km");
   expect(errors).toEqual([]);
 });

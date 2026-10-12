@@ -384,7 +384,8 @@ export function RunTracker({ open, onClose }: { open: boolean; onClose: () => vo
   const last = useRef<Fix | null>(null);
   const watch = useRef<string | number | null>(null);
   const now = useNow(1000, state === "running");
-  const seconds = elapsed + (runningSince.current ? Math.round((now - runningSince.current) / 1000) : 0);
+  // (now can be a moment older than the start; never count backwards.)
+  const seconds = elapsed + (runningSince.current ? Math.max(0, Math.round((now - runningSince.current) / 1000)) : 0);
   const distance = segments.reduce((a, s) => a + routeDistance(s), 0) + routeDistance(route);
   const kcal = runKcal(distance, seconds, weightKg);
 
@@ -436,7 +437,9 @@ export function RunTracker({ open, onClose }: { open: boolean; onClose: () => vo
   };
   const pause = async () => {
     await stopWatch();
-    if (runningSince.current) setElapsed((e) => e + Math.round((Date.now() - runningSince.current!) / 1000));
+    // Read the start time now: the state update runs later, after it has been cleared.
+    const since = runningSince.current;
+    if (since) setElapsed((e) => e + Math.round((Date.now() - since) / 1000));
     runningSince.current = null;
     // Keep each stretch separate so the paused gap doesn't count as distance.
     setSegments((s) => (route.length ? [...s, route] : s));
@@ -489,8 +492,9 @@ export function RunTracker({ open, onClose }: { open: boolean; onClose: () => vo
     <Sheet
       open={open}
       onClose={() => {
-        if (state === "idle") onClose();
-        else showToast(t("Finish or discard the run first."));
+        // The tracker stays mounted, so a run in progress keeps going while the sheet is closed.
+        if (state === "running") showToast(t("Your run keeps going. Open Track a run to see it."));
+        onClose();
       }}
       title={mode === "walk" ? t("Track a walk") : t("Track a run")}
     >

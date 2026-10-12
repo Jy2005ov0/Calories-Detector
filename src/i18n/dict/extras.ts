@@ -198,7 +198,6 @@ export const EXTRAS: AreaDict = {
     "Walk": "Jalan",
     "Run": "Lari",
     "Saved {km} km · {kcal} kcal": "{km} km disimpan · {kcal} kcal",
-    "Finish or discard the run first.": "Tamatkan atau buang larian dahulu.",
     "Track a walk": "Jejak berjalan",
     "Track a run": "Jejak larian",
     "Distance": "Jarak",
@@ -275,7 +274,8 @@ export const EXTRAS: AreaDict = {
     "My usual foods": "Makanan biasa saya",
     "A mix": "Campuran",
     "Something new": "Sesuatu yang baharu",
-    "{g} g": "{g} g"
+    "{g} g": "{g} g",
+    "Your run keeps going. Open Track a run to see it.": "Larian anda diteruskan. Buka Jejak larian untuk melihatnya."
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -472,7 +472,6 @@ export const EXTRAS: AreaDict = {
     "Walk": "步行",
     "Run": "跑步",
     "Saved {km} km · {kcal} kcal": "已保存 {km} km · {kcal} kcal",
-    "Finish or discard the run first.": "请先结束或放弃当前的跑步。",
     "Track a walk": "记录步行",
     "Track a run": "记录跑步",
     "Distance": "距离",
@@ -549,6 +548,7 @@ export const EXTRAS: AreaDict = {
     "My usual foods": "我常吃的",
     "A mix": "混合",
     "Something new": "新口味",
-    "{g} g": "{g} 克"
+    "{g} g": "{g} 克",
+    "Your run keeps going. Open Track a run to see it.": "跑步仍在继续。打开“记录跑步”即可查看。"
   }
 };
