@@ -9,6 +9,7 @@ import { actions, todayKey, uid, useStore } from "../lib/store";
 import type { CustomMeal, Food, MealType } from "../lib/types";
 import { useTodayTotals } from "./FoodSheet";
 import { Empty, HealthCard, MacroBars, Segmented, Sheet, SuitabilityCard, haptic, showToast } from "./ui";
+import { FoodIcon } from "./FoodIcon";
 
 type Item = CustomMeal["items"][number];
 
@@ -83,6 +84,7 @@ export function MealBuilder({ open, onClose, initial }: { open: boolean; onClose
               const n = scale(it.per100, it.grams);
               return (
                 <div className="row" key={idx}>
+                  <FoodIcon name={it.name} size={36} />
                   <div className="row-main">
                     <div className="row-title">{it.name}</div>
                     <div className="row-sub">
@@ -161,6 +163,7 @@ export function FoodPicker({ open, onClose, onPick }: { open: boolean; onClose: 
       <div className="group" style={{ marginTop: 12 }}>
         {results.map((f) => (
           <button className="row" key={f.id} onClick={() => onPick(f)}>
+            <FoodIcon name={f.name} category={f.category} />
             <div className="row-main">
               <div className="row-title">{f.name}</div>
               <div className="row-sub">

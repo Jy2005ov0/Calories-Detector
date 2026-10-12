@@ -29,6 +29,7 @@ import {
   haptic,
   showToast,
 } from "./ui";
+import { FoodIcon } from "./FoodIcon";
 
 interface Part extends RecipePart {
   extra?: boolean;
@@ -190,6 +191,7 @@ export function FoodSheet({
         {food && n && (
           <>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+              <FoodIcon name={food.name} category={food.category} size={52} />
               <h2 className="h2" style={{ marginTop: 4, flex: 1, minWidth: 0 }}>
                 {food.name}
               </h2>
@@ -266,6 +268,7 @@ export function FoodSheet({
                         key={`${p.food}-${i}`}
                         style={{ opacity: p.qty === 0 ? 0.55 : 1 }}
                       >
+                        <FoodIcon name={p.food} size={32} />
                         <div className="row-main">
                           <div className="row-title">{p.label}</div>
                           <div className="row-sub">

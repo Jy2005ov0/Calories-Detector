@@ -6,10 +6,11 @@ import { mealLabel, mealOptions } from "../lib/api";
 import { round, scale, sum, targets } from "../lib/nutrition";
 import { isNative } from "../lib/platform";
 import { addDays } from "../lib/progress";
-import { actions, useStore, useTodayKey, weekdayOf } from "../lib/store";
+import { actions, getState, useStore, useTodayKey, weekdayOf } from "../lib/store";
 import type { Food, MealType, PlannedMeal } from "../lib/types";
 import { FoodPicker } from "./MealBuilder";
 import { NumberInput, Sheet, haptic, showToast } from "./ui";
+import { FoodIcon, MealIcon } from "./FoodIcon";
 
 const fmtDay = (key: string, opts: Intl.DateTimeFormatOptions) => {
   const [y, m, d] = key.split("-").map(Number);
@@ -101,7 +102,8 @@ export function MealPlanner() {
         return (
           <div key={m}>
             <div className="section-header">
-              <span>
+              <span className="meal-head">
+                <MealIcon meal={m} ramadan={getState().profile.fasting === "ramadan"} />
                 {mealLabel(m)}
                 {p ? ` · ${round(kcal)} kcal` : ""}
               </span>
@@ -130,6 +132,7 @@ export function MealPlanner() {
               ) : (
                 p.items.map((it, i) => (
                   <div className="row" key={`${it.foodId}-${i}`}>
+                    <FoodIcon name={it.name} size={36} />
                     <div className="row-main">
                       <div className="row-title">{it.name}</div>
                       <div className="row-sub">{round(scale(it.per100, it.grams).kcal)} kcal</div>

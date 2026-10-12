@@ -23,6 +23,7 @@ import { round, targets } from "../lib/nutrition";
 import { actions, DEFAULT_MEAL_PREFS, useStore } from "../lib/store";
 import type { MealType } from "../lib/types";
 import { Segmented, Sheet, Switch, haptic, showToast } from "./ui";
+import { FoodIcon } from "./FoodIcon";
 
 /**
  * Today's meal ideas: one suggestion for the next meal (others a tap away), sized to what's
@@ -171,8 +172,11 @@ export function MealIdeasCard({
             </p>
           ) : (
             <>
-              <div className="idea-title" data-testid="idea-title">
-                {idea.key}
+              <div className="idea-head">
+                <FoodIcon name={idea.items[0].food.name} category={idea.items[0].food.category} size={56} />
+                <div className="idea-title" data-testid="idea-title">
+                  {idea.key}
+                </div>
               </div>
               {idea.items.length === 1 ? (
                 <div className="idea-grams muted tabular">
@@ -182,6 +186,7 @@ export function MealIdeasCard({
                 <div className="idea-items">
                   {idea.items.map((it, i) => (
                     <div key={`${it.food.id}-${i}`} className="idea-item">
+                      <FoodIcon name={it.food.name} category={it.food.category} size={28} />
                       <span className="row-main">
                         {it.food.name}{" "}
                         <span className="muted">· {it.grams} g</span>

@@ -9,6 +9,8 @@ import { FoodSheet } from "../components/FoodSheet";
 import { MealPlanner } from "../components/MealPlanner";
 import { SPRING, Segmented, Stepper, haptic, showToast } from "../components/ui";
 import { mealTiming, recommendedFoods, sampleDay } from "../lib/diet";
+import { foodIcon } from "../lib/foodIcon";
+import { FoodIcon, MealIcon, mealOfName } from "../components/FoodIcon";
 import { dislikeLabel } from "../lib/allergens";
 import { SPLITS, WEEKDAYS, buildPlan, sessionFromPlan, type PlannedDay } from "../lib/fitness";
 import { bmr, round, targets, tdee } from "../lib/nutrition";
@@ -277,6 +279,9 @@ function NutritionPlan() {
           <div className="pill-list">
             {g.foods.map((n) => (
               <button key={n} className="chip pressable" style={{ background: "var(--bg-fill)", height: 30, fontSize: 14 }} onClick={() => setFood(byName.get(n) ?? null)}>
+                <span className="chip-emoji" aria-hidden>
+                  {foodIcon(n).emoji}
+                </span>
                 {n.replace(/ \(.*\)$/, "")}
               </button>
             ))}
@@ -296,6 +301,7 @@ function NutritionPlan() {
       {day.meals.map((m) => (
         <div className="card" key={m.name} style={{ marginTop: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <MealIcon meal={mealOfName(m.name)} size={40} />
             <div className="row-main">
               <div className="muted" style={{ fontSize: 13 }}>
                 {tr(m.time)}
@@ -309,8 +315,9 @@ function NutritionPlan() {
           </div>
           <div style={{ marginTop: 8 }}>
             {m.items.map((i) => (
-              <div key={i.food.name} className="row-sub" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0" }}>
-                <span>
+              <div key={i.food.name} className="row-sub" style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0" }}>
+                <FoodIcon name={i.food.name} category={i.food.category} size={26} />
+                <span style={{ flex: 1, minWidth: 0 }}>
                   {i.food.name} · {i.grams} g
                 </span>
                 <span className="tabular">{round(i.nutrients.kcal)}</span>

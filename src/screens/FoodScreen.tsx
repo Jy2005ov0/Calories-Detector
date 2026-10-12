@@ -13,6 +13,7 @@ import type { CustomMeal, Food } from "../lib/types";
 import { FoodSheet } from "../components/FoodSheet";
 import { CustomFoodSheet, MealBuilder } from "../components/MealBuilder";
 import { Empty, GRADE_COLORS, GRADE_TEXT, Segmented, haptic, showToast, useShowMore } from "../components/ui";
+import { FoodIcon } from "../components/FoodIcon";
 
 type View = "recent" | "favorites" | "meals" | "mine" | "browse";
 
@@ -25,6 +26,7 @@ const FoodRow = memo(function FoodRow({ f, onClick }: { f: Food; onClick: (f: Fo
   const grade = healthReport(scale(f.per100, s.grams), { intrinsicSugar: isWholeProduce(f) }).grade;
   return (
     <button className="row" onClick={() => onClick(f)}>
+      <FoodIcon name={f.name} category={f.category} />
       <div className="row-main">
         <div className="row-title">{f.name}</div>
         <div className="row-sub">

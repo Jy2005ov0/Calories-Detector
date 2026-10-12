@@ -60,6 +60,7 @@ import { MealIdeasCard } from "../components/MealIdeas";
 import { stepKcal, useStepUpdates } from "../lib/steps";
 import { addDays } from "../lib/progress";
 import type { SheetKind, Tab } from "../App";
+import { FoodIcon, MealIcon } from "../components/FoodIcon";
 
 const hm = (min: number) =>
   min >= 60
@@ -294,6 +295,7 @@ function LogRow({ e, onEdit }: { e: LogEntry; onEdit: () => void }) {
           ev.stopPropagation();
         }}
       >
+        <FoodIcon name={e.name} size={36} />
         <button className="row-main log-edit" onClick={onEdit} aria-label={t("Edit {name}", { name: e.name })}>
           <div className="row-title">{e.name}</div>
           <div className="row-sub">
@@ -642,6 +644,7 @@ export function Today({
         {[
           {
             k: t("Sugar"),
+            icon: "🍬",
             v: eaten.sugar,
             max: tg.sugarMax,
             unit: "g",
@@ -649,6 +652,7 @@ export function Today({
           },
           {
             k: t("Saturated fat"),
+            icon: "🧈",
             v: eaten.satFat,
             max: tg.satFatMax,
             unit: "g",
@@ -656,6 +660,7 @@ export function Today({
           },
           {
             k: t("Sodium"),
+            icon: "🧂",
             v: eaten.sodium,
             max: tg.sodiumMax,
             unit: "mg",
@@ -663,6 +668,7 @@ export function Today({
           },
           {
             k: t("Fibre (goal)"),
+            icon: "🌾",
             v: eaten.fiber,
             max: tg.fiber,
             unit: "g",
@@ -678,7 +684,12 @@ export function Today({
                 marginBottom: 6,
               }}
             >
-              <span>{x.k}</span>
+              <span>
+                <span className="chip-emoji" aria-hidden>
+                  {x.icon}
+                </span>
+                {x.k}
+              </span>
               <span className="muted tabular">
                 {round(x.v)} / {x.max} {x.unit}
               </span>
@@ -694,7 +705,8 @@ export function Today({
         return (
           <div key={m}>
             <div className="section-header">
-              <span>
+              <span className="meal-head">
+                <MealIcon meal={m} ramadan={profile.fasting === "ramadan"} />
                 {mealLabel(m)}
                 {list.length > 0 && ` · ${round(kcal)} kcal`}
               </span>

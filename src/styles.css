@@ -2748,8 +2748,13 @@ html[data-text="xlarge"] body {
   max-width: 100%;
   overflow-wrap: anywhere;
 }
-.idea-title {
+.idea-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-top: 12px;
+}
+.idea-title {
   font-size: 1.0625rem;
   font-weight: 600;
   overflow-wrap: anywhere;
@@ -2760,7 +2765,7 @@ html[data-text="xlarge"] body {
 .idea-item {
   display: flex;
   gap: 10px;
-  align-items: baseline;
+  align-items: center;
   font-size: 0.9375rem;
   padding: 3px 0;
   min-width: 0;
@@ -2801,4 +2806,37 @@ html[data-text="xlarge"] body {
 }
 .idea-item .row-main .muted {
   white-space: nowrap;
+}
+
+/* ── Food pictures ──────────────────────────────────── */
+.food-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28%;
+  line-height: 1;
+  background: var(--tone, rgba(142, 142, 147, 0.14));
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+.food-icon.tone-main { --tone: rgba(255, 149, 0, 0.16); }
+.food-icon.tone-plant { --tone: rgba(52, 199, 89, 0.16); }
+.food-icon.tone-drink { --tone: rgba(0, 122, 255, 0.14); }
+.food-icon.tone-sweet { --tone: rgba(255, 45, 85, 0.13); }
+.food-icon.tone-grain { --tone: rgba(255, 204, 0, 0.2); }
+.food-icon.tone-protein { --tone: rgba(255, 59, 48, 0.12); }
+.food-icon.tone-dairy { --tone: rgba(90, 200, 250, 0.16); }
+.row > .food-icon,
+.row-main + .food-icon {
+  margin-right: 2px;
+}
+.meal-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.chip-emoji {
+  margin-right: 5px;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 }

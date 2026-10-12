@@ -9,6 +9,7 @@ import { useWorldFoods } from "../lib/usda";
 import { canListen, listenOnce, matchSpoken, parseSpoken } from "../lib/voice";
 import type { Food, MealType } from "../lib/types";
 import { NumberInput, Segmented, Sheet, haptic, showToast } from "./ui";
+import { FoodIcon } from "./FoodIcon";
 
 /** Log calories without looking up a food: just a number (and macros if known). */
 export function QuickAddSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -167,6 +168,7 @@ export function VoiceLogSheet({ open, onClose }: { open: boolean; onClose: () =>
           <div className="group" data-testid="voice-matches">
             {matches.map((m) => (
               <div className="row" key={m.key}>
+                {m.food && <FoodIcon name={m.food.name} category={m.food.category} size={36} />}
                 <div className="row-main">
                   <div className="row-title">{m.food ? m.food.name : t("No match for “{text}”", { text: m.said })}</div>
                   {m.food && (
