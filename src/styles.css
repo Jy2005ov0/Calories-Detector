@@ -2352,7 +2352,7 @@ html[data-text="xlarge"] body {
 .summary-stats {
   display: grid;
   gap: 12px;
-  flex: 1 1 130px;
+  flex: 1 1 96px;
   min-width: 0;
 }
 
@@ -2839,4 +2839,8 @@ html[data-text="xlarge"] body {
 .chip-emoji {
   margin-right: 5px;
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+.food-icon::before,
+.chip-emoji::before {
+  content: attr(data-emoji);
 }

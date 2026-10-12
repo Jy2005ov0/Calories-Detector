@@ -685,9 +685,7 @@ export function Today({
               }}
             >
               <span>
-                <span className="chip-emoji" aria-hidden>
-                  {x.icon}
-                </span>
+                <span className="chip-emoji" data-emoji={x.icon} aria-hidden />
                 {x.k}
               </span>
               <span className="muted tabular">

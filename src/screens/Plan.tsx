@@ -279,9 +279,7 @@ function NutritionPlan() {
           <div className="pill-list">
             {g.foods.map((n) => (
               <button key={n} className="chip pressable" style={{ background: "var(--bg-fill)", height: 30, fontSize: 14 }} onClick={() => setFood(byName.get(n) ?? null)}>
-                <span className="chip-emoji" aria-hidden>
-                  {foodIcon(n).emoji}
-                </span>
+                <span className="chip-emoji" data-emoji={foodIcon(n).emoji} aria-hidden />
                 {n.replace(/ \(.*\)$/, "")}
               </button>
             ))}
