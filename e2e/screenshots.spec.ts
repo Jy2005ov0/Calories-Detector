@@ -197,6 +197,8 @@ for (const set of SETS) {
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: /Continue|Build my plan/ }).click();
     await page.getByRole("button", { name: "Show me" }).click();
     await page.getByRole("button", { name: "Next" }).click();
+    // Let the highlight glide and the card slide into place.
+    await page.waitForTimeout(1200);
     await shot("guided-tour");
     await page.getByRole("button", { name: "Skip" }).click();
 

@@ -135,7 +135,12 @@ test("Wei: scans a barcode, logs it, tracks water and weight, and builds a strea
   await sheet(page, "Cup size").getByLabel("Other amount").fill("330");
   await sheet(page, "Cup size").getByRole("button", { name: "Add once" }).click();
   await expect(page.getByText(/^1\.58 of 2\.75 L water$/)).toBeVisible();
-  await page.getByRole("button", { name: "Remove 500 ml of water" }).click();
+  // Hold the cup to take a cup back.
+  const cupBtn = page.getByRole("button", { name: "Add 500 ml of water" });
+  await cupBtn.hover();
+  await page.mouse.down();
+  await page.waitForTimeout(800);
+  await page.mouse.up();
   await expect(page.getByText(/^1\.08 of 2\.75 L water$/)).toBeVisible();
 
   // Progress: a few weigh-ins over two weeks draw the chart and the trend. (No step counting.)

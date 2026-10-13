@@ -18,6 +18,9 @@
 
   /* Blue and red double as text colours, so they use Apple's accessible variants. */
   --blue: #0058b0;
+  --water: #4aa8f0;
+  --water-glass: #7aa3c6;
+  --water-bg: #e9f4fd;
   --green: #34c759;
   --orange: #ff9500;
   --red: #c4000f;
@@ -71,6 +74,9 @@
     --material-edge: rgba(255, 255, 255, 0.08);
     --scrim: rgba(0, 0, 0, 0.5);
     --blue: #409cff;
+    --water: #3d9be6;
+    --water-glass: #8fb3d3;
+    --water-bg: rgba(64, 156, 255, 0.14);
     --green: #30d158;
     --orange: #ff9f0a;
     --red: #ff6961;
@@ -107,6 +113,9 @@
     --material-edge: rgba(255, 255, 255, 0.08);
     --scrim: rgba(0, 0, 0, 0.5);
     --blue: #409cff;
+    --water: #3d9be6;
+    --water-glass: #8fb3d3;
+    --water-bg: rgba(64, 156, 255, 0.14);
     --green: #30d158;
     --orange: #ff9f0a;
     --red: #ff6961;
@@ -2937,30 +2946,42 @@ html[data-text="xlarge"] body {
   align-items: center;
 }
 
-/* Water: one glass per cup. Tap an empty glass to drink, a full one to take it back. */
-.glasses {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-.glass {
-  width: 36px;
-  height: 40px;
+/* Water: one cup to tap. It drains as the cup is counted, then fills back up. */
+.water-cup-btn {
+  flex: none;
   display: grid;
   place-items: center;
+  width: 84px;
+  height: 92px;
   border: 0;
-  border-radius: 10px;
-  color: var(--label-3);
-  background: linear-gradient(to top, var(--blue) var(--fill, 0%), var(--bg-fill) var(--fill, 0%));
-  transition: transform 0.12s ease;
+  border-radius: 20px;
+  background: var(--water-bg);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  transition: transform 0.15s ease;
 }
-.glass.full,
-.glass.part {
-  color: #fff;
+.water-cup-btn:active {
+  transform: scale(0.94);
 }
-.glass:active {
-  transform: scale(0.9);
+.water-total {
+  font-weight: 600;
+}
+.water-wave {
+  animation: water-wave 2.4s linear infinite;
+}
+@keyframes water-wave {
+  to {
+    transform: translateX(32px);
+  }
+}
+.sr-only.focus-show:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  clip: auto;
+  margin: 4px 0 0;
+  white-space: normal;
 }
 
 /* Sleep: a 24-hour clock with a moon (bedtime) and sun (wake-up) to drag. */

@@ -389,7 +389,14 @@ export const EXTRAS: AreaDict = {
     "Each tap on a glass adds this much water. Pick the cup or bottle you usually drink from.": "Setiap ketikan pada gelas menambah sebanyak ini. Pilih cawan atau botol yang biasa anda gunakan.",
     "{h} h {m} min": "{h} j {m} min",
     "{h} h": "{h} j",
-    "asleep": "tidur"
+    "asleep": "tidur",
+    "Tap the cup to drink · hold it to take a cup back": "Ketik cawan untuk minum · tahan untuk membatalkan secawan",
+    "Each tap on the cup adds this much water. Pick the cup or bottle you usually drink from.": "Setiap ketikan pada cawan menambah sebanyak ini. Pilih cawan atau botol yang biasa anda gunakan.",
+    "The orange ring shows the calories you have left: eating fills it, workouts give calories back. The teal ring counts your steps, and protein, carbs and fat sit below.": "Cincin oren menunjukkan baki kalori anda: makan mengisinya, senaman memulangkan kalori. Cincin biru kehijauan mengira langkah anda, dan protein, karbohidrat serta lemak di bawahnya.",
+    "Drink water": "Minum air",
+    "Tap the cup each time you drink. The water drains as the cup is counted, then the cup fills back up. Hold it to take a cup back.": "Ketik cawan setiap kali anda minum. Air surut apabila cawan dikira, kemudian cawan penuh semula. Tahan untuk membatalkan secawan.",
+    "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 6,000+ exercises and sports, and you can create your own.": "Bermain futsal atau berlari? Rekodkan di sini dengan tempohnya dan kalori ditambah pada hari anda. Terdapat lebih 6,000 senaman dan sukan, dan anda boleh mencipta sendiri.",
+    "Choose a split and your days per week. Press and hold a day or an exercise to drag it into your own order, and tap an exercise to see how it's done.": "Pilih pembahagian dan hari seminggu. Tekan dan tahan hari atau senaman untuk menyeretnya mengikut susunan anda, dan ketik senaman untuk melihat cara melakukannya."
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -777,6 +784,13 @@ export const EXTRAS: AreaDict = {
     "Each tap on a glass adds this much water. Pick the cup or bottle you usually drink from.": "每点一次杯子就加这么多水。选你平时用的杯子或水瓶。",
     "{h} h {m} min": "{h} 小时 {m} 分钟",
     "{h} h": "{h} 小时",
-    "asleep": "睡眠"
+    "asleep": "睡眠",
+    "Tap the cup to drink · hold it to take a cup back": "点杯子记一杯水 · 长按撤回一杯",
+    "Each tap on the cup adds this much water. Pick the cup or bottle you usually drink from.": "每点一次杯子就加这么多水。选你平时用的杯子或水瓶。",
+    "The orange ring shows the calories you have left: eating fills it, workouts give calories back. The teal ring counts your steps, and protein, carbs and fat sit below.": "橙色圆环显示剩余热量:吃东西会填满它,运动会把热量加回来。青色圆环记录步数,下方是蛋白质、碳水和脂肪。",
+    "Drink water": "喝水",
+    "Tap the cup each time you drink. The water drains as the cup is counted, then the cup fills back up. Hold it to take a cup back.": "每喝一次就点一下杯子。水会慢慢减少表示已记录,然后杯子重新装满。长按可撤回一杯。",
+    "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 6,000+ exercises and sports, and you can create your own.": "踢了室内足球或去跑步?在这里记录时长,热量会加到今天。共有 6,000 多种运动,你也可以创建自己的动作。",
+    "Choose a split and your days per week. Press and hold a day or an exercise to drag it into your own order, and tap an exercise to see how it's done.": "选择训练分化和每周天数。长按训练日或动作即可拖动调整顺序,点一下动作可查看做法。"
   }
 };

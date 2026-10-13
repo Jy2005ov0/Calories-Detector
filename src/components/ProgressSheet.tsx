@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { Droplet, GlassWater, Trash2 } from "lucide-react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import { Droplet, Trash2 } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { round } from "../lib/nutrition";
 import { GLASS_ML, addDays, logStreak, waterGoalMl, weightTrend, workoutWeekStreak } from "../lib/progress";
@@ -7,7 +8,7 @@ import { bmiBand } from "../lib/recommend";
 import { actions, useStore, useTodayKey } from "../lib/store";
 import { DayBars, WeightChart } from "./Charts";
 import { BodySection } from "./BodySection";
-import { NumberInput, Sheet, haptic, showToast } from "./ui";
+import { Bar, NumberInput, Sheet, haptic, showToast } from "./ui";
 
 /** Healthy weight at the top of the normal BMI band for this height (Asia-Pacific cut-off 23). */
 function goalWeight(heightCm: number, weightKg: number, goal: string) {
@@ -160,57 +161,104 @@ export function WaterControl({ compact = false }: { compact?: boolean }) {
   const add = (amount: number, undo = true) => {
     if (!amount) return;
     actions.updateDay(today, (d) => ({ ...d, waterMl: Math.max(0, d.waterMl + amount) }));
-    haptic("light");
+    haptic(amount > 0 ? "light" : "medium");
+    const undoIt = undo ? { label: t("Undo"), run: () => add(-amount, false) } : undefined;
     if (amount > 0 && ml < goal && ml + amount >= goal) {
       haptic("success");
-      showToast(t("Water goal reached · nice!"), undo ? { label: t("Undo"), run: () => add(-amount, false) } : undefined);
+      showToast(t("Water goal reached · nice!"), undoIt);
     } else if (undo) {
-      showToast(amount > 0 ? t("Added {ml} ml of water", { ml: amount }) : t("Removed {ml} ml of water", { ml: -amount }), { label: t("Undo"), run: () => add(-amount, false) });
+      showToast(amount > 0 ? t("Added {ml} ml of water", { ml: amount }) : t("Removed {ml} ml of water", { ml: -amount }), undoIt);
     }
   };
-  // One glass per cup towards the goal; a very small cup shares 16 glasses instead.
-  const cupsToGoal = Math.max(1, Math.ceil(goal / cup));
-  const unit = cupsToGoal <= 16 ? cup : goal / 16;
-  // Always one empty glass to tap, even past the goal.
-  const shown = Math.max(Math.min(16, cupsToGoal), Math.floor(ml / unit) + 1);
-  const fills = Array.from({ length: shown }, (_, i) => Math.max(0, Math.min(1, (ml - i * unit) / unit)));
-  const next = fills.findIndex((f) => f === 0);
-  const last = next === -1 ? shown - 1 : next - 1;
-  const removing = Math.min(cup, ml);
+  const takeBack = () => ml > 0 && add(-Math.min(cup, ml));
   return (
-    <div style={{ marginTop: compact ? 0 : 10 }} data-testid="water">
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-        <div style={{ fontWeight: 600 }} className="tabular">
+    <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: compact ? 0 : 10 }} data-testid="water" data-tour={compact ? "water-cup" : undefined}>
+      <WaterCup cup={cup} onDrink={() => add(cup)} onTakeBack={takeBack} />
+      <div className="row-main">
+        <div className="water-total tabular">
           {t("{l} of {goal} L water", { l: litres(ml), goal: litres(goal) })}
+        </div>
+        <div style={{ margin: "8px 0 6px" }}>
+          <Bar value={ml} max={goal} color="var(--blue)" />
         </div>
         <button className="link tap water-cup" onClick={() => setPicking(true)} aria-label={t("Cup size {ml} ml, change", { ml: cup })}>
           {t("{ml} ml a cup", { ml: cup })} · {t("Change")}
         </button>
+        <div className="tile-sub" style={{ whiteSpace: "normal" }}>
+          {t("Tap the cup to drink · hold it to take a cup back")}
+        </div>
+        {/* For keyboards and screen readers: holding isn't possible there. */}
+        <button className="sr-only focus-show link" onClick={takeBack} disabled={ml <= 0}>
+          {t("Remove {ml} ml of water", { ml: Math.min(cup, ml) || cup })}
+        </button>
       </div>
-      <div className="glasses" role="group" aria-label={t("Water today")}>
-        {fills.map((f, i) => {
-          // One button to add and one to take back for screen readers; every glass works for a tap.
-          const label = i === next ? t("Add {ml} ml of water", { ml: cup }) : i === last ? t("Remove {ml} ml of water", { ml: removing }) : undefined;
-          return (
-            <button
-              key={i}
-              className={`glass${f >= 1 ? " full" : f > 0 ? " part" : ""}`}
-              style={{ "--fill": `${Math.round(f * 100)}%` } as CSSProperties}
-              onClick={() => add(f > 0 ? -removing : cup)}
-              aria-label={label}
-              aria-hidden={label ? undefined : true}
-              tabIndex={label ? 0 : -1}
-            >
-              <GlassWater size={20} strokeWidth={2} />
-            </button>
-          );
-        })}
-      </div>
-      <p className="tile-sub" style={{ margin: "6px 0 0" }}>
-        {t("Tap a glass to drink a cup · tap a full one to take it back")}
-      </p>
       <CupSheet open={picking} onClose={() => setPicking(false)} cup={cup} onAddOnce={(n) => add(n, false)} />
     </div>
+  );
+}
+
+/**
+ * A cup of water to tap: the water drains away as the cup is counted, then the cup fills back up
+ * for the next one. Hold it to take a cup back.
+ */
+function WaterCup({ cup, onDrink, onTakeBack }: { cup: number; onDrink: () => void; onTakeBack: () => void }) {
+  const reduce = useReducedMotion();
+  const clip = `cup-${useId().replace(/:/g, "")}`;
+  // 1 = full, 0 = empty.
+  const level = useMotionValue(1);
+  const y = useTransform(level, (v) => 14 + (1 - v) * 66);
+  const hold = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const held = useRef(false);
+  useEffect(() => () => clearTimeout(hold.current), []);
+
+  const drink = () => {
+    onDrink();
+    if (reduce) return;
+    level.stop();
+    // Drink it down, then fill the cup back up.
+    void animate(level, [level.get(), 0, 0, 1], { duration: 1.5, times: [0, 0.45, 0.55, 1], ease: ["easeIn", "linear", "easeOut"] });
+  };
+  return (
+    <button
+      className="water-cup-btn"
+      aria-label={t("Add {ml} ml of water", { ml: cup })}
+      onClick={() => {
+        if (held.current) {
+          held.current = false;
+          return;
+        }
+        drink();
+      }}
+      onPointerDown={() => {
+        clearTimeout(hold.current);
+        hold.current = setTimeout(() => {
+          held.current = true;
+          onTakeBack();
+        }, 550);
+      }}
+      onPointerUp={() => clearTimeout(hold.current)}
+      onPointerLeave={() => clearTimeout(hold.current)}
+      onPointerCancel={() => clearTimeout(hold.current)}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      <svg width="64" height="80" viewBox="0 0 64 88" aria-hidden>
+        <defs>
+          <clipPath id={clip}>
+            <path d="M10 8 H54 L49 80 Q48.5 84 45 84 H19 Q15.5 84 15 80 Z" />
+          </clipPath>
+        </defs>
+        <g clipPath={`url(#${clip})`}>
+          <motion.g style={{ y }}>
+            {/* A gentle wave on the water's surface. */}
+            <g className={reduce ? undefined : "water-wave"}>
+              <path d="M-64 6 Q-56 0 -48 6 T-32 6 T-16 6 T0 6 T16 6 T32 6 T48 6 T64 6 T80 6 T96 6 T112 6 T128 6 V120 H-64 Z" fill="var(--water)" />
+            </g>
+          </motion.g>
+        </g>
+        <path d="M10 8 H54 L49 80 Q48.5 84 45 84 H19 Q15.5 84 15 80 Z" fill="none" stroke="var(--water-glass)" strokeWidth="3.5" strokeLinejoin="round" />
+        <path d="M18 18 L21 70" stroke="#fff" strokeOpacity="0.55" strokeWidth="3" strokeLinecap="round" />
+      </svg>
+    </button>
   );
 }
 
@@ -227,7 +275,7 @@ function CupSheet({ open, onClose, cup, onAddOnce }: { open: boolean; onClose: (
   return (
     <Sheet open={open} onClose={onClose} title={t("Cup size")}>
       <p className="footnote" style={{ margin: "0 0 12px" }}>
-        {t("Each tap on a glass adds this much water. Pick the cup or bottle you usually drink from.")}
+        {t("Each tap on the cup adds this much water. Pick the cup or bottle you usually drink from.")}
       </p>
       <div className="cup-grid" role="group" aria-label={t("Cup size")}>
         {CUP_SIZES.map((ml) => (

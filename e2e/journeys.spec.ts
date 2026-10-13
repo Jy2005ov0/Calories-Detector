@@ -356,6 +356,7 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
 
   const expected: [string, string, string][] = [
     ["Your day at a glance", "Today", "summary"],
+    ["Drink water", "Today", "water-cup"],
     ["Scan a barcode", "Today", "barcode"],
     ["Body check & BMI", "Today", "body-check"],
     ["Search any food", "Food", "food-search"],
@@ -369,14 +370,17 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
   ];
   for (const [i, [title, tabName, target]] of expected.entries()) {
     await expect(guide(title)).toBeVisible();
-    await expect(guide(title)).toContainText(`Step ${i + 2} of 12`);
+    await expect(guide(title)).toContainText(`Step ${i + 2} of 13`);
     await expect(page.getByRole("navigation").getByRole("button", { name: tabName, exact: true })).toHaveAttribute("aria-current", "page");
     // The highlighted feature is on screen, not scrolled away.
     await expect(page.locator(`[data-tour="${target}"]`)).toBeInViewport({ ratio: 0.5 });
-    // The card never covers the feature it is pointing at.
-    const [card, spot] = await Promise.all([guide(title).boundingBox(), page.locator(`[data-tour="${target}"]`).boundingBox()]);
-    const overlap = Math.max(0, Math.min(card!.y + card!.height, spot!.y + spot!.height) - Math.max(card!.y, spot!.y));
-    expect(overlap, `guide card covers "${target}"`).toBeLessThan(4);
+    // The card never covers the feature it is pointing at (once it has slid into place).
+    await expect
+      .poll(async () => {
+        const [card, spot] = await Promise.all([guide(title).boundingBox(), page.locator(`[data-tour="${target}"]`).boundingBox()]);
+        return Math.max(0, Math.min(card!.y + card!.height, spot!.y + spot!.height) - Math.max(card!.y, spot!.y));
+      }, { message: `guide card covers "${target}"` })
+      .toBeLessThan(4);
     await expectNoHorizontalScroll(page);
     if (i === 3) {
       // Back goes to the previous step (and tab).
@@ -435,7 +439,7 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
   await page.locator('[data-tour="clock-in"]').click();
   await page.getByRole("button", { name: "How to use the app" }).click();
   await page.getByRole("button", { name: "Show me" }).click();
-  for (let i = 0; i < 5; i++) await page.getByRole("button", { name: "Next" }).click();
+  for (let i = 0; i < 6; i++) await page.getByRole("button", { name: "Next" }).click();
   await expect(guide("Clock in at the gym")).toBeVisible();
   await expect(page.locator('[data-tour="clock-out"]')).toBeInViewport({ ratio: 0.5 });
   await page.getByRole("button", { name: "Next" }).click();
