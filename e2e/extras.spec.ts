@@ -686,3 +686,156 @@ test("Steps inside the calorie card with water right after it, and the library h
   await expect(zh.locator(".row", { hasText: "上斜窄握杠铃卧推（停顿）" }).first()).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+/** Drag the page with a finger-like pointer from one point to another. */
+async function drag(page: Page, from: [number, number], to: [number, number], steps = 12) {
+  await page.mouse.move(from[0], from[1]);
+  await page.mouse.down();
+  await page.mouse.move(to[0], to[1], { steps });
+  await page.mouse.up();
+  await page.waitForTimeout(450);
+}
+const current = (page: Page) => page.getByRole("navigation").locator("[aria-current=page]").innerText();
+
+test("Swipe between tabs: left and right, not past the ends, and never by accident", async ({ page }) => {
+  const errors = await open(page);
+  const { width, height } = page.viewportSize()!;
+  const mid = Math.round(height * 0.45);
+  const left = (): Promise<void> => drag(page, [width - 40, mid], [40, mid + 6]);
+  const right = (): Promise<void> => drag(page, [40, mid], [width - 40, mid + 6]);
+
+  expect(await current(page)).toMatch(/^Today/);
+  await left();
+  expect(await current(page)).toMatch(/^Food/);
+  await left();
+  expect(await current(page)).toMatch(/^Train/);
+  await right();
+  expect(await current(page)).toMatch(/^Food/);
+  await right();
+  expect(await current(page)).toMatch(/^Today/);
+  // Nothing before Today: it springs back.
+  await right();
+  expect(await current(page)).toMatch(/^Today/);
+  // And nothing after Profile.
+  await tab(page, "Profile");
+  await left();
+  expect(await current(page)).toMatch(/^Profile/);
+  await tab(page, "Today");
+
+  // Up-and-down is a scroll, a short nudge sideways is nothing.
+  await drag(page, [width / 2, height * 0.75], [width / 2 - 30, height * 0.25]);
+  expect(await current(page)).toMatch(/^Today/);
+  await drag(page, [width / 2, mid], [width / 2 - 30, mid]);
+  expect(await current(page)).toMatch(/^Today/);
+
+  // Swiping a logged food left deletes it (with Undo), and stays on Today.
+  const row = page.locator(".swipe-row").first();
+  await row.scrollIntoViewIfNeeded();
+  const rows = await page.locator(".swipe-row").count();
+  const b = (await row.boundingBox())!;
+  await drag(page, [b.x + b.width - 30, b.y + b.height / 2], [b.x + 20, b.y + b.height / 2], 10);
+  expect(await current(page)).toMatch(/^Today/);
+  await expect(page.locator(".swipe-row")).toHaveCount(rows - 1);
+  await page.getByRole("status").getByRole("button", { name: "Undo" }).click();
+  await expect(page.locator(".swipe-row")).toHaveCount(rows);
+
+  // A row of chips scrolls sideways without changing tab.
+  await tab(page, "Plan");
+  const chips = page.locator("[data-tour=split]");
+  const c = (await chips.boundingBox())!;
+  await drag(page, [c.x + c.width - 20, c.y + c.height / 2], [c.x + 20, c.y + c.height / 2]);
+  expect(await current(page)).toMatch(/^Plan/);
+
+  // A swipe that starts on a button doesn't press it.
+  await tab(page, "Food");
+  const food = page.locator("button.row").first();
+  const f = (await food.boundingBox())!;
+  await drag(page, [f.x + f.width - 20, f.y + f.height / 2], [20, f.y + f.height / 2]);
+  expect(await current(page)).toMatch(/^Train/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test("My own calorie target: set it from Today, it changes the day and the plan, and back to automatic", async ({ page }) => {
+  const errors = await open(page);
+  const before = await kcalLeft(page);
+  const target = page.getByRole("button", { name: /^Daily target \d+ kcal, change$/ });
+  const auto = Number((await target.getAttribute("aria-label"))!.replace(/\D/g, ""));
+  await target.click();
+  const editor = sheet(page, "Daily calorie target");
+  await expect(editor.getByRole("tab", { name: "Automatic" })).toHaveAttribute("aria-selected", "true");
+  await expect(editor).toContainText(auto.toLocaleString("en"));
+
+  // My own: type 2,000.
+  await editor.getByRole("tab", { name: "My own" }).click();
+  const box = editor.getByRole("textbox", { name: "Calories a day" });
+  await box.fill("2000");
+  await box.blur();
+  await expect(editor).toContainText(`Suggested for your goal: ${auto.toLocaleString("en")} kcal`);
+  // Too low: a warning; Use it puts the suggestion back.
+  await box.fill("1000");
+  await box.blur();
+  await expect(editor.getByRole("alert")).toContainText("doctor");
+  await editor.getByRole("button", { name: "Use it" }).click();
+  await expect(box).toHaveValue(String(auto));
+  await expect(editor.getByRole("alert")).toHaveCount(0);
+  // The slider works too: Home/End keys and arrows.
+  const slider = editor.getByRole("slider", { name: "Calories a day" });
+  await slider.focus();
+  await page.keyboard.press("End");
+  await expect(box).toHaveValue("4500");
+  await box.fill("2000");
+  await box.blur();
+  await close(page);
+
+  // Today counts down from the new target.
+  await expect(page.getByRole("button", { name: "Daily target 2000 kcal, change" })).toContainText("My target");
+  await expect.poll(() => kcalLeft(page)).toBe(before + (2000 - auto));
+
+  // The nutrition plan says it's your own; it's kept after a reload.
+  await page.reload();
+  await tab(page, "Plan");
+  await page.getByRole("tab", { name: "Nutrition" }).click();
+  await expect(page.getByText("You set this target yourself.")).toBeVisible();
+  await expect(page.getByText("2,000", { exact: true }).first()).toBeVisible();
+
+  // Back to automatic from Profile.
+  await tab(page, "Profile");
+  const inProfile = page.getByTestId("kcal-target");
+  await inProfile.getByRole("tab", { name: "Automatic" }).click();
+  await tab(page, "Today");
+  await expect(page.getByRole("button", { name: `Daily target ${auto} kcal, change` })).toBeVisible();
+  await expect.poll(() => kcalLeft(page)).toBe(before);
+  expect(errors).toEqual([]);
+});
+
+test("Water cup: tap to drink, Undo, hold to take a cup back, and from the keyboard", async ({ page }) => {
+  const errors = await open(page);
+  const water = page.getByTestId("water").first();
+  await water.scrollIntoViewIfNeeded();
+  await expect(water).toContainText("2.5 of");
+  const cupBtn = water.getByRole("button", { name: "Add 250 ml of water" });
+  await cupBtn.click();
+  await expect(water).toContainText("2.75 of");
+  await page.getByRole("status").getByRole("button", { name: "Undo" }).click();
+  await expect(water).toContainText("2.5 of");
+  // Two quick taps are two cups.
+  await cupBtn.click();
+  await cupBtn.click();
+  await expect(water).toContainText("3 of");
+  // Hold: one cup back, and the hold isn't also a tap.
+  await cupBtn.hover();
+  await page.mouse.down();
+  await page.waitForTimeout(800);
+  await page.mouse.up();
+  await expect(water).toContainText("2.75 of");
+  await page.waitForTimeout(300);
+  await expect(water).toContainText("2.75 of");
+  // Keyboard: Tab to the hidden Remove button, which shows when focused.
+  const remove = water.getByRole("button", { name: "Remove 250 ml of water" });
+  await remove.focus();
+  await expect(remove).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(water).toContainText("2.5 of");
+  expect(errors).toEqual([]);
+});
