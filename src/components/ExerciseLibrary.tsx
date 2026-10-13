@@ -101,7 +101,7 @@ export function ExerciseLibrary({
           </>
         )}
         {!q && group !== MINE && (
-          <button className="link" style={{ marginTop: 10 }} onClick={() => create()}>
+          <button className="link tap-link" onClick={() => create()}>
             <Plus size={16} /> {t("Create your own exercise")}
           </button>
         )}

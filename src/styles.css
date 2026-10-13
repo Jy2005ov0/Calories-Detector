@@ -2867,3 +2867,12 @@ html[data-text="xlarge"] body {
 .row-sub.wrap {
   white-space: normal;
 }
+
+/* A text link on its own line, with a full-size tap area. */
+.link.tap-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-top: 2px;
+}

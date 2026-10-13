@@ -140,7 +140,7 @@ export function SwapSheet({ exercise, onClose }: { exercise: PlannedExercise | n
             ))}
             {!shown.length && <div className="row muted">{t("No exercises match.")}</div>}
           </div>
-          <button className="link" style={{ marginTop: 10 }} onClick={() => setCreating(true)}>
+          <button className="link tap-link" onClick={() => setCreating(true)}>
             <Plus size={16} /> {t("Create your own exercise")}
           </button>
           {list.length > shown.length && <p className="footnote">{t("Showing {n} of {total}. Search to find more.", { n: shown.length, total: list.length })}</p>}
