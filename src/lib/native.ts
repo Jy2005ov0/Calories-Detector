@@ -6,6 +6,7 @@ import { planFor, sessionFromPlan, sessionKcal } from "./fitness";
 import { isNative, platform } from "./platform";
 import { cycleOf, cycleStatus } from "./cycle";
 import { minutesOf } from "./progress";
+import { setLiveRest, syncLiveActivity } from "./liveActivity";
 import { actions, getState, subscribe, todayKey, weekdayOf, type AppState } from "./store";
 
 // ── Notifications ────────────────────────────────────────
@@ -163,6 +164,7 @@ async function syncWorkoutNotification(s: AppState) {
 /** Let the phone (or watch) buzz when rest is over, even with the screen off. */
 export async function scheduleRestEnd(endsAt: number | null) {
   if (!isNative) return;
+  setLiveRest(endsAt);
   try {
     await LocalNotifications.cancel({ notifications: [{ id: ID.rest }] });
     if (endsAt && (await notificationsReady())) {
@@ -200,9 +202,13 @@ export function startNativeServices() {
 
   let prev = getState();
   syncWorkoutNotification(prev);
+  syncLiveActivity(prev);
   subscribe(() => {
     const s = getState();
-    if (s.activeSessionId !== prev.activeSessionId || s.sessions !== prev.sessions) syncWorkoutNotification(s);
+    if (s.activeSessionId !== prev.activeSessionId || s.sessions !== prev.sessions) {
+      syncWorkoutNotification(s);
+      syncLiveActivity(s);
+    }
     if (s.reminders !== prev.reminders || s.profile !== prev.profile || s.split !== prev.split || s.language !== prev.language || s.periods !== prev.periods || s.supplements !== prev.supplements) syncReminders(s);
     prev = s;
   });

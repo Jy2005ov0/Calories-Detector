@@ -341,7 +341,9 @@ export const EXTRAS: AreaDict = {
     "TRX": "TRX",
     "Trap bar": "Trap bar",
     "EZ bar": "Bar EZ",
-    "Home": "Rumah"
+    "Home": "Rumah",
+    "kcal": "kcal",
+    "Rest": "Rehat"
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -681,6 +683,8 @@ export const EXTRAS: AreaDict = {
     "TRX": "TRX",
     "Trap bar": "六角杠",
     "EZ bar": "曲杆",
-    "Home": "在家"
+    "Home": "在家",
+    "kcal": "千卡",
+    "Rest": "休息"
   }
 };

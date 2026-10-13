@@ -68,6 +68,8 @@
 	<string>Scan barcodes, and take your profile picture and progress photos. Photos stay on your phone.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose a profile picture or progress photo from your library. Photos stay on your phone.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSMotionUsageDescription</key>
 	<string>Count your steps with the phone's motion sensor, to show them on Today and add the calories you burn walking.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

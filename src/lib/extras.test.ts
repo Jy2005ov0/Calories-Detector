@@ -203,3 +203,30 @@ describe("badges and challenges", () => {
     expect(broken.status).toBe("failed");
   });
 });
+
+describe("workout Live Activity", () => {
+  it("shows the exercise in progress, sets done, calories and the rest countdown", async () => {
+    const { liveState } = await import("./liveActivity");
+    const now = 1_700_000_000_000;
+    const s = {
+      id: "s",
+      date: "2026-10-13",
+      title: "Chest Day",
+      startedAt: now - 20 * 60_000,
+      exercises: [
+        { id: "a", exerciseId: "x", name: "Barbell bench press", kind: "strength" as const, met: 6, sets: [{ reps: 8, weightKg: 60, done: true }, { reps: 8, weightKg: 60, done: true }] },
+        { id: "b", exerciseId: "y", name: "Incline dumbbell press", kind: "strength" as const, met: 6, sets: [{ reps: 10, weightKg: 20, done: true }, { reps: 10, weightKg: 20, done: false }] },
+      ],
+      kcal: 0,
+    };
+    const st = liveState(s, 70, null, now);
+    expect(st.exercise).toBe("Incline dumbbell press");
+    expect(st.setsDone).toBe(3);
+    expect(st.kcal).toBeGreaterThan(50);
+    expect(st.restEndsAt).toBeUndefined();
+    const resting = liveState(s, 70, { startedAt: now - 30_000, endsAt: now + 60_000 }, now);
+    expect(resting.restEndsAt).toBe(now + 60_000);
+    // A rest that's over isn't shown.
+    expect(liveState(s, 70, { startedAt: now - 120_000, endsAt: now - 1 }, now).restEndsAt).toBeUndefined();
+  });
+});
