@@ -2938,11 +2938,16 @@ html[data-text="xlarge"] body {
   margin: 0;
 }
 .summary-stats.row3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Three across; with very large text on a small phone they wrap rather than spill. */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 12px 14px;
   margin-top: 14px;
   text-align: center;
 }
 .summary-stats.row3 .stat {
+  flex: 1 0 auto;
   align-items: center;
 }
 
