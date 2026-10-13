@@ -130,6 +130,9 @@ export interface DayStats {
   steps?: number;
   /** Morning check-in: hours slept, mood and energy (1–5). */
   sleepH?: number;
+  /** Bedtime and wake-up time ("23:15", "07:00") set on the sleep clock. */
+  bed?: string;
+  wake?: string;
   mood?: number;
   energy?: number;
   /** Supplement doses taken: "<supplement id>@<HH:MM>". */

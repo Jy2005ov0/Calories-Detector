@@ -231,12 +231,15 @@ export function Ring({
   size = 140,
   stroke = 14,
   color = "var(--orange)",
+  over: overColor = "var(--red)",
   children,
 }: {
   progress: number;
   size?: number;
   stroke?: number;
   color?: string;
+  /** Colour once past 100% (red for calories; steps past the goal are good news). */
+  over?: string;
   children?: ReactNode;
 }) {
   const r = (size - stroke) / 2;
@@ -251,7 +254,7 @@ export function Ring({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={over ? "var(--red)" : color}
+          stroke={over ? overColor : color}
           strokeWidth={stroke}
           strokeLinecap="round"
           initial={{ pathLength: 0 }}

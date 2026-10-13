@@ -449,7 +449,7 @@ export const actions = {
   },
 
   // ── Daily check-in, steps and supplements ──
-  setCheckIn(date: string, c: Pick<DayStats, "sleepH" | "mood" | "energy">) {
+  setCheckIn(date: string, c: Pick<DayStats, "sleepH" | "bed" | "wake" | "mood" | "energy">) {
     actions.updateDay(date, (d) => ({ ...d, ...c }));
   },
   setSteps(date: string, steps: number) {

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Droplet, Minus, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { Droplet, GlassWater, Trash2 } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { round } from "../lib/nutrition";
 import { GLASS_ML, addDays, logStreak, waterGoalMl, weightTrend, workoutWeekStreak } from "../lib/progress";
@@ -157,17 +157,29 @@ export function WaterControl({ compact = false }: { compact?: boolean }) {
   const goal = waterGoalMl(profile);
   const cup = profile.waterServingMl || GLASS_ML;
   const [picking, setPicking] = useState(false);
-  const add = (amount: number) => {
+  const add = (amount: number, undo = true) => {
+    if (!amount) return;
     actions.updateDay(today, (d) => ({ ...d, waterMl: Math.max(0, d.waterMl + amount) }));
-    if (amount > 0) haptic("light");
+    haptic("light");
     if (amount > 0 && ml < goal && ml + amount >= goal) {
       haptic("success");
-      showToast(t("Water goal reached · nice!"));
+      showToast(t("Water goal reached · nice!"), undo ? { label: t("Undo"), run: () => add(-amount, false) } : undefined);
+    } else if (undo) {
+      showToast(amount > 0 ? t("Added {ml} ml of water", { ml: amount }) : t("Removed {ml} ml of water", { ml: -amount }), { label: t("Undo"), run: () => add(-amount, false) });
     }
   };
+  // One glass per cup towards the goal; a very small cup shares 16 glasses instead.
+  const cupsToGoal = Math.max(1, Math.ceil(goal / cup));
+  const unit = cupsToGoal <= 16 ? cup : goal / 16;
+  // Always one empty glass to tap, even past the goal.
+  const shown = Math.max(Math.min(16, cupsToGoal), Math.floor(ml / unit) + 1);
+  const fills = Array.from({ length: shown }, (_, i) => Math.max(0, Math.min(1, (ml - i * unit) / unit)));
+  const next = fills.findIndex((f) => f === 0);
+  const last = next === -1 ? shown - 1 : next - 1;
+  const removing = Math.min(cup, ml);
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: compact ? 0 : 10 }}>
-      <div className="row-main">
+    <div style={{ marginTop: compact ? 0 : 10 }} data-testid="water">
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
         <div style={{ fontWeight: 600 }} className="tabular">
           {t("{l} of {goal} L water", { l: litres(ml), goal: litres(goal) })}
         </div>
@@ -175,13 +187,29 @@ export function WaterControl({ compact = false }: { compact?: boolean }) {
           {t("{ml} ml a cup", { ml: cup })} · {t("Change")}
         </button>
       </div>
-      <button className="round-btn" aria-label={t("Remove {ml} ml of water", { ml: Math.min(cup, ml) || cup })} onClick={() => add(-Math.min(cup, ml))} disabled={ml <= 0}>
-        <Minus size={16} />
-      </button>
-      <button className="round-btn primary" aria-label={t("Add {ml} ml of water", { ml: cup })} onClick={() => add(cup)}>
-        <Plus size={16} />
-      </button>
-      <CupSheet open={picking} onClose={() => setPicking(false)} cup={cup} onAddOnce={add} />
+      <div className="glasses" role="group" aria-label={t("Water today")}>
+        {fills.map((f, i) => {
+          // One button to add and one to take back for screen readers; every glass works for a tap.
+          const label = i === next ? t("Add {ml} ml of water", { ml: cup }) : i === last ? t("Remove {ml} ml of water", { ml: removing }) : undefined;
+          return (
+            <button
+              key={i}
+              className={`glass${f >= 1 ? " full" : f > 0 ? " part" : ""}`}
+              style={{ "--fill": `${Math.round(f * 100)}%` } as CSSProperties}
+              onClick={() => add(f > 0 ? -removing : cup)}
+              aria-label={label}
+              aria-hidden={label ? undefined : true}
+              tabIndex={label ? 0 : -1}
+            >
+              <GlassWater size={20} strokeWidth={2} />
+            </button>
+          );
+        })}
+      </div>
+      <p className="tile-sub" style={{ margin: "6px 0 0" }}>
+        {t("Tap a glass to drink a cup · tap a full one to take it back")}
+      </p>
+      <CupSheet open={picking} onClose={() => setPicking(false)} cup={cup} onAddOnce={(n) => add(n, false)} />
     </div>
   );
 }
@@ -199,7 +227,7 @@ function CupSheet({ open, onClose, cup, onAddOnce }: { open: boolean; onClose: (
   return (
     <Sheet open={open} onClose={onClose} title={t("Cup size")}>
       <p className="footnote" style={{ margin: "0 0 12px" }}>
-        {t("Each tap on + adds this much water. Pick the cup or bottle you usually drink from.")}
+        {t("Each tap on a glass adds this much water. Pick the cup or bottle you usually drink from.")}
       </p>
       <div className="cup-grid" role="group" aria-label={t("Cup size")}>
         {CUP_SIZES.map((ml) => (

@@ -378,7 +378,18 @@ export const EXTRAS: AreaDict = {
     "Swap for another exercise": "Tukar kepada senaman lain",
     "Suggested order": "Susunan dicadangkan",
     "How to do {name}": "Cara melakukan {name}",
-    "Press and hold a day or an exercise, then drag it to change the order.": "Tekan dan tahan hari atau senaman, kemudian seret untuk menukar susunan."
+    "Press and hold a day or an exercise, then drag it to change the order.": "Tekan dan tahan hari atau senaman, kemudian seret untuk menukar susunan.",
+    "Slept {time}": "Tidur {time}",
+    "Bedtime": "Waktu tidur",
+    "Wake up": "Bangun",
+    "Drag the moon to when you fell asleep and the sun to when you woke up.": "Seret bulan ke waktu anda tertidur dan matahari ke waktu anda bangun.",
+    "Removed {ml} ml of water": "{ml} ml air dibuang",
+    "Water today": "Air hari ini",
+    "Tap a glass to drink a cup · tap a full one to take it back": "Ketik gelas untuk minum secawan · ketik gelas penuh untuk membatalkannya",
+    "Each tap on a glass adds this much water. Pick the cup or bottle you usually drink from.": "Setiap ketikan pada gelas menambah sebanyak ini. Pilih cawan atau botol yang biasa anda gunakan.",
+    "{h} h {m} min": "{h} j {m} min",
+    "{h} h": "{h} j",
+    "asleep": "tidur"
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -755,6 +766,17 @@ export const EXTRAS: AreaDict = {
     "Swap for another exercise": "换成其他动作",
     "Suggested order": "恢复建议顺序",
     "How to do {name}": "{name}的做法",
-    "Press and hold a day or an exercise, then drag it to change the order.": "长按训练日或动作,然后拖动即可调整顺序。"
+    "Press and hold a day or an exercise, then drag it to change the order.": "长按训练日或动作,然后拖动即可调整顺序。",
+    "Slept {time}": "睡了{time}",
+    "Bedtime": "入睡",
+    "Wake up": "起床",
+    "Drag the moon to when you fell asleep and the sun to when you woke up.": "把月亮拖到你入睡的时间,把太阳拖到你起床的时间。",
+    "Removed {ml} ml of water": "已减去 {ml} 毫升水",
+    "Water today": "今天的饮水",
+    "Tap a glass to drink a cup · tap a full one to take it back": "点空杯记一杯 · 点满杯撤回",
+    "Each tap on a glass adds this much water. Pick the cup or bottle you usually drink from.": "每点一次杯子就加这么多水。选你平时用的杯子或水瓶。",
+    "{h} h {m} min": "{h} 小时 {m} 分钟",
+    "{h} h": "{h} 小时",
+    "asleep": "睡眠"
   }
 };

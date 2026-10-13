@@ -100,13 +100,30 @@ test("Daily habits: steps add to the budget, morning check-in, supplements ticke
   // 8,234 steps × 61 kg × 0.0005 ≈ 251 kcal more to eat.
   await expect.poll(() => kcalLeft(page)).toBe(before + 251);
 
-  // Morning check-in.
+  // Morning check-in: drag the moon on the sleep clock from 11 pm to about midnight,
+  // then nudge the sun half an hour later from the keyboard.
   const checkin = page.getByTestId("checkin");
-  await checkin.getByRole("button", { name: "More sleep" }).click();
+  const clock = checkin.getByTestId("sleep-clock");
+  await clock.scrollIntoViewIfNeeded();
+  const box = (await clock.boundingBox())!;
+  const moon = checkin.getByRole("slider", { name: "Bedtime" });
+  const m = (await moon.boundingBox())!;
+  await page.mouse.move(m.x + m.width / 2, m.y + m.height / 2);
+  await page.mouse.down();
+  // Midnight is straight up from the centre.
+  await page.mouse.move(box.x + box.width / 2, box.y + 20, { steps: 8 });
+  await page.mouse.up();
+  await expect(moon).toHaveAttribute("aria-valuenow", /^(0|5|1435)$/);
+  // Arrow keys move a handle 5 minutes (Page Up/Down an hour).
+  const wake = checkin.getByRole("slider", { name: "Wake up" });
+  await wake.focus();
+  for (let i = 0; i < 6; i++) await page.keyboard.press("ArrowUp");
+  await expect(wake).toHaveAttribute("aria-valuetext", /7:30/);
   await checkin.getByRole("radio", { name: "Mood 4 of 5" }).click();
   await checkin.getByRole("radio", { name: "Energy 3 of 5" }).click();
   await checkin.getByRole("button", { name: "Save check-in" }).click();
-  await expect(page.getByTestId("checkin")).toContainText("Slept 7.5 h");
+  await expect(page.getByTestId("checkin")).toContainText(/Slept 7 h (2|3)\d min/);
+  await expect(page.getByTestId("checkin")).toContainText("7:30");
   await expect(page.getByTestId("checkin")).toContainText("energy 3/5");
 
   // Supplements: added in Profile, ticked off on Today.

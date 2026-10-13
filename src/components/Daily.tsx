@@ -1,64 +1,57 @@
 import { useEffect, useState } from "react";
-import { BatteryCharging, Footprints, Moon, Pill, Plus, Smile, Trash2 } from "lucide-react";
+import { BatteryCharging, Footprints, Moon, Pill, Plus, Smile, Sun, Trash2 } from "lucide-react";
 import { t, useLanguage } from "../i18n";
 import { round } from "../lib/nutrition";
 import { DEFAULT_STEP_GOAL, enableSteps, stepKcal, stepsSupported } from "../lib/steps";
 import { actions, uid, useStore } from "../lib/store";
 import type { Supplement } from "../lib/types";
-import { Bar, Sheet, Stepper, Switch, haptic, showToast } from "./ui";
+import { Ring, Sheet, Switch, haptic, showToast } from "./ui";
+import { SleepClock, clockLabel, durationLabel, sleepMinutes, toHHMM } from "./SleepClock";
 
 /**
- * Steps today, as a compact row inside the calorie summary card (or a prompt to turn the step
- * counter on). Nothing shows where the phone can't count steps.
+ * Steps today as a ring beside the calorie ring (or a prompt to turn the step counter on).
+ * Nothing shows where the phone can't count steps.
  */
-export function StepsRow({ today }: { today: string }) {
+export function StepsRing({ today, size = 112 }: { today: string; size?: number }) {
   useLanguage();
   const profile = useStore((s) => s.profile);
   const steps = useStore((s) => s.days.find((d) => d.id === today)?.steps ?? 0);
   if (!stepsSupported()) return null;
   const goal = profile.stepGoal || DEFAULT_STEP_GOAL;
+  const on = !!profile.stepsOn;
   return (
-    <div className="steps-row" data-testid="steps-card">
-      <div className="hairline" />
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div className="icon-tile small" style={{ background: "var(--teal)" }}>
-          <Footprints size={15} />
-        </div>
-        {profile.stepsOn ? (
-          <div className="row-main">
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
-              <span className="tile-title tabular">{t("{n} steps", { n: steps.toLocaleString() })}</span>
-              <span className="tile-sub tabular" style={{ flex: "none" }}>
-                {t("Goal {goal}", { goal: goal.toLocaleString() })}
-              </span>
-            </div>
-            <div style={{ marginTop: 6 }}>
-              <Bar value={steps} max={goal} color="var(--teal)" />
-            </div>
-            <div className="tile-sub" style={{ marginTop: 4 }}>
-              {t("About {kcal} kcal walking", { kcal: round(stepKcal(steps, profile.weightKg)) })}
+    <div className="ring-col" data-testid="steps-card">
+      <Ring progress={on ? steps / goal : 0} size={size} stroke={11} color="var(--teal)" over="var(--teal)">
+        {on ? (
+          <div>
+            <div className="ring-value tabular">{steps.toLocaleString()}</div>
+            <div className="stat-label" style={{ justifyContent: "center" }}>
+              <Footprints size={12} /> {t("steps")}
             </div>
           </div>
         ) : (
-          <>
-            <div className="row-main">
-              <div className="tile-title">{t("Count your steps")}</div>
-              <div className="tile-sub">{t("Uses your phone's motion sensor")}</div>
-            </div>
-            <button
-              className="btn small tinted"
-              onClick={async () => {
-                if (await enableSteps()) {
-                  actions.updateProfile({ stepsOn: true });
-                  haptic("success");
-                } else showToast(t("Steps aren't available: allow motion & fitness access in your phone's settings."));
-              }}
-            >
-              {t("Turn on")}
-            </button>
-          </>
+          <Footprints size={26} color="var(--teal)" aria-hidden />
         )}
-      </div>
+      </Ring>
+      {on ? (
+        <div className="ring-caption tabular">
+          <span className="sr-only">{t("{n} steps", { n: steps.toLocaleString() })}. </span>
+          {t("Goal {goal}", { goal: goal.toLocaleString() })}
+          <br />≈ {round(stepKcal(steps, profile.weightKg))} kcal
+        </div>
+      ) : (
+        <button
+          className="link tap-link ring-caption"
+          onClick={async () => {
+            if (await enableSteps()) {
+              actions.updateProfile({ stepsOn: true });
+              haptic("success");
+            } else showToast(t("Steps aren't available: allow motion & fitness access in your phone's settings."));
+          }}
+        >
+          {t("Turn on")}
+        </button>
+      )}
     </div>
   );
 }
@@ -73,23 +66,37 @@ const BOLTS = ["1", "2", "3", "4", "5"];
 export function CheckInCard({ today }: { today: string }) {
   useLanguage();
   const day = useStore((s) => s.days.find((d) => d.id === today));
+  // Start from the last bedtime and wake-up set, so most mornings it's one tap.
+  const last = useStore((s) => s.days.find((d) => d.id !== today && d.bed && d.wake));
   const [editing, setEditing] = useState(false);
-  const [sleepH, setSleep] = useState(7);
+  const [bed, setBed] = useState("23:00");
+  const [wake, setWake] = useState("07:00");
   const [mood, setMood] = useState(0);
   const [energy, setEnergy] = useState(0);
   const done = day?.sleepH !== undefined;
   useEffect(() => {
     if (!editing) return;
-    setSleep(day?.sleepH ?? 7);
+    if (day?.bed && day.wake) {
+      setBed(day.bed);
+      setWake(day.wake);
+    } else if (day?.sleepH !== undefined) {
+      // Saved before the clock: hours only, so assume waking at 7.
+      setWake("07:00");
+      setBed(toHHMM(7 * 60 - day.sleepH * 60));
+    } else {
+      setBed(last?.bed ?? "23:00");
+      setWake(last?.wake ?? "07:00");
+    }
     setMood(day?.mood ?? 0);
     setEnergy(day?.energy ?? 0);
-  }, [editing, day]);
+  }, [editing, day, last]);
   if (done && !editing) {
     return (
       <button className="card pressable checkin-done" style={{ marginTop: 12 }} onClick={() => setEditing(true)} data-testid="checkin">
         <Moon size={16} color="var(--indigo)" />
         <span className="row-main" style={{ textAlign: "left" }}>
-          {t("Slept {h} h", { h: day!.sleepH! })}
+          {t("Slept {time}", { time: durationLabel(Math.round(day!.sleepH! * 60)) })}
+          {day!.bed && day!.wake ? ` (${clockLabel(day!.bed)}–${clockLabel(day!.wake)})` : ""}
           {day!.mood ? ` · ${FACES[day!.mood - 1]}` : ""}
           {day!.energy ? ` · ${t("energy {n}/5", { n: day!.energy })}` : ""}
         </span>
@@ -104,9 +111,26 @@ export function CheckInCard({ today }: { today: string }) {
       <div className="tile-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <Moon size={17} color="var(--indigo)" /> {t("Morning check-in")}
       </div>
-      <div className="checkin-row">
-        <span>{t("Sleep")}</span>
-        <Stepper value={sleepH} onChange={setSleep} step={0.5} min={0} max={14} format={(v) => `${v} h`} label={t("sleep")} />
+      <div className="sleep-row">
+        <SleepClock
+          bed={bed}
+          wake={wake}
+          onChange={(b, w) => {
+            setBed(b);
+            setWake(w);
+          }}
+        />
+        <div className="sleep-times">
+          <span>
+            <Moon size={14} color="var(--indigo)" /> {t("Bedtime")} <b className="tabular">{clockLabel(bed)}</b>
+          </span>
+          <span>
+            <Sun size={14} color="var(--orange)" /> {t("Wake up")} <b className="tabular">{clockLabel(wake)}</b>
+          </span>
+        </div>
+        <p className="footnote" style={{ margin: 0, textAlign: "center" }}>
+          {t("Drag the moon to when you fell asleep and the sun to when you woke up.")}
+        </p>
       </div>
       <div className="checkin-row">
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -136,7 +160,7 @@ export function CheckInCard({ today }: { today: string }) {
         className="btn small"
         style={{ marginTop: 12 }}
         onClick={() => {
-          actions.setCheckIn(today, { sleepH, mood: mood || undefined, energy: energy || undefined });
+          actions.setCheckIn(today, { sleepH: Math.round((sleepMinutes(bed, wake) / 60) * 100) / 100, bed, wake, mood: mood || undefined, energy: energy || undefined });
           setEditing(false);
           haptic("success");
         }}

@@ -54,7 +54,7 @@ import { CycleCalendar } from "../components/CycleCalendar";
 import { LateAdviceSheetBody } from "../components/LateAdviceSheet";
 import { PeopleSheet, PersonAvatar, householdSize } from "../components/People";
 import { QuickAddSheet, VoiceLogSheet } from "../components/QuickLog";
-import { CheckInCard, StepsRow, SupplementsCard } from "../components/Daily";
+import { CheckInCard, StepsRing, SupplementsCard } from "../components/Daily";
 import { WeeklyReportSheet } from "../components/WeeklyReport";
 import { MealIdeasCard } from "../components/MealIdeas";
 import { stepKcal, useStepUpdates } from "../lib/steps";
@@ -327,6 +327,8 @@ export function Today({
   const activeId = useStore((s) => s.activeSessionId);
   const now = useNow(activeId ? 1000 : 30_000);
   const today = useTodayKey();
+  // Small phones (iPhone SE 1st gen): smaller rings so calories and steps stay side by side.
+  const narrow = typeof window !== "undefined" && window.innerWidth < 360;
   const tg = targets(profile);
   const bmiValue = bmi(profile);
 
@@ -470,58 +472,60 @@ export function Today({
           data-tour="summary"
           className="summary"
         >
-          <Ring
-            progress={eaten.kcal / (tg.kcal + burned)}
-            size={136}
-            stroke={14}
-          >
-            <div>
-              <div
-                className="stat-value"
-                style={{
-                  fontSize: 28,
-                  color: remaining < 0 ? "var(--red)" : undefined,
-                }}
-              >
-                {Math.abs(round(remaining))}
+          <div className="ring-col">
+            <Ring
+              progress={eaten.kcal / (tg.kcal + burned)}
+              size={narrow ? 116 : 136}
+              stroke={narrow ? 12 : 14}
+            >
+              <div>
+                <div
+                  className="stat-value"
+                  style={{
+                    fontSize: 28,
+                    color: remaining < 0 ? "var(--red)" : undefined,
+                  }}
+                >
+                  {Math.abs(round(remaining))}
+                </div>
+                <div className="stat-label" style={{ justifyContent: "center" }}>
+                  {remaining < 0 ? t("kcal over") : t("kcal left")}
+                </div>
               </div>
-              <div className="stat-label" style={{ justifyContent: "center" }}>
-                {remaining < 0 ? t("kcal over") : t("kcal left")}
-              </div>
-            </div>
-          </Ring>
-          <div className="summary-stats">
-            <div className="stat">
-              <span className="stat-label">
-                <Utensils size={13} /> {t("Eaten")}
-              </span>
-              <span className="stat-value">
-                {round(eaten.kcal)}
-                <small>kcal</small>
-              </span>
-            </div>
-            <div className="stat">
-              <span className="stat-label">
-                <Flame size={13} color="var(--orange)" /> {t("Burned")}
-              </span>
-              <span className="stat-value">
-                {round(burned)}
-                <small>kcal</small>
-              </span>
-            </div>
-            <div className="stat">
-              <span className="stat-label">{t("Daily target")}</span>
-              <span className="stat-value">
-                {tg.kcal}
-                <small>kcal</small>
-              </span>
-            </div>
+            </Ring>
+          </div>
+          <StepsRing today={today} size={narrow ? 92 : 112} />
+        </div>
+        <div className="summary-stats row3">
+          <div className="stat">
+            <span className="stat-label">
+              <Utensils size={13} /> {t("Eaten")}
+            </span>
+            <span className="stat-value">
+              {round(eaten.kcal)}
+              <small>kcal</small>
+            </span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">
+              <Flame size={13} color="var(--orange)" /> {t("Burned")}
+            </span>
+            <span className="stat-value">
+              {round(burned)}
+              <small>kcal</small>
+            </span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">{t("Daily target")}</span>
+            <span className="stat-value">
+              {tg.kcal}
+              <small>kcal</small>
+            </span>
           </div>
         </div>
         <div className="spacer" />
         <div className="spacer" />
         <MacroBars n={eaten} t={tg} />
-        <StepsRow today={today} />
       </div>
 
       <div className="card" style={{ marginTop: 12 }} data-tour="water">

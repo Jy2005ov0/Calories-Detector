@@ -157,8 +157,9 @@ export async function audit(page: Page, screen: string, issues: Issue[]) {
         const a = interactive[i], b = interactive[j];
         if (a.contains(b) || b.contains(a)) continue;
         // Content scrolling under the floating tab bar or ? button is by design.
-        // Floating bars that content scrolls under by design (and can scroll clear of).
-        const chrome = (el: Element) => !!el.closest(".tabbar, .help-btn, .sheet-cta, .rest-bar");
+        // Floating bars that content scrolls under by design (and can scroll clear of), and toasts,
+        // which float over the page for a few seconds.
+        const chrome = (el: Element) => !!el.closest(".tabbar, .help-btn, .sheet-cta, .rest-bar, .toast");
         if (chrome(a) !== chrome(b)) continue;
         const ra = shown(a), rb = shown(b);
         const ox = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left);
