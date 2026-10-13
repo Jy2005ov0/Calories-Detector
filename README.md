@@ -61,77 +61,84 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 #### Today and progress
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/06-today.jpg" width="190" alt="Calories left, water, streak"><br><sub>Calories left, water, streak</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/06-today.jpg" width="190" alt="Calories and steps rings, water, streak"><br><sub>Calories and steps rings, water, streak</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/12-water-cup.jpg" width="190" alt="Tap the cup to drink"><br><sub>Tap the cup to drink</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/13-sleep-clock.jpg" width="190" alt="Sleep on a 24-hour clock"><br><sub>Sleep on a 24-hour clock</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/14-calorie-target.jpg" width="190" alt="Set your own calorie target"><br><sub>Set your own calorie target</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/15-swipe-between-tabs.jpg" width="190" alt="Swipe between tabs"><br><sub>Swipe between tabs</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/07-today-meals.jpg" width="190" alt="Daily limits and meals"><br><sub>Daily limits and meals</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/08-edit-food.jpg" width="190" alt="Tap a food to fix or delete it"><br><sub>Tap a food to fix or delete it</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/09-meal-ideas.jpg" width="190" alt="Daily meal ideas"><br><sub>Daily meal ideas</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/10-meal-ideas-settings.jpg" width="190" alt="Meal ideas your way"><br><sub>Meal ideas your way</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/11-weekly-report.jpg" width="190" alt="Weekly report"><br><sub>Weekly report</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/14-progress-weight.jpg" width="190" alt="Weight chart and trend"><br><sub>Weight chart and trend</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/15-progress-water.jpg" width="190" alt="Water history"><br><sub>Water history</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/16-water-cup-size.jpg" width="190" alt="Your own cup or bottle size"><br><sub>Your own cup or bottle size</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/18-progress-weight.jpg" width="190" alt="Weight chart and trend"><br><sub>Weight chart and trend</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/19-progress-water.jpg" width="190" alt="Water history"><br><sub>Water history</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/20-water-cup-size.jpg" width="190" alt="Your own cup or bottle size"><br><sub>Your own cup or bottle size</sub></td>
 </tr></table>
 
 #### Food: barcode and search
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/12-barcode-scanner.jpg" width="190" alt="Scan a barcode"><br><sub>Scan a barcode</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/13-barcode-product.jpg" width="190" alt="Packaged food from its barcode"><br><sub>Packaged food from its barcode</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/17-food.jpg" width="190" alt="Food home"><br><sub>Food home</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/18-food-search.jpg" width="190" alt="Search 21,000+ foods"><br><sub>Search 21,000+ foods</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/19-food-health-check.jpg" width="190" alt="Health grade and goal check"><br><sub>Health grade and goal check</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/16-barcode-scanner.jpg" width="190" alt="Scan a barcode"><br><sub>Scan a barcode</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/17-barcode-product.jpg" width="190" alt="Packaged food from its barcode"><br><sub>Packaged food from its barcode</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/21-food.jpg" width="190" alt="Food home"><br><sub>Food home</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/22-food-search.jpg" width="190" alt="Search 21,000+ foods"><br><sub>Search 21,000+ foods</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/23-food-health-check.jpg" width="190" alt="Health grade and goal check"><br><sub>Health grade and goal check</sub></td>
 </tr></table>
 
 #### Dishes, halal, allergies and dislikes
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/20-customise-dish.jpg" width="190" alt="Change what's in a dish"><br><sub>Change what's in a dish</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/21-halal-filter.jpg" width="190" alt="Hides what you avoid"><br><sub>Hides what you avoid</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/22-halal-warning.jpg" width="190" alt="Halal / allergy warning"><br><sub>Halal / allergy warning</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/23-meal-builder.jpg" width="190" alt="Build your own meal"><br><sub>Build your own meal</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/40-foods-i-dont-eat.jpg" width="190" alt="Foods you don't eat, left out of plans"><br><sub>Foods you don't eat, left out of plans</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/24-customise-dish.jpg" width="190" alt="Change what's in a dish"><br><sub>Change what's in a dish</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/25-halal-filter.jpg" width="190" alt="Hides what you avoid"><br><sub>Hides what you avoid</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/26-halal-warning.jpg" width="190" alt="Halal / allergy warning"><br><sub>Halal / allergy warning</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/27-meal-builder.jpg" width="190" alt="Build your own meal"><br><sub>Build your own meal</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/47-foods-i-dont-eat.jpg" width="190" alt="Foods you don't eat, left out of plans"><br><sub>Foods you don't eat, left out of plans</sub></td>
 </tr></table>
 
 #### Gym
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/24-train.jpg" width="190" alt="Train and personal records"><br><sub>Train and personal records</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/25-exercise-library.jpg" width="190" alt="An icon for every exercise"><br><sub>An icon for every exercise</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/26-exercise-detail.jpg" width="190" alt="Real photos: start and end position"><br><sub>Real photos: start and end position</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/27-workout-rest-timer-record.jpg" width="190" alt="Rest timer, last time and a new record"><br><sub>Rest timer, last time and a new record</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/28-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/29-workout-done-records.jpg" width="190" alt="Share a workout"><br><sub>Share a workout</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/30-gym-tools.jpg" width="190" alt="Plates, 1-rep max, warm-ups"><br><sub>Plates, 1-rep max, warm-ups</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/31-run-tracker.jpg" width="190" alt="GPS run tracking"><br><sub>GPS run tracking</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/28-train.jpg" width="190" alt="Train and personal records"><br><sub>Train and personal records</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/29-exercise-library.jpg" width="190" alt="An icon for every exercise"><br><sub>An icon for every exercise</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/30-exercise-detail.jpg" width="190" alt="Real photos: start and end position"><br><sub>Real photos: start and end position</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/31-create-exercise.jpg" width="190" alt="Create your own exercise"><br><sub>Create your own exercise</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/32-workout-rest-timer-record.jpg" width="190" alt="Rest timer, last time and a new record"><br><sub>Rest timer, last time and a new record</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/33-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/34-workout-done-records.jpg" width="190" alt="Share a workout"><br><sub>Share a workout</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/35-gym-tools.jpg" width="190" alt="Plates, 1-rep max, warm-ups"><br><sub>Plates, 1-rep max, warm-ups</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/36-run-tracker.jpg" width="190" alt="GPS run tracking"><br><sub>GPS run tracking</sub></td>
 </tr></table>
 
 #### Plan and body check
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/32-training-plan.jpg" width="190" alt="Training split"><br><sub>Training split</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/33-nutrition-plan.jpg" width="190" alt="Calorie and macro targets"><br><sub>Calorie and macro targets</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/34-sample-day.jpg" width="190" alt="A sample day to log"><br><sub>A sample day to log</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/35-meal-planner.jpg" width="190" alt="Weekly meal planner"><br><sub>Weekly meal planner</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/36-body-check-bmi.jpg" width="190" alt="BMI calculator"><br><sub>BMI calculator</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/37-body-check-advice.jpg" width="190" alt="What to train and eat"><br><sub>What to train and eat</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/37-training-plan.jpg" width="190" alt="Training split"><br><sub>Training split</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/38-plan-press-and-hold.jpg" width="190" alt="Hold and drag to reorder your week"><br><sub>Hold and drag to reorder your week</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/39-exercise-from-plan.jpg" width="190" alt="Tap a plan exercise to see how"><br><sub>Tap a plan exercise to see how</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/40-nutrition-plan.jpg" width="190" alt="Calorie and macro targets"><br><sub>Calorie and macro targets</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/41-sample-day.jpg" width="190" alt="A sample day to log"><br><sub>A sample day to log</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/42-meal-planner.jpg" width="190" alt="Weekly meal planner"><br><sub>Weekly meal planner</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/43-body-check-bmi.jpg" width="190" alt="BMI calculator"><br><sub>BMI calculator</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/44-body-check-advice.jpg" width="190" alt="What to train and eat"><br><sub>What to train and eat</sub></td>
 </tr></table>
 
 #### Profile, cycle, family, Ramadan and languages
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/38-profile.jpg" width="190" alt="Profile and appearance"><br><sub>Profile and appearance</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/39-profile-allergies-fasting.jpg" width="190" alt="Allergies, halal and fasting"><br><sub>Allergies, halal and fasting</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/41-profile-reminders-language.jpg" width="190" alt="Reminders, goals, language, export"><br><sub>Reminders, goals, language, export</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/42-profile-cycle.jpg" width="190" alt="Cycle tracking settings"><br><sub>Cycle tracking settings</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/43-cycle-today.jpg" width="190" alt="Cycle day, phase and tips"><br><sub>Cycle day, phase and tips</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/44-period-calendar.jpg" width="190" alt="Period calendar"><br><sub>Period calendar</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/51-period-late-advice.jpg" width="190" alt="Advice when a period is late"><br><sub>Advice when a period is late</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/45-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/46-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/47-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/48-language-malay.jpg" width="190" alt="Bahasa Melayu"><br><sub>Bahasa Melayu</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/49-language-chinese.jpg" width="190" alt="中文"><br><sub>中文</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/50-exercise-chinese.jpg" width="190" alt="Exercises in Chinese"><br><sub>Exercises in Chinese</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/45-profile.jpg" width="190" alt="Profile and appearance"><br><sub>Profile and appearance</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/46-profile-allergies-fasting.jpg" width="190" alt="Allergies, halal and fasting"><br><sub>Allergies, halal and fasting</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/48-profile-reminders-language.jpg" width="190" alt="Reminders, goals, language, export"><br><sub>Reminders, goals, language, export</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/49-profile-cycle.jpg" width="190" alt="Cycle tracking settings"><br><sub>Cycle tracking settings</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/50-cycle-today.jpg" width="190" alt="Cycle day, phase and tips"><br><sub>Cycle day, phase and tips</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/51-period-calendar.jpg" width="190" alt="Period calendar"><br><sub>Period calendar</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/58-period-late-advice.jpg" width="190" alt="Advice when a period is late"><br><sub>Advice when a period is late</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/52-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/53-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/54-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/55-language-malay.jpg" width="190" alt="Bahasa Melayu"><br><sub>Bahasa Melayu</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/56-language-chinese.jpg" width="190" alt="中文"><br><sub>中文</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/57-exercise-chinese.jpg" width="190" alt="Exercises in Chinese"><br><sub>Exercises in Chinese</sub></td>
 </tr></table>
 
 <details>
@@ -150,77 +157,84 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 #### Today and progress
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/06-today.jpg" width="190" alt="Calories left, water, streak"><br><sub>Calories left, water, streak</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/06-today.jpg" width="190" alt="Calories and steps rings, water, streak"><br><sub>Calories and steps rings, water, streak</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/12-water-cup.jpg" width="190" alt="Tap the cup to drink"><br><sub>Tap the cup to drink</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/13-sleep-clock.jpg" width="190" alt="Sleep on a 24-hour clock"><br><sub>Sleep on a 24-hour clock</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/14-calorie-target.jpg" width="190" alt="Set your own calorie target"><br><sub>Set your own calorie target</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/15-swipe-between-tabs.jpg" width="190" alt="Swipe between tabs"><br><sub>Swipe between tabs</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/07-today-meals.jpg" width="190" alt="Daily limits and meals"><br><sub>Daily limits and meals</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/08-edit-food.jpg" width="190" alt="Tap a food to fix or delete it"><br><sub>Tap a food to fix or delete it</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/09-meal-ideas.jpg" width="190" alt="Daily meal ideas"><br><sub>Daily meal ideas</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/10-meal-ideas-settings.jpg" width="190" alt="Meal ideas your way"><br><sub>Meal ideas your way</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/11-weekly-report.jpg" width="190" alt="Weekly report"><br><sub>Weekly report</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/14-progress-weight.jpg" width="190" alt="Weight chart and trend"><br><sub>Weight chart and trend</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/15-progress-water.jpg" width="190" alt="Water history"><br><sub>Water history</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/16-water-cup-size.jpg" width="190" alt="Your own cup or bottle size"><br><sub>Your own cup or bottle size</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/18-progress-weight.jpg" width="190" alt="Weight chart and trend"><br><sub>Weight chart and trend</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/19-progress-water.jpg" width="190" alt="Water history"><br><sub>Water history</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/20-water-cup-size.jpg" width="190" alt="Your own cup or bottle size"><br><sub>Your own cup or bottle size</sub></td>
 </tr></table>
 
 #### Food: barcode and search
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/12-barcode-scanner.jpg" width="190" alt="Scan a barcode"><br><sub>Scan a barcode</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/13-barcode-product.jpg" width="190" alt="Packaged food from its barcode"><br><sub>Packaged food from its barcode</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/17-food.jpg" width="190" alt="Food home"><br><sub>Food home</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/18-food-search.jpg" width="190" alt="Search 21,000+ foods"><br><sub>Search 21,000+ foods</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/19-food-health-check.jpg" width="190" alt="Health grade and goal check"><br><sub>Health grade and goal check</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/16-barcode-scanner.jpg" width="190" alt="Scan a barcode"><br><sub>Scan a barcode</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/17-barcode-product.jpg" width="190" alt="Packaged food from its barcode"><br><sub>Packaged food from its barcode</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/21-food.jpg" width="190" alt="Food home"><br><sub>Food home</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/22-food-search.jpg" width="190" alt="Search 21,000+ foods"><br><sub>Search 21,000+ foods</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/23-food-health-check.jpg" width="190" alt="Health grade and goal check"><br><sub>Health grade and goal check</sub></td>
 </tr></table>
 
 #### Dishes, halal, allergies and dislikes
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/20-customise-dish.jpg" width="190" alt="Change what's in a dish"><br><sub>Change what's in a dish</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/21-halal-filter.jpg" width="190" alt="Hides what you avoid"><br><sub>Hides what you avoid</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/22-halal-warning.jpg" width="190" alt="Halal / allergy warning"><br><sub>Halal / allergy warning</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/23-meal-builder.jpg" width="190" alt="Build your own meal"><br><sub>Build your own meal</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/40-foods-i-dont-eat.jpg" width="190" alt="Foods you don't eat, left out of plans"><br><sub>Foods you don't eat, left out of plans</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/24-customise-dish.jpg" width="190" alt="Change what's in a dish"><br><sub>Change what's in a dish</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/25-halal-filter.jpg" width="190" alt="Hides what you avoid"><br><sub>Hides what you avoid</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/26-halal-warning.jpg" width="190" alt="Halal / allergy warning"><br><sub>Halal / allergy warning</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/27-meal-builder.jpg" width="190" alt="Build your own meal"><br><sub>Build your own meal</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/47-foods-i-dont-eat.jpg" width="190" alt="Foods you don't eat, left out of plans"><br><sub>Foods you don't eat, left out of plans</sub></td>
 </tr></table>
 
 #### Gym
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/24-train.jpg" width="190" alt="Train and personal records"><br><sub>Train and personal records</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/25-exercise-library.jpg" width="190" alt="An icon for every exercise"><br><sub>An icon for every exercise</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/26-exercise-detail.jpg" width="190" alt="Real photos: start and end position"><br><sub>Real photos: start and end position</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/27-workout-rest-timer-record.jpg" width="190" alt="Rest timer, last time and a new record"><br><sub>Rest timer, last time and a new record</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/28-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/29-workout-done-records.jpg" width="190" alt="Share a workout"><br><sub>Share a workout</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/30-gym-tools.jpg" width="190" alt="Plates, 1-rep max, warm-ups"><br><sub>Plates, 1-rep max, warm-ups</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/31-run-tracker.jpg" width="190" alt="GPS run tracking"><br><sub>GPS run tracking</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/28-train.jpg" width="190" alt="Train and personal records"><br><sub>Train and personal records</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/29-exercise-library.jpg" width="190" alt="An icon for every exercise"><br><sub>An icon for every exercise</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/30-exercise-detail.jpg" width="190" alt="Real photos: start and end position"><br><sub>Real photos: start and end position</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/31-create-exercise.jpg" width="190" alt="Create your own exercise"><br><sub>Create your own exercise</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/32-workout-rest-timer-record.jpg" width="190" alt="Rest timer, last time and a new record"><br><sub>Rest timer, last time and a new record</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/33-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/34-workout-done-records.jpg" width="190" alt="Share a workout"><br><sub>Share a workout</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/35-gym-tools.jpg" width="190" alt="Plates, 1-rep max, warm-ups"><br><sub>Plates, 1-rep max, warm-ups</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/36-run-tracker.jpg" width="190" alt="GPS run tracking"><br><sub>GPS run tracking</sub></td>
 </tr></table>
 
 #### Plan and body check
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/32-training-plan.jpg" width="190" alt="Training split"><br><sub>Training split</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/33-nutrition-plan.jpg" width="190" alt="Calorie and macro targets"><br><sub>Calorie and macro targets</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/34-sample-day.jpg" width="190" alt="A sample day to log"><br><sub>A sample day to log</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/35-meal-planner.jpg" width="190" alt="Weekly meal planner"><br><sub>Weekly meal planner</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/36-body-check-bmi.jpg" width="190" alt="BMI calculator"><br><sub>BMI calculator</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/37-body-check-advice.jpg" width="190" alt="What to train and eat"><br><sub>What to train and eat</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/37-training-plan.jpg" width="190" alt="Training split"><br><sub>Training split</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/38-plan-press-and-hold.jpg" width="190" alt="Hold and drag to reorder your week"><br><sub>Hold and drag to reorder your week</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/39-exercise-from-plan.jpg" width="190" alt="Tap a plan exercise to see how"><br><sub>Tap a plan exercise to see how</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/40-nutrition-plan.jpg" width="190" alt="Calorie and macro targets"><br><sub>Calorie and macro targets</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/41-sample-day.jpg" width="190" alt="A sample day to log"><br><sub>A sample day to log</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/42-meal-planner.jpg" width="190" alt="Weekly meal planner"><br><sub>Weekly meal planner</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/43-body-check-bmi.jpg" width="190" alt="BMI calculator"><br><sub>BMI calculator</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/44-body-check-advice.jpg" width="190" alt="What to train and eat"><br><sub>What to train and eat</sub></td>
 </tr></table>
 
 #### Profile, cycle, family, Ramadan and languages
 
 <table><tr>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/38-profile.jpg" width="190" alt="Profile and appearance"><br><sub>Profile and appearance</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/39-profile-allergies-fasting.jpg" width="190" alt="Allergies, halal and fasting"><br><sub>Allergies, halal and fasting</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/41-profile-reminders-language.jpg" width="190" alt="Reminders, goals, language, export"><br><sub>Reminders, goals, language, export</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/42-profile-cycle.jpg" width="190" alt="Cycle tracking settings"><br><sub>Cycle tracking settings</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/43-cycle-today.jpg" width="190" alt="Cycle day, phase and tips"><br><sub>Cycle day, phase and tips</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/44-period-calendar.jpg" width="190" alt="Period calendar"><br><sub>Period calendar</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/51-period-late-advice.jpg" width="190" alt="Advice when a period is late"><br><sub>Advice when a period is late</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/45-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/46-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/47-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/48-language-malay.jpg" width="190" alt="Bahasa Melayu"><br><sub>Bahasa Melayu</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/49-language-chinese.jpg" width="190" alt="中文"><br><sub>中文</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/50-exercise-chinese.jpg" width="190" alt="Exercises in Chinese"><br><sub>Exercises in Chinese</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/45-profile.jpg" width="190" alt="Profile and appearance"><br><sub>Profile and appearance</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/46-profile-allergies-fasting.jpg" width="190" alt="Allergies, halal and fasting"><br><sub>Allergies, halal and fasting</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/48-profile-reminders-language.jpg" width="190" alt="Reminders, goals, language, export"><br><sub>Reminders, goals, language, export</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/49-profile-cycle.jpg" width="190" alt="Cycle tracking settings"><br><sub>Cycle tracking settings</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/50-cycle-today.jpg" width="190" alt="Cycle day, phase and tips"><br><sub>Cycle day, phase and tips</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/51-period-calendar.jpg" width="190" alt="Period calendar"><br><sub>Period calendar</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/58-period-late-advice.jpg" width="190" alt="Advice when a period is late"><br><sub>Advice when a period is late</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/52-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/53-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/54-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/55-language-malay.jpg" width="190" alt="Bahasa Melayu"><br><sub>Bahasa Melayu</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/56-language-chinese.jpg" width="190" alt="中文"><br><sub>中文</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/57-exercise-chinese.jpg" width="190" alt="Exercises in Chinese"><br><sub>Exercises in Chinese</sub></td>
 </tr></table>
 
 </details>

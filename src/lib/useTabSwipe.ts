@@ -40,6 +40,8 @@ export function useTabSwipe<T extends string>(tabs: readonly T[], tab: T, setTab
         if (Math.abs(dx) < 14 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
         sideways.current = true;
       }
+      // A page turn never selects the text it passes over.
+      document.getSelection()?.removeAllRanges();
       // Rubber-band past the first and last tab.
       const edge = (dx > 0 && i === 0) || (dx < 0 && i === tabs.length - 1);
       x.set(edge ? dx * 0.2 : dx * 0.6);
