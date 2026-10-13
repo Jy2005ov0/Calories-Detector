@@ -3059,3 +3059,110 @@ html[data-text="xlarge"] body {
   margin: -12px -8px;
   padding: 0 8px;
 }
+
+/* Swiping between tabs: the browser keeps vertical scrolling, the app takes sideways swipes. */
+.app > main {
+  touch-action: pan-y pinch-zoom;
+}
+.app {
+  overflow-x: clip;
+}
+
+/* Daily calorie target: automatic, or your own number (typed or on the slider). */
+.kcal-target-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 14px;
+}
+.kcal-input input {
+  width: 5.2ch;
+  font-size: 2.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--label);
+  background: var(--bg-fill);
+  border: 0;
+  border-radius: 12px;
+  padding: 2px 10px;
+}
+.kcal-input input:focus {
+  outline: 2px solid var(--blue);
+}
+.kcal-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 32px;
+  margin: 14px 0 4px;
+  background: transparent;
+}
+.kcal-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--orange) var(--pos), var(--bg-fill) var(--pos));
+}
+.kcal-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--orange) var(--pos), var(--bg-fill) var(--pos));
+}
+.kcal-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  margin-top: -10px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+}
+.kcal-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+}
+.kcal-slider:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+.kcal-suggested {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 12px;
+  font-size: 0.875rem;
+  color: var(--label-2);
+}
+.kcal-warning {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  color: var(--red-ink, var(--red));
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+}
+.kcal-warning svg {
+  flex: none;
+  margin-top: 2px;
+}
+/* Today's "Daily target" is a button that opens the editor. */
+.stat-button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.stat-button .stat-label svg {
+  color: var(--blue);
+}

@@ -396,7 +396,20 @@ export const EXTRAS: AreaDict = {
     "Drink water": "Minum air",
     "Tap the cup each time you drink. The water drains as the cup is counted, then the cup fills back up. Hold it to take a cup back.": "Ketik cawan setiap kali anda minum. Air surut apabila cawan dikira, kemudian cawan penuh semula. Tahan untuk membatalkan secawan.",
     "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 6,000+ exercises and sports, and you can create your own.": "Bermain futsal atau berlari? Rekodkan di sini dengan tempohnya dan kalori ditambah pada hari anda. Terdapat lebih 6,000 senaman dan sukan, dan anda boleh mencipta sendiri.",
-    "Choose a split and your days per week. Press and hold a day or an exercise to drag it into your own order, and tap an exercise to see how it's done.": "Pilih pembahagian dan hari seminggu. Tekan dan tahan hari atau senaman untuk menyeretnya mengikut susunan anda, dan ketik senaman untuk melihat cara melakukannya."
+    "Choose a split and your days per week. Press and hold a day or an exercise to drag it into your own order, and tap an exercise to see how it's done.": "Pilih pembahagian dan hari seminggu. Tekan dan tahan hari atau senaman untuk menyeretnya mengikut susunan anda, dan ketik senaman untuk melihat cara melakukannya.",
+    "Daily calorie target": "Sasaran kalori harian",
+    "Automatic": "Automatik",
+    "My own": "Sendiri",
+    "Calories a day": "Kalori sehari",
+    "{n} kcal a day": "{n} kcal sehari",
+    "Suggested for your goal: {n} kcal": "Dicadangkan untuk matlamat anda: {n} kcal",
+    "Use it": "Guna",
+    "Below {n} kcal a day is hard to get enough nutrients from. Only go this low with a doctor's advice.": "Di bawah {n} kcal sehari sukar untuk mendapat nutrien yang cukup. Hanya serendah ini dengan nasihat doktor.",
+    "Worked out from your body, activity and goal. It updates when they change.": "Dikira daripada badan, aktiviti dan matlamat anda. Ia dikemas kini apabila semua itu berubah.",
+    "Protein {p} g · carbs {c} g · fat {f} g a day follow this target.": "Protein {p} g · karbohidrat {c} g · lemak {f} g sehari mengikut sasaran ini.",
+    "Daily target {n} kcal, change": "Sasaran harian {n} kcal, tukar",
+    "My target": "Sasaran saya",
+    "You set this target yourself. Suggested for your goal: {n} kcal. Change it in Profile.": "Anda menetapkan sasaran ini sendiri. Dicadangkan untuk matlamat anda: {n} kcal. Tukar di Profil."
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -791,6 +804,19 @@ export const EXTRAS: AreaDict = {
     "Drink water": "喝水",
     "Tap the cup each time you drink. The water drains as the cup is counted, then the cup fills back up. Hold it to take a cup back.": "每喝一次就点一下杯子。水会慢慢减少表示已记录,然后杯子重新装满。长按可撤回一杯。",
     "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 6,000+ exercises and sports, and you can create your own.": "踢了室内足球或去跑步?在这里记录时长,热量会加到今天。共有 6,000 多种运动,你也可以创建自己的动作。",
-    "Choose a split and your days per week. Press and hold a day or an exercise to drag it into your own order, and tap an exercise to see how it's done.": "选择训练分化和每周天数。长按训练日或动作即可拖动调整顺序,点一下动作可查看做法。"
+    "Choose a split and your days per week. Press and hold a day or an exercise to drag it into your own order, and tap an exercise to see how it's done.": "选择训练分化和每周天数。长按训练日或动作即可拖动调整顺序,点一下动作可查看做法。",
+    "Daily calorie target": "每日热量目标",
+    "Automatic": "自动",
+    "My own": "自己设定",
+    "Calories a day": "每天热量",
+    "{n} kcal a day": "每天 {n} 千卡",
+    "Suggested for your goal: {n} kcal": "根据你的目标建议:{n} 千卡",
+    "Use it": "使用",
+    "Below {n} kcal a day is hard to get enough nutrients from. Only go this low with a doctor's advice.": "每天低于 {n} 千卡很难获得足够营养。请在医生建议下才设这么低。",
+    "Worked out from your body, activity and goal. It updates when they change.": "根据你的身体、活动量和目标计算,它们改变时会自动更新。",
+    "Protein {p} g · carbs {c} g · fat {f} g a day follow this target.": "每天蛋白质 {p} 克 · 碳水 {c} 克 · 脂肪 {f} 克,随此目标调整。",
+    "Daily target {n} kcal, change": "每日目标 {n} 千卡,点击修改",
+    "My target": "我的目标",
+    "You set this target yourself. Suggested for your goal: {n} kcal. Change it in Profile.": "这是你自己设定的目标。根据你的目标建议:{n} 千卡。可在个人资料中修改。"
   }
 };

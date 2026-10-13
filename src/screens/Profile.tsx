@@ -1,3 +1,4 @@
+import { CalorieTargetEditor } from "../components/CalorieTarget";
 import { useRef, useState } from "react";
 import { BadgesRow } from "../components/Badges";
 import { PregnancySection, StepsSettings, SupplementsRow, TextSizeSection } from "../components/ProfileExtras";
@@ -395,6 +396,8 @@ export function ProfileScreen({ openSheet }: { openSheet: (k: SheetKind) => void
 
       <div className="section-header">{t("Goal")}</div>
       <OptionList options={GOALS} value={p.goal} onChange={(goal) => actions.updateProfile({ goal })} />
+      <div className="section-header">{t("Daily calorie target")}</div>
+      <CalorieTargetEditor />
 
       <div className="section-header">{t("Activity level")}</div>
       <OptionList options={ACTIVITY} value={p.activity} onChange={(activity) => actions.updateProfile({ activity })} />

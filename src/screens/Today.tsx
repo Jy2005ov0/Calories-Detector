@@ -55,6 +55,7 @@ import { LateAdviceSheetBody } from "../components/LateAdviceSheet";
 import { PeopleSheet, PersonAvatar, householdSize } from "../components/People";
 import { QuickAddSheet, VoiceLogSheet } from "../components/QuickLog";
 import { CheckInCard, StepsRing, SupplementsCard } from "../components/Daily";
+import { DailyTargetButton } from "../components/CalorieTarget";
 import { WeeklyReportSheet } from "../components/WeeklyReport";
 import { MealIdeasCard } from "../components/MealIdeas";
 import { stepKcal, useStepUpdates } from "../lib/steps";
@@ -515,13 +516,7 @@ export function Today({
               <small>kcal</small>
             </span>
           </div>
-          <div className="stat">
-            <span className="stat-label">{t("Daily target")}</span>
-            <span className="stat-value">
-              {tg.kcal}
-              <small>kcal</small>
-            </span>
-          </div>
+          <DailyTargetButton kcal={tg.kcal} />
         </div>
         <div className="spacer" />
         <div className="spacer" />

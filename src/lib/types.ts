@@ -55,6 +55,8 @@ export type Experience = "beginner" | "intermediate" | "advanced";
 
 export interface Profile {
   name: string;
+  /** A daily calorie target the person chose themselves; unset means worked out from their profile. */
+  kcalTarget?: number;
   sex: Sex;
   age: number;
   heightCm: number;

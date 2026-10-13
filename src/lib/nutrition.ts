@@ -61,8 +61,18 @@ export const PREGNANCY_EXTRA = { off: 0, t1: 0, t2: 340, t3: 452, breastfeeding:
 /** Pregnancy or breastfeeding mode, which only applies to women. */
 export const pregnancyOf = (p: Pick<Profile, "sex" | "pregnancy">) => (p.sex === "female" ? (p.pregnancy ?? "off") : "off");
 
+/** Limits for a calorie target the person sets themselves. */
+export const MIN_KCAL = 800;
+export const MAX_KCAL = 6000;
+
+/** Below this a day is too little to eat without medical supervision (NHS / NIH guidance). */
+export const safeMinimum = (p: Pick<Profile, "sex">) => (p.sex === "male" ? 1500 : 1200);
+
+/** The target worked out from the profile and goal, ignoring any target the person set. */
+export const suggestedKcal = (p: Profile) => targets({ ...p, kcalTarget: undefined }).kcal;
+
 export function targets(p: Profile): Targets {
-  const floor = p.sex === "male" ? 1500 : 1200;
+  const floor = safeMinimum(p);
   const preg = pregnancyOf(p);
   const m = p.heightCm / 100;
   // Above a BMI of 25 protein is based on the weight at BMI 25, since extra body fat doesn't need extra protein.
@@ -81,6 +91,8 @@ export function targets(p: Profile): Targets {
     // Protein: 2.0 g/kg while cutting (preserve muscle), 1.8 g/kg otherwise (ISSN position stand).
     protein = Math.round(leanRef * (p.goal === "lose" ? 2.0 : 1.8));
   }
+  // The person's own target, if they set one: protein still follows their body; carbs and fat fill the rest.
+  if (p.kcalTarget) kcal = Math.round(Math.min(MAX_KCAL, Math.max(MIN_KCAL, p.kcalTarget)));
   // At least 50 g carbs; fat gives way if the day is too small for both (it never drops below 20% of energy).
   const fat = Math.round(Math.max(kcal * 0.2, Math.min(kcal * (p.goal === "lose" ? 0.27 : 0.28), kcal - protein * 4 - 200)) / 9);
   const carbs = Math.max(50, Math.round((kcal - protein * 4 - fat * 9) / 4));

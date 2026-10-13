@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { CalendarCheck, Dumbbell, Flame, Search, UserRound } from "lucide-react";
 import { IntroGuide } from "./components/IntroGuide";
 import { BodyCheckSheet } from "./components/BodyCheckSheet";
+import { useTabSwipe } from "./lib/useTabSwipe";
 import { BarcodeSheet } from "./components/BarcodeSheet";
 import { FoodSheet } from "./components/FoodSheet";
 import { CustomFoodSheet } from "./components/MealBuilder";
@@ -52,7 +53,13 @@ export default function App() {
   }, [theme]);
 
   const live = useStore((s) => !!s.activeSessionId);
-  const [tab, setTab] = useState<Tab>("today");
+  const [tab, setTabState] = useState<Tab>("today");
+  // Which way the screen came in from: a swipe slides it in from that side; a tab tap just fades.
+  const [dir, setDir] = useState<0 | 1 | -1>(0);
+  const setTab = useCallback((next: Tab, d: 0 | 1 | -1 = 0) => {
+    setDir(d);
+    setTabState(next);
+  }, []);
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [found, setFound] = useState<Food | null>(null);
   const [newFood, setNewFood] = useState(false);
@@ -75,6 +82,13 @@ export default function App() {
     setTab("today");
   };
   const reduce = useReducedMotion();
+  // Swipe left or right to move between tabs (not while the guide is showing).
+  const swipe = useTabSwipe(
+    TABS.map((x) => x.id),
+    tab,
+    setTab,
+    !tour,
+  );
 
   // A different person (switched, or just added) starts on their own Today screen.
   const personId = useStore((s) => s.personId);
@@ -113,9 +127,11 @@ export default function App() {
       {/* The new tab shows at once (no waiting for the old one to fade out) with a quick fade-in. */}
       <motion.main
         key={`${tab}-${lang}`}
-        initial={{ opacity: 0.4 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: reduce ? 0 : 0.12, ease: "easeOut" }}
+        initial={dir && !reduce ? { opacity: 0.6, x: dir * 56 } : { opacity: 0.4 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={dir && !reduce ? { type: "spring", bounce: 0, duration: 0.3 } : { duration: reduce ? 0 : 0.12, ease: "easeOut" }}
+        style={{ translateX: swipe.x }}
+        {...swipe.handlers}
       >
         {tab === "today" && <Today go={setTab} openSheet={setSheet} />}
         {tab === "food" && <FoodScreen openSheet={setSheet} />}

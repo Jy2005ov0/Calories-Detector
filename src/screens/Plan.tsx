@@ -17,7 +17,7 @@ import { FoodIcon, MealIcon, mealOfName } from "../components/FoodIcon";
 import { dislikeLabel } from "../lib/allergens";
 import { SPLITS, WEEKDAYS, dayOrderKey, exerciseOrderKey, planFor, sessionFromPlan, type PlannedDay, type PlannedExercise } from "../lib/fitness";
 import { CustomSplitEditor, EquipmentPicker, SwapSheet } from "../components/PlanTools";
-import { bmr, round, targets, tdee } from "../lib/nutrition";
+import { bmr, round, suggestedKcal, targets, tdee } from "../lib/nutrition";
 import { actions, todayKey, useStore, useTodayKey, weekdayOf } from "../lib/store";
 import type { Food, MealType } from "../lib/types";
 import type { Tab } from "../App";
@@ -242,12 +242,14 @@ function NutritionPlan() {
           <span className="muted">{tr("kcal / day")}</span>
         </div>
         <p className="row-sub" style={{ whiteSpace: "normal", marginTop: 6 }}>
-          {tr("Resting burn {bmr} kcal × activity {activity} = {tdee} kcal maintenance, adjusted for {goal}.", {
-            bmr: round(bmr(profile)),
-            activity: profile.activity,
-            tdee: round(tdee(profile)),
-            goal: goalText,
-          })}
+          {profile.kcalTarget
+            ? tr("You set this target yourself. Suggested for your goal: {n} kcal. Change it in Profile.", { n: suggestedKcal(profile).toLocaleString() })
+            : tr("Resting burn {bmr} kcal × activity {activity} = {tdee} kcal maintenance, adjusted for {goal}.", {
+                bmr: round(bmr(profile)),
+                activity: profile.activity,
+                tdee: round(tdee(profile)),
+                goal: goalText,
+              })}
         </p>
         <div className="spacer" />
         <div className="macro-row">
