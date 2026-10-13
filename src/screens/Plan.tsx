@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeftRight, ChevronDown, Lightbulb, LogIn, Plus } from "lucide-react";
+import { ArrowDown, ArrowLeftRight, ArrowUp, ArrowUpDown, Check, ChevronDown, Lightbulb, LogIn, Plus, RotateCcw } from "lucide-react";
 import { t as tr, useLanguage } from "../i18n";
 import { exName, exTip, useExerciseNames } from "../i18n/exercises";
 import { ExerciseThumb } from "../components/ExercisePicture";
+import { ExerciseDetailSheet } from "../components/ExerciseLibrary";
+import { exerciseByName } from "../data/exercisePools";
 import { FOODS } from "../data/foods";
 import { FoodSheet } from "../components/FoodSheet";
 import { MealPlanner } from "../components/MealPlanner";
@@ -12,7 +14,7 @@ import { mealTiming, recommendedFoods, sampleDay } from "../lib/diet";
 import { foodIcon } from "../lib/foodIcon";
 import { FoodIcon, MealIcon, mealOfName } from "../components/FoodIcon";
 import { dislikeLabel } from "../lib/allergens";
-import { SPLITS, WEEKDAYS, planFor, sessionFromPlan, type PlannedDay, type PlannedExercise } from "../lib/fitness";
+import { SPLITS, WEEKDAYS, dayOrderKey, exerciseOrderKey, planFor, sessionFromPlan, type PlannedDay, type PlannedExercise } from "../lib/fitness";
 import { CustomSplitEditor, EquipmentPicker, SwapSheet } from "../components/PlanTools";
 import { bmr, round, targets, tdee } from "../lib/nutrition";
 import { actions, todayKey, useStore, useTodayKey, weekdayOf } from "../lib/store";
@@ -59,8 +61,22 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
   const planSwaps = useStore((s) => s.planSwaps);
   const myExercises = useStore((s) => s.customExercises);
   const customSplit = useStore((s) => s.customSplit);
-  const plan = useMemo(() => planFor({ profile, split, planSwaps, customSplit }), [profile, split, planSwaps, customSplit, lang, myExercises]);
+  const planOrder = useStore((s) => s.planOrder);
+  const plan = useMemo(() => planFor({ profile, split, planSwaps, customSplit, planOrder }), [profile, split, planSwaps, customSplit, planOrder, lang, myExercises]);
   const [swapping, setSwapping] = useState<PlannedExercise | null>(null);
+  const [viewing, setViewing] = useState<PlannedExercise | null>(null);
+  const [arranging, setArranging] = useState(false);
+  const dayKey = dayOrderKey(plan.split, plan.days.length);
+  const orderKeys = [dayKey, ...plan.days.map((d) => exerciseOrderKey(d.template, d.exercises.length))];
+  const reordered = orderKeys.some((k) => planOrder[k]);
+  const moveDay = (from: number, to: number) => {
+    actions.movePlanItem(dayKey, plan.days.length, from, to);
+    haptic();
+  };
+  const moveExercise = (d: PlannedDay, from: number, to: number) => {
+    actions.movePlanItem(exerciseOrderKey(d.template, d.exercises.length), d.exercises.length, from, to);
+    haptic();
+  };
   const today = weekdayOf(useTodayKey());
   const [open, setOpen] = useState<string | null>(plan.days.find((d) => d.weekday === today)?.key ?? plan.days[0]?.key ?? null);
 
@@ -91,6 +107,39 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
       </p>
 
       <SwapSheet exercise={swapping} onClose={() => setSwapping(null)} />
+      <ExerciseDetailSheet
+        exercise={viewing ? (exerciseByName(viewing.name) ?? null) : null}
+        onClose={() => setViewing(null)}
+        extra={() =>
+          viewing && (
+            <div className="group" style={{ marginTop: 12 }}>
+              <div className="row">
+                <div className="row-main">{tr("In your plan")}</div>
+                <div className="row-value">
+                  {tr("{sets} × {reps}", { sets: viewing.sets, reps: viewing.reps })} · {viewing.restSec >= 120 ? `${viewing.restSec / 60} min` : `${viewing.restSec}s`}
+                </div>
+              </div>
+            </div>
+          )
+        }
+        actions={() =>
+          viewing?.group && (
+            <>
+              <div className="spacer" />
+              <button
+                className="btn secondary"
+                onClick={() => {
+                  const e = viewing;
+                  setViewing(null);
+                  setSwapping(e);
+                }}
+              >
+                <ArrowLeftRight size={17} /> {tr("Swap for another exercise")}
+              </button>
+            </>
+          )
+        }
+      />
       <EquipmentPicker />
 
       <div className="group" style={{ marginTop: 14 }}>
@@ -116,30 +165,54 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
         </div>
       </div>
 
-      {plan.days.map((d) => {
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0 16px", marginInline: 4 }}>
+        <button className="link tap-link" onClick={() => setArranging((v) => !v)} aria-pressed={arranging}>
+          {arranging ? <Check size={16} /> : <ArrowUpDown size={16} />} {arranging ? tr("Done") : tr("Arrange days & exercises")}
+        </button>
+        {reordered && (
+          <button className="link tap-link" onClick={() => actions.resetPlanOrder(orderKeys)}>
+            <RotateCcw size={15} /> {tr("Suggested order")}
+          </button>
+        )}
+      </div>
+      {arranging && <p className="footnote" style={{ marginTop: 0, marginInline: 4 }}>{tr("Move a day up to train it earlier in the week, or move exercises to do them in your own order.")}</p>}
+
+      {plan.days.map((d, di) => {
         const isOpen = open === d.key;
         return (
           <motion.div layout transition={SPRING} key={d.key} className="card" style={{ marginTop: 12, padding: 0, overflow: "hidden" }}>
-            <button
-              className="row"
-              style={{ background: "transparent", padding: "14px 16px" }}
-              onClick={() => setOpen(isOpen ? null : d.key)}
-              aria-expanded={isOpen}
-            >
-              <div className="row-main">
-                <div className="muted" style={{ fontSize: 13, fontWeight: 600 }}>
-                  {tr(WEEKDAYS[d.weekday]).toUpperCase()}
-                  {d.weekday === today && ` · ${tr("Today").toUpperCase()}`}
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <button
+                className="row"
+                style={{ background: "transparent", padding: "14px 16px", flex: 1, minWidth: 0 }}
+                onClick={() => setOpen(isOpen ? null : d.key)}
+                aria-expanded={isOpen}
+              >
+                <div className="row-main">
+                  <div className="muted" style={{ fontSize: 13, fontWeight: 600 }}>
+                    {tr(WEEKDAYS[d.weekday]).toUpperCase()}
+                    {d.weekday === today && ` · ${tr("Today").toUpperCase()}`}
+                  </div>
+                  <div style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-0.02em" }}>{d.title}</div>
+                  <div className="row-sub">
+                    {d.focus} · ~{d.estMinutes} min
+                  </div>
                 </div>
-                <div style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-0.02em" }}>{d.title}</div>
-                <div className="row-sub">
-                  {d.focus} · ~{d.estMinutes} min
-                </div>
-              </div>
-              <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={SPRING} style={{ display: "grid", color: "var(--label-3)" }}>
-                <ChevronDown size={20} />
-              </motion.span>
-            </button>
+                <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={SPRING} style={{ display: "grid", color: "var(--label-3)" }}>
+                  <ChevronDown size={20} />
+                </motion.span>
+              </button>
+              {arranging && (
+                <MoveButtons
+                  first={di === 0}
+                  last={di === plan.days.length - 1}
+                  onUp={() => moveDay(di, di - 1)}
+                  onDown={() => moveDay(di, di + 1)}
+                  earlier={tr("Move {name} earlier in the week", { name: d.title })}
+                  later={tr("Move {name} later in the week", { name: d.title })}
+                />
+              )}
+            </div>
             <AnimatePresence initial={false}>
               {isOpen && (
                 <motion.div
@@ -150,26 +223,37 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
                   style={{ overflow: "hidden" }}
                 >
                   <div style={{ padding: "0 16px 16px" }}>
-                    {d.exercises.map((e) => (
+                    {d.exercises.map((e, ei) => (
                       <div key={e.swapKey ?? e.name} style={{ display: "flex", gap: 12, padding: "10px 0", borderTop: "0.5px solid var(--separator)" }}>
-                        <ExerciseThumb name={e.name} size={48} />
-                        <div className="row-main">
-                          <div style={{ fontWeight: 600 }}>{exName(e.name)}</div>
-                          <div className="row-sub" style={{ whiteSpace: "normal" }}>
-                            {tr("{sets} sets × {reps} reps · rest {rest} · RIR {rir}", {
-                              sets: e.sets,
-                              reps: e.reps,
-                              rest: e.restSec >= 120 ? `${e.restSec / 60} min` : `${e.restSec}s`,
-                              rir: e.rir,
-                            })}
-                          </div>
-                          {e.tip && (
-                            <div className="row-sub" style={{ whiteSpace: "normal", marginTop: 2, fontStyle: "italic" }}>
-                              {exTip(e.tip)}
+                        <button className="plan-ex" onClick={() => setViewing(e)} aria-label={tr("How to do {name}", { name: exName(e.name) })}>
+                          <ExerciseThumb name={e.name} size={48} />
+                          <div className="row-main">
+                            <div style={{ fontWeight: 600 }}>{exName(e.name)}</div>
+                            <div className="row-sub" style={{ whiteSpace: "normal" }}>
+                              {tr("{sets} sets × {reps} reps · rest {rest} · RIR {rir}", {
+                                sets: e.sets,
+                                reps: e.reps,
+                                rest: e.restSec >= 120 ? `${e.restSec / 60} min` : `${e.restSec}s`,
+                                rir: e.rir,
+                              })}
                             </div>
-                          )}
-                        </div>
-                        {e.group && (
+                            {e.tip && (
+                              <div className="row-sub" style={{ whiteSpace: "normal", marginTop: 2, fontStyle: "italic" }}>
+                                {exTip(e.tip)}
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                        {arranging ? (
+                          <MoveButtons
+                            first={ei === 0}
+                            last={ei === d.exercises.length - 1}
+                            onUp={() => moveExercise(d, ei, ei - 1)}
+                            onDown={() => moveExercise(d, ei, ei + 1)}
+                            earlier={tr("Move {name} up", { name: exName(e.name) })}
+                            later={tr("Move {name} down", { name: exName(e.name) })}
+                          />
+                        ) : e.group && (
                           <button className="icon-btn" style={{ alignSelf: "center" }} onClick={() => setSwapping(e)} aria-label={tr("Swap {name}", { name: exName(e.name) })}>
                             <ArrowLeftRight size={17} />
                           </button>
@@ -359,5 +443,19 @@ function NutritionPlan() {
 
       <FoodSheet food={food} onClose={() => setFood(null)} />
     </>
+  );
+}
+
+/** Up and down buttons for putting a day or exercise in another place. */
+function MoveButtons({ first, last, onUp, onDown, earlier, later }: { first: boolean; last: boolean; onUp: () => void; onDown: () => void; earlier: string; later: string }) {
+  return (
+    <div style={{ display: "flex", gap: 6, alignSelf: "center", paddingRight: 8 }}>
+      <button className="icon-btn" disabled={first} onClick={onUp} aria-label={earlier}>
+        <ArrowUp size={18} />
+      </button>
+      <button className="icon-btn" disabled={last} onClick={onDown} aria-label={later}>
+        <ArrowDown size={18} />
+      </button>
+    </div>
   );
 }

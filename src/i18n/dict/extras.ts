@@ -372,7 +372,18 @@ export const EXTRAS: AreaDict = {
     "Hard": "Berat",
     "About {kcal} kcal per 30 min for you, worked out like similar exercises.": "Kira-kira {kcal} kcal setiap 30 min untuk anda, dikira seperti senaman yang serupa.",
     "Optional, e.g. a form cue": "Pilihan, cth. petua teknik",
-    "Create exercise": "Cipta senaman"
+    "Create exercise": "Cipta senaman",
+    "In your plan": "Dalam pelan anda",
+    "{sets} × {reps}": "{sets} × {reps}",
+    "Swap for another exercise": "Tukar kepada senaman lain",
+    "Arrange days & exercises": "Susun hari & senaman",
+    "Suggested order": "Susunan dicadangkan",
+    "Move a day up to train it earlier in the week, or move exercises to do them in your own order.": "Alihkan hari ke atas untuk berlatih lebih awal dalam minggu, atau alihkan senaman untuk melakukannya mengikut susunan anda sendiri.",
+    "Move {name} earlier in the week": "Alihkan {name} lebih awal dalam minggu",
+    "Move {name} later in the week": "Alihkan {name} lebih lewat dalam minggu",
+    "How to do {name}": "Cara melakukan {name}",
+    "Move {name} up": "Alihkan {name} ke atas",
+    "Move {name} down": "Alihkan {name} ke bawah"
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -743,6 +754,17 @@ export const EXTRAS: AreaDict = {
     "Hard": "高强度",
     "About {kcal} kcal per 30 min for you, worked out like similar exercises.": "按类似动作计算,你每 30 分钟约消耗 {kcal} 千卡。",
     "Optional, e.g. a form cue": "可选,例如动作要点",
-    "Create exercise": "创建动作"
+    "Create exercise": "创建动作",
+    "In your plan": "计划中",
+    "{sets} × {reps}": "{sets} 组 × {reps} 次",
+    "Swap for another exercise": "换成其他动作",
+    "Arrange days & exercises": "调整训练日和动作顺序",
+    "Suggested order": "恢复建议顺序",
+    "Move a day up to train it earlier in the week, or move exercises to do them in your own order.": "把某一天上移,就能在一周中更早训练;也可以移动动作,按你自己的顺序来做。",
+    "Move {name} earlier in the week": "将{name}移到一周中更早",
+    "Move {name} later in the week": "将{name}移到一周中更晚",
+    "How to do {name}": "{name}的做法",
+    "Move {name} up": "将{name}上移",
+    "Move {name} down": "将{name}下移"
   }
 };

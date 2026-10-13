@@ -496,6 +496,53 @@ test("Training splits: more split types, train at home, swap an exercise, and my
   expect(errors).toEqual([]);
 });
 
+test("Plan: shoulders before legs, exercises in my own order, and tap an exercise to see how it's done", async ({ page }) => {
+  const errors = await open(page);
+  await tab(page, "Plan");
+  await page.getByRole("button", { name: "Body-part split", exact: true }).click();
+  const dayTitles = () => page.locator("[aria-expanded]").evaluateAll((els) => els.map((e) => e.querySelector("div[style*='font-weight: 700']")?.textContent ?? ""));
+  const before = await dayTitles();
+  expect(before.indexOf("Leg Day")).toBeLessThan(before.indexOf("Shoulder Day"));
+
+  // Shoulders before legs.
+  await page.getByRole("button", { name: "Arrange days & exercises" }).click();
+  await page.getByRole("button", { name: "Move Shoulder Day earlier in the week" }).click();
+  const after = await dayTitles();
+  expect(after.indexOf("Shoulder Day")).toBe(before.indexOf("Leg Day"));
+  expect(after.indexOf("Leg Day")).toBe(before.indexOf("Leg Day") + 1);
+
+  // Exercises in my own order: the first one goes second.
+  await page.getByRole("button", { name: /Shoulder Day/ }).first().click();
+  const exNames = () => page.getByRole("button", { name: /^How to do / }).evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")!.replace(/^How to do /, "")));
+  const first = (await exNames())[0];
+  const second = (await exNames())[1];
+  await page.getByRole("button", { name: `Move ${first} down` }).click();
+  expect((await exNames()).slice(0, 2)).toEqual([second, first]);
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await expect(page.getByRole("button", { name: `Move ${first} down` })).toHaveCount(0);
+
+  // Kept after a reload.
+  await page.reload();
+  await tab(page, "Plan");
+  expect((await dayTitles()).indexOf("Shoulder Day")).toBe(before.indexOf("Leg Day"));
+
+  // Tap an exercise: its page with pictures and how to do it, and a way to swap it.
+  await page.getByRole("button", { name: /Shoulder Day/ }).first().click();
+  await page.getByRole("button", { name: `How to do ${second}` }).click();
+  const detail = page.getByRole("dialog").last();
+  await expect(detail.getByRole("heading", { name: second })).toBeVisible();
+  await expect(detail.getByText("In your plan")).toBeVisible();
+  await expect(detail.getByText("Muscles", { exact: true })).toBeVisible();
+  await detail.getByRole("button", { name: "Swap for another exercise" }).click();
+  await expect(sheet(page, "Swap exercise")).toBeVisible();
+  await close(page);
+
+  // Back to the suggested order.
+  await page.getByRole("button", { name: "Suggested order" }).click();
+  expect(await dayTitles()).toEqual(before);
+  expect(errors).toEqual([]);
+});
+
 test("My own exercise: create it from a search, train with it, swap it into the plan, rename and delete it", async ({ page }) => {
   const errors = await open(page);
   await tab(page, "Train");

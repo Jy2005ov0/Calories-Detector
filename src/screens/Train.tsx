@@ -104,8 +104,9 @@ export function Train() {
   // `lang` is a dependency so plan text is rebuilt in the new language.
   const planSwaps = useStore((s) => s.planSwaps);
   const myExercises = useStore((s) => s.customExercises);
+  const planOrder = useStore((s) => s.planOrder);
   const customSplit = useStore((s) => s.customSplit);
-  const plan = useMemo(() => planFor({ profile, split, planSwaps, customSplit }), [profile, split, planSwaps, customSplit, lang, myExercises]);
+  const plan = useMemo(() => planFor({ profile, split, planSwaps, customSplit, planOrder }), [profile, split, planSwaps, customSplit, planOrder, lang, myExercises]);
   const weekday = weekdayOf(useTodayKey());
   const todaysPlan = plan.days.find((d) => d.weekday === weekday);
   const history = sessions.filter((s) => s.endedAt);

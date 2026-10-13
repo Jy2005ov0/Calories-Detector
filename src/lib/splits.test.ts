@@ -76,3 +76,38 @@ describe("training splits", () => {
     expect(bad.days[0].exercises[0].name).toBe("Barbell bench press");
   });
 });
+
+describe("your own order", () => {
+  it("moves a day earlier in the week and keeps exercises in the order you chose", async () => {
+    const { dayOrderKey, exerciseOrderKey } = await import("./fitness");
+    const { moveInOrder, inOrder } = await import("./order");
+    const base = buildPlan(p, "bodypart");
+    const titles = base.days.map((d) => d.title);
+    const shoulders = titles.findIndex((x) => /Shoulder/.test(x));
+    const legs = titles.findIndex((x) => /Leg/.test(x));
+    expect(legs).toBeLessThan(shoulders);
+
+    // Shoulders before legs: the shoulder day takes the legs day's place in the week.
+    const order = { [dayOrderKey(base.split, base.days.length)]: moveInOrder(undefined, base.days.length, shoulders, legs) };
+    const moved = buildPlan(p, "bodypart", { order });
+    expect(moved.days[legs].title).toBe(titles[shoulders]);
+    expect(moved.days[legs].weekday).toBe(base.days[legs].weekday);
+    expect(moved.days[legs + 1].title).toBe(titles[legs]);
+    // A moved day keeps its key (so it stays open on screen).
+    expect(moved.days[legs].key).toBe(base.days[shoulders].key);
+
+    // Exercises: last one first.
+    const day = base.days[0];
+    const n = day.exercises.length;
+    order[exerciseOrderKey(day.template, n)] = moveInOrder(undefined, n, n - 1, 0);
+    const ex = buildPlan(p, "bodypart", { order }).days.find((d) => d.key === day.key)!.exercises;
+    expect(ex.map((e) => e.name)).toEqual([day.exercises[n - 1].name, ...day.exercises.slice(0, -1).map((e) => e.name)]);
+    // Swaps still follow the exercise, not the position.
+    expect(ex[0].swapKey).toBe(day.exercises[n - 1].swapKey);
+
+    // An order saved for a different plan size is ignored.
+    expect(inOrder([1, 2, 3], [1, 0])).toEqual([1, 2, 3]);
+    expect(inOrder([1, 2, 3], [0, 0, 1])).toEqual([1, 2, 3]);
+    expect(moveInOrder([2, 0, 1], 3, 0, 2)).toEqual([0, 1, 2]);
+  });
+});

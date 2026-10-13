@@ -2876,3 +2876,20 @@ html[data-text="xlarge"] body {
   min-height: 44px;
   margin-top: 2px;
 }
+
+/* A plan exercise: tap the picture or name to see how it's done. */
+.plan-ex {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.icon-btn:disabled {
+  opacity: 0.3;
+}

@@ -1,6 +1,7 @@
 import { EXERCISE_BY_NAME } from "../data/exercises";
 import { MUSCLE_GROUPS, allowed, exerciseByName, poolFor, type Equipment, type MuscleGroup } from "../data/exercisePools";
 import { t } from "../i18n";
+import { inOrder } from "./order";
 import { getState } from "./store";
 import type { Experience, Goal, Profile, SessionExercise, WorkoutSession } from "./types";
 
@@ -269,6 +270,8 @@ export interface PlannedExercise {
 
 export interface PlannedDay {
   key: string;
+  /** The day it's built from, for keeping its exercises in the order the person chose. */
+  template: string;
   weekday: number;
   title: string;
   focus: string;
@@ -306,7 +309,15 @@ export interface PlanOptions {
   /** "<day template>#<position>" → exercise name. */
   swaps?: Record<string, string>;
   custom?: CustomDay[];
+  /** Days and exercises the person put in their own order: key → original positions in the new order. */
+  order?: Record<string, number[]>;
 }
+
+/** Where the order of a plan's days is kept: per split and number of days. */
+export const dayOrderKey = (split: string, days: number) => `days:${split}:${days}`;
+/** Where the order of a day's exercises is kept: per day and number of exercises. */
+export const exerciseOrderKey = (template: string, count: number) => `ex:${template}:${count}`;
+
 
 /** One exercise that fits the equipment, preferring a compound or isolation as asked and skipping ones already used. */
 function pickFrom(group: MuscleGroup, where: Equipment, compound: boolean | null, used: Set<string>): { name: string; compound: boolean } | null {
@@ -354,8 +365,8 @@ function daySlots(tpl: DayTemplate, where: Equipment, count: number): Slot[] {
 }
 
 /** The plan for the person using the app now, with their equipment, swaps and own split. */
-export function planFor(s: { profile: Profile; split: SplitId; planSwaps?: Record<string, string>; customSplit?: string[][] }): TrainingPlan {
-  return buildPlan(s.profile, s.split, { equipment: s.profile.equipment, swaps: s.planSwaps, custom: s.customSplit as CustomDay[] | undefined });
+export function planFor(s: { profile: Profile; split: SplitId; planSwaps?: Record<string, string>; customSplit?: string[][]; planOrder?: Record<string, number[]> }): TrainingPlan {
+  return buildPlan(s.profile, s.split, { equipment: s.profile.equipment, swaps: s.planSwaps, custom: s.customSplit as CustomDay[] | undefined, order: s.planOrder });
 }
 
 export function buildPlan(p: Pick<Profile, "goal" | "experience" | "trainingDays">, split: SplitId, opts: PlanOptions = {}): TrainingPlan {
@@ -365,19 +376,25 @@ export function buildPlan(p: Pick<Profile, "goal" | "experience" | "trainingDays
   const count = p.experience === "beginner" ? 5 : 6;
   const custom = (opts.custom?.length ? opts.custom : defaultCustomDays(days)).slice(0, days);
   while (custom.length < days) custom.push(defaultCustomDays(6)[custom.length] ?? ["chest"]);
-  const templates: [string, DayTemplate][] =
+  const built: [string, DayTemplate][] =
     resolved === "custom"
       ? custom.map((groups, idx) => [`custom${idx}`, { title: customTitle(groups), focus: groups.map((g) => t(groupLabel(g))).join(" · "), groups: customGroups(groups, count) }])
       : SPLIT_DAYS[resolved](days).map((key) => [key, DAYS[key]]);
+  // The person can put the days in their own order (shoulders before legs…); the week fills in that order.
+  const templates = inOrder(
+    built.map(([key, tpl], i) => [key, tpl, i] as const),
+    opts.order?.[dayOrderKey(resolved, days)],
+  );
 
-  const planned = templates.map(([key, tpl], idx): PlannedDay => {
-    const exercises = daySlots(tpl, where, count).map((slot, pos) => {
+  const planned = templates.map(([key, tpl, orig], idx): PlannedDay => {
+    const slots = daySlots(tpl, where, count).map((slot, pos) => {
       const swapped = opts.swaps?.[`${key}#${pos}`];
       const name = swapped && exerciseByName(swapped) ? swapped : slot.name;
       const ex = EXERCISE_BY_NAME.get(name);
       const compound = swapped ? (ex?.muscles?.length ?? 0) >= 3 || slot.compound : slot.compound;
       return { name, group: slot.group, swapKey: `${key}#${pos}`, ...scheme(p.goal, p.experience, compound), tip: ex?.tip, muscles: ex?.muscles };
     });
+    const exercises = inOrder(slots, opts.order?.[exerciseOrderKey(key, slots.length)]);
     const cardio =
       p.goal === "lose"
         ? t("Finish with 15–20 min incline walk or bike (zone 2)")
@@ -386,7 +403,9 @@ export function buildPlan(p: Pick<Profile, "goal" | "experience" | "trainingDays
           : undefined;
     const lifting = exercises.reduce((a, e) => a + e.sets * (0.75 + e.restSec / 60), 0);
     return {
-      key: `${key}-${idx}`,
+      // Stays the same when the day is moved.
+      key: `${key}-${orig}`,
+      template: key,
       weekday: WEEK_LAYOUT[days][idx],
       // Day titles and focus are translated here; nothing compares them to English text.
       title: resolved === "custom" ? tpl.title : t(tpl.title),

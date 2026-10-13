@@ -47,7 +47,7 @@ export function CustomSplitEditor({ plan }: { plan: TrainingPlan }) {
       {current.map((groups, i) => (
         <div className="card" key={i} style={{ marginTop: 10 }}>
           <div className="muted" style={{ fontSize: 13, fontWeight: 600 }}>
-            {t(WEEKDAYS[plan.days[i]?.weekday ?? i]).toUpperCase()}
+            {t(WEEKDAYS[plan.days.find((d) => d.template === `custom${i}`)?.weekday ?? i]).toUpperCase()}
           </div>
           <div style={{ fontWeight: 700, marginBottom: 8 }}>{customTitle(groups)}</div>
           <div className="chip-wrap" role="group" aria-label={t("Muscle groups for day {n}", { n: i + 1 })}>

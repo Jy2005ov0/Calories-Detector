@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ChevronRight, Flame, Pencil, Plus, Search, Trash2, UserRound } from "lucide-react";
 import { CARDIO_GROUPS, EXERCISES, STRENGTH_GROUPS, isMine } from "../data/exercises";
 import { useExerciseSteps } from "../lib/usda";
@@ -35,8 +35,6 @@ export function ExerciseLibrary({
   const [detail, setDetail] = useState<Exercise | null>(null);
   const mine = useStore((s) => s.customExercises);
   const [editor, setEditor] = useState<{ editing: Exercise | null; name: string } | null>(null);
-  // Your own exercises have no photos or step-by-step guide to look up.
-  const howTo = useExerciseSteps(isMine(detail ?? undefined) ? undefined : detail?.name, lang);
   const [minutes, setMinutes] = useState(30);
 
   useEffect(() => {
@@ -147,88 +145,11 @@ export function ExerciseLibrary({
         </div>
       </Sheet>
 
-      <Sheet open={!!detail} onClose={() => setDetail(null)} title={isMine(detail ?? undefined) ? t("Your exercise") : exLabel(detail?.category)} full>
-        {detail && (
+      <ExerciseDetailSheet
+        exercise={detail}
+        onClose={() => setDetail(null)}
+        extra={(detail) => (
           <>
-            <ExerciseHero name={detail.name} category={detail.category} />
-            <h2 className="h2" style={{ marginTop: 4 }}>
-              {exName(detail.name)}
-            </h2>
-            <div className="card">
-              <div className="stat-grid">
-                <div className="stat">
-                  <span className="stat-label">{t("Intensity")}</span>
-                  <span className="stat-value">
-                    {detail.met}
-                    <small>MET</small>
-                  </span>
-                </div>
-                <div className="stat">
-                  <span className="stat-label">
-                    <Flame size={13} color="var(--orange)" /> {t("Per 10 min")}
-                  </span>
-                  <span className="stat-value">
-                    {round(kcalFor(detail.met, weight, 10))}
-                    <small>kcal</small>
-                  </span>
-                </div>
-                <div className="stat">
-                  <span className="stat-label">{t("Per hour")}</span>
-                  <span className="stat-value">
-                    {round(kcalFor(detail.met, weight, 60))}
-                    <small>kcal</small>
-                  </span>
-                </div>
-              </div>
-            </div>
-            {detail.kind === "strength" && (
-              <div className="group" style={{ marginTop: 12 }}>
-                <div className="row">
-                  <div className="row-main" style={{ flex: "none" }}>
-                    {t("Muscles")}
-                  </div>
-                  <div className="row-value" style={{ whiteSpace: "normal", textAlign: "right", flex: 1, minWidth: 0 }}>
-                    {detail.muscles?.map(exLabel).join(lang === "zh" ? "、" : ", ")}
-                  </div>
-                </div>
-                <div className="row">
-                  <div className="row-main">{t("Equipment")}</div>
-                  <div className="row-value">{exLabel(detail.equipment)}</div>
-                </div>
-                {detail.tip && !howTo.length && (
-                  <div className="row">
-                    <div className="row-main" style={{ fontSize: 15 }}>
-                      <div className="muted" style={{ fontSize: 13, marginBottom: 2 }}>
-                        {isMine(detail) ? t("Note") : t("Form cue")}
-                      </div>
-                      {isMine(detail) ? detail.tip : exTip(detail.tip)}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            {detail.kind === "cardio" && isMine(detail) && detail.tip && (
-              <div className="group" style={{ marginTop: 12 }}>
-                <div className="row">
-                  <div className="row-main" style={{ fontSize: 15 }}>
-                    <div className="muted" style={{ fontSize: 13, marginBottom: 2 }}>
-                      {t("Note")}
-                    </div>
-                    {detail.tip}
-                  </div>
-                </div>
-              </div>
-            )}
-            {howTo.length > 0 && (
-              <>
-                <div className="section-header">{t("How to do it")}</div>
-                <ol className="card how-to" data-testid="how-to">
-                  {howTo.map((step, i) => (
-                    <li key={i}>{step}</li>
-                  ))}
-                </ol>
-              </>
-            )}
             {detail.kind === "cardio" && onPick && (
               <div className="group" style={{ marginTop: 12 }}>
                 <div className="row">
@@ -250,25 +171,26 @@ export function ExerciseLibrary({
                 </button>
               </div>
             )}
-            <p className="footnote">{t("Calories = MET × your weight ({kg} kg) × hours, using the Compendium of Physical Activities.", { kg: weight })}</p>
-            {onPick && (
-              <>
-                <div className="spacer" />
-                <button
-                  className="btn"
-                  onClick={() => {
-                    onPick(detail, detail.kind === "cardio" ? minutes : undefined);
-                    setDetail(null);
-                    onClose();
-                  }}
-                >
-                  <Plus size={18} /> {pickLabel ?? t("Add to workout")}
-                </button>
-              </>
-            )}
           </>
         )}
-      </Sheet>
+        actions={(detail) =>
+          onPick && (
+            <>
+              <div className="spacer" />
+              <button
+                className="btn"
+                onClick={() => {
+                  onPick(detail, detail.kind === "cardio" ? minutes : undefined);
+                  setDetail(null);
+                  onClose();
+                }}
+              >
+                <Plus size={18} /> {pickLabel ?? t("Add to workout")}
+              </button>
+            </>
+          )
+        }
+      />
 
       <MyExerciseSheet
         open={!!editor}
@@ -282,5 +204,116 @@ export function ExerciseLibrary({
         }}
       />
     </>
+  );
+}
+
+/** An exercise's own page: pictures, calories, muscles, form cue and step-by-step guide. */
+export function ExerciseDetailSheet({
+  exercise: detail,
+  onClose,
+  extra,
+  actions,
+}: {
+  exercise: Exercise | null;
+  onClose: () => void;
+  /** More rows under the guide (duration, edit and delete…). */
+  extra?: (ex: Exercise) => ReactNode;
+  /** Buttons at the bottom. */
+  actions?: (ex: Exercise) => ReactNode;
+}) {
+  useLanguage();
+  const lang = useExerciseNames();
+  const weight = useStore((s) => s.profile.weightKg);
+  // Your own exercises have no photos or step-by-step guide to look up.
+  const howTo = useExerciseSteps(isMine(detail ?? undefined) ? undefined : detail?.name, lang);
+  return (
+  <Sheet open={!!detail} onClose={onClose} title={isMine(detail ?? undefined) ? t("Your exercise") : exLabel(detail?.category)} full>
+      {detail && (
+        <>
+          <ExerciseHero name={detail.name} category={detail.category} />
+          <h2 className="h2" style={{ marginTop: 4 }}>
+            {exName(detail.name)}
+          </h2>
+          <div className="card">
+            <div className="stat-grid">
+              <div className="stat">
+                <span className="stat-label">{t("Intensity")}</span>
+                <span className="stat-value">
+                  {detail.met}
+                  <small>MET</small>
+                </span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">
+                  <Flame size={13} color="var(--orange)" /> {t("Per 10 min")}
+                </span>
+                <span className="stat-value">
+                  {round(kcalFor(detail.met, weight, 10))}
+                  <small>kcal</small>
+                </span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">{t("Per hour")}</span>
+                <span className="stat-value">
+                  {round(kcalFor(detail.met, weight, 60))}
+                  <small>kcal</small>
+                </span>
+              </div>
+            </div>
+          </div>
+          {detail.kind === "strength" && (
+            <div className="group" style={{ marginTop: 12 }}>
+              <div className="row">
+                <div className="row-main" style={{ flex: "none" }}>
+                  {t("Muscles")}
+                </div>
+                <div className="row-value" style={{ whiteSpace: "normal", textAlign: "right", flex: 1, minWidth: 0 }}>
+                  {detail.muscles?.map(exLabel).join(lang === "zh" ? "、" : ", ")}
+                </div>
+              </div>
+              <div className="row">
+                <div className="row-main">{t("Equipment")}</div>
+                <div className="row-value">{exLabel(detail.equipment)}</div>
+              </div>
+              {detail.tip && !howTo.length && (
+                <div className="row">
+                  <div className="row-main" style={{ fontSize: 15 }}>
+                    <div className="muted" style={{ fontSize: 13, marginBottom: 2 }}>
+                      {isMine(detail) ? t("Note") : t("Form cue")}
+                    </div>
+                    {isMine(detail) ? detail.tip : exTip(detail.tip)}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {detail.kind === "cardio" && isMine(detail) && detail.tip && (
+            <div className="group" style={{ marginTop: 12 }}>
+              <div className="row">
+                <div className="row-main" style={{ fontSize: 15 }}>
+                  <div className="muted" style={{ fontSize: 13, marginBottom: 2 }}>
+                    {t("Note")}
+                  </div>
+                  {detail.tip}
+                </div>
+              </div>
+            </div>
+          )}
+          {howTo.length > 0 && (
+            <>
+              <div className="section-header">{t("How to do it")}</div>
+              <ol className="card how-to" data-testid="how-to">
+                {howTo.map((step, i) => (
+                  <li key={i}>{step}</li>
+                ))}
+              </ol>
+            </>
+          )}
+          {extra?.(detail)}
+          <p className="footnote">{t("Calories = MET × your weight ({kg} kg) × hours, using the Compendium of Physical Activities.", { kg: weight })}</p>
+          {actions?.(detail)}
+        </>
+      )}
+    </Sheet>
   );
 }
