@@ -1,10 +1,7 @@
 package com.caloriesdetector.app;
 
 import android.Manifest;
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -21,14 +18,11 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 /**
- * Small native helpers for W on Android:
- * - the phone's total step count since it was switched on (the step sensor keeps counting while W is closed),
- * - the home-screen widget: W sends today's numbers, the widget's "+ water" taps are collected here.
+ * A small native helper for W on Android: the phone's total step count since it was switched on
+ * (the step sensor keeps counting while W is closed).
  */
 @CapacitorPlugin(name = "WNative")
 public class WNativePlugin extends Plugin {
-
-    static final String PREFS = "w_widget";
 
     @PluginMethod
     public void stepTotal(PluginCall call) {
@@ -76,35 +70,5 @@ public class WNativePlugin extends Plugin {
             res.put("permission", true);
             call.resolve(res);
         }, 4000);
-    }
-
-    /** Today's numbers for the widget, as JSON written by W (labels already in the app's language). */
-    @PluginMethod
-    public void updateWidget(PluginCall call) {
-        String json = call.getString("json", "{}");
-        SharedPreferences prefs = getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        prefs.edit().putString("data", json).apply();
-        WWidgetProvider.refreshAll(getContext());
-        call.resolve();
-    }
-
-    /** Water added from the widget since W last looked, then reset. */
-    @PluginMethod
-    public void takeWidgetWater(PluginCall call) {
-        SharedPreferences prefs = getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        JSObject out = new JSObject();
-        out.put("ml", prefs.getInt("pendingWater", 0));
-        out.put("date", prefs.getString("pendingDate", ""));
-        prefs.edit().putInt("pendingWater", 0).apply();
-        call.resolve(out);
-    }
-
-    @PluginMethod
-    public void hasWidget(PluginCall call) {
-        AppWidgetManager m = AppWidgetManager.getInstance(getContext());
-        int[] ids = m.getAppWidgetIds(new ComponentName(getContext(), WWidgetProvider.class));
-        JSObject out = new JSObject();
-        out.put("count", ids.length);
-        call.resolve(out);
     }
 }

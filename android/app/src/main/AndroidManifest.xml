@@ -30,13 +30,6 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- Home-screen widget: calories left, protein and water, with "+ water". -->
-        <receiver android:name=".WWidgetProvider" android:exported="false" android:label="@string/widget_name">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/w_widget_info" />
-        </receiver>
 
         <!-- Install the backported Android Photo Picker on older devices (used by "Choose photo"). -->
         <service android:name="com.google.android.gms.metadata.ModuleDependencies"

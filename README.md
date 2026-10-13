@@ -250,7 +250,6 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 | **Meal planner** | Plan the week's meals, log a planned meal in one tap, and share a grocery list. |
 | **Pregnancy & breastfeeding** | Raises calorie and protein targets by trimester and pauses any weight-loss deficit. |
 | **Badges & challenges** | Badges for streaks, protein, water, workouts and runs; challenges such as 7 days hitting protein or a month without sugary drinks. |
-| **Android widget** | Calories left, protein and water on the home screen, with one-tap water. (An iPhone widget needs a paid Apple developer account, so there isn't one.) |
 | **Larger text** | Normal, large and extra large text sizes. |
 | **Streaks** | A logging streak on Today and a weekly gym streak in Progress. |
 | **Reminders** | Meal, water and gym-day reminders at times you choose (in the iPhone and Android apps). |

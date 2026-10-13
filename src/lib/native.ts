@@ -5,9 +5,7 @@ import { t } from "../i18n";
 import { buildPlan, sessionFromPlan, sessionKcal } from "./fitness";
 import { isNative, platform } from "./platform";
 import { cycleOf, cycleStatus } from "./cycle";
-import { minutesOf, waterGoalMl } from "./progress";
-import { sum, targets } from "./nutrition";
-import { WNative, stepKcal } from "./steps";
+import { minutesOf } from "./progress";
 import { actions, getState, subscribe, todayKey, weekdayOf, type AppState } from "./store";
 
 // ── Notifications ────────────────────────────────────────
@@ -192,57 +190,9 @@ export function clockOutFromNotification() {
   if (active) actions.clockOut(active.id, sessionKcal(active, s.profile.weightKg, Date.now()));
 }
 
-// ── Home-screen widget (Android) ─────────────────────────
-
-/** Today's numbers for the widget, with labels in the app's language. */
-export function widgetData(s: AppState, today = todayKey()) {
-  const p = s.profile;
-  const tg = targets(p);
-  const eaten = sum(s.log.filter((e) => e.date === today).map((e) => e.nutrients));
-  const day = s.days.find((d) => d.id === today);
-  const burned =
-    s.sessions.filter((x) => x.date === today).reduce((a, x) => a + (x.endedAt ? x.kcal : sessionKcal(x, p.weightKg)), 0) +
-    (p.stepsOn && p.stepsInBudget ? stepKcal(day?.steps ?? 0, p.weightKg) : 0);
-  return {
-    date: today,
-    kcalTarget: tg.kcal,
-    kcalLeft: Math.round(tg.kcal - eaten.kcal + burned),
-    protein: Math.round(eaten.protein),
-    proteinGoal: tg.protein,
-    waterMl: day?.waterMl ?? 0,
-    waterGoal: waterGoalMl(p),
-    cupMl: p.waterServingMl || 250,
-    leftLabel: t("kcal left"),
-    overLabel: t("kcal over"),
-    proteinLabel: t("Protein"),
-    waterLabel: t("Water"),
-  };
-}
-
-let widgetTimer: ReturnType<typeof setTimeout> | undefined;
-function syncWidget() {
-  if (platform !== "android") return;
-  clearTimeout(widgetTimer);
-  widgetTimer = setTimeout(() => WNative.updateWidget({ json: JSON.stringify(widgetData(getState())) }).catch(() => {}), 1500);
-}
-
-/** Add water tapped on the widget since the app was last open. */
-export async function collectWidgetWater() {
-  if (platform !== "android") return;
-  try {
-    const { ml, date } = await WNative.takeWidgetWater();
-    if (ml > 0 && date === todayKey()) actions.updateDay(date, (d) => ({ ...d, waterMl: d.waterMl + ml }));
-  } catch {
-    /* no widget */
-  }
-}
-
 /** Wire notification buttons and keep notifications in step with the app's data. */
 export function startNativeServices() {
   if (!isNative) return;
-  collectWidgetWater();
-  document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && collectWidgetWater());
-  syncWidget();
   LocalNotifications.addListener("localNotificationActionPerformed", (e) => {
     if (e.actionId === "clock-in") clockInFromReminder();
     if (e.actionId === "clock-out") clockOutFromNotification();
@@ -254,7 +204,6 @@ export function startNativeServices() {
     const s = getState();
     if (s.activeSessionId !== prev.activeSessionId || s.sessions !== prev.sessions) syncWorkoutNotification(s);
     if (s.reminders !== prev.reminders || s.profile !== prev.profile || s.split !== prev.split || s.language !== prev.language || s.periods !== prev.periods || s.supplements !== prev.supplements) syncReminders(s);
-    if (s.log !== prev.log || s.days !== prev.days || s.sessions !== prev.sessions || s.profile !== prev.profile || s.language !== prev.language || s.personId !== prev.personId) syncWidget();
     prev = s;
   });
 }

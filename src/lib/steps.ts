@@ -12,8 +12,6 @@ import { actions, getState, useStore } from "./store";
 
 interface WNativePlugin {
   stepTotal(): Promise<{ available: boolean; permission?: boolean; total?: number }>;
-  updateWidget(o: { json: string }): Promise<void>;
-  takeWidgetWater(): Promise<{ ml: number; date: string }>;
 }
 export const WNative = registerPlugin<WNativePlugin>("WNative");
 
