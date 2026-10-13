@@ -2,7 +2,7 @@ import { LocalNotifications, type LocalNotificationSchema } from "@capacitor/loc
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { Share } from "@capacitor/share";
 import { t } from "../i18n";
-import { buildPlan, sessionFromPlan, sessionKcal } from "./fitness";
+import { planFor, sessionFromPlan, sessionKcal } from "./fitness";
 import { isNative, platform } from "./platform";
 import { cycleOf, cycleStatus } from "./cycle";
 import { minutesOf } from "./progress";
@@ -74,7 +74,7 @@ function reminderSchedule(s: AppState): LocalNotificationSchema[] {
     hours.forEach((h, i) => daily(ID.water + i, t("Drink water"), t("Time for a glass of water."), { hour: h, minute: 0 }));
   }
   if (r.gym) {
-    const plan = buildPlan(p, s.split);
+    const plan = planFor(s);
     for (const d of plan.days) {
       list.push({
         id: ID.gym + d.weekday,
@@ -179,7 +179,7 @@ export async function scheduleRestEnd(endsAt: number | null) {
 export function clockInFromReminder() {
   const s = getState();
   if (s.activeSessionId) return;
-  const plan = buildPlan(s.profile, s.split);
+  const plan = planFor(s);
   const day = plan.days.find((d) => d.weekday === weekdayOf(todayKey()));
   actions.clockIn(day ? day.title : "Workout", day ? sessionFromPlan(day) : []);
 }

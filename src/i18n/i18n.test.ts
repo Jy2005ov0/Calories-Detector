@@ -60,7 +60,9 @@ describe("exercise names", () => {
     const PLAN_EXERCISE_NAMES = SPLITS.flatMap((sp) =>
       (["beginner", "intermediate", "advanced"] as const).flatMap((experience) =>
         [2, 3, 4, 5, 6].flatMap((trainingDays) =>
-          (["lose", "maintain", "gain"] as const).flatMap((goal) => buildPlan({ goal, experience, trainingDays }, sp.id).days.flatMap((d) => (d ? d.exercises.map((e) => e.name) : []))),
+          (["lose", "maintain", "gain"] as const).flatMap((goal) =>
+            (["gym", "dumbbells", "home"] as const).flatMap((equipment) => buildPlan({ goal, experience, trainingDays }, sp.id, { equipment }).days.flatMap((d) => (d ? d.exercises.map((e) => e.name) : []))),
+          ),
         ),
       ),
     );

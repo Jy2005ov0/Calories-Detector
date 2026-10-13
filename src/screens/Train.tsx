@@ -11,7 +11,7 @@ import { ExerciseLibrary } from "../components/ExerciseLibrary";
 import { GymToolsSheet, ProgressLinks, RoutinesSection, RunTracker, StrengthSheet, WorkoutCalendar, runSummary, sessionFromRoutine } from "../components/TrainExtras";
 import { warmupSets } from "../lib/lifting";
 import { Empty, NumberInput, SPRING, Sheet, Stepper, haptic, showToast, useNow } from "../components/ui";
-import { buildPlan, exerciseKcal, formatDuration, kcalFor, plural, sessionFromPlan, sessionKcal, sessionMinutes, sessionVolume } from "../lib/fitness";
+import { planFor, exerciseKcal, formatDuration, kcalFor, plural, sessionFromPlan, sessionKcal, sessionMinutes, sessionVolume } from "../lib/fitness";
 import { round } from "../lib/nutrition";
 import { confirmDialog } from "../lib/platform";
 import { actions, getState, todayKey, uid, useStore, useTodayKey, weekdayOf } from "../lib/store";
@@ -102,7 +102,9 @@ export function Train() {
   const records = useMemo(() => personalRecords(sessions), [sessions]);
 
   // `lang` is a dependency so plan text is rebuilt in the new language.
-  const plan = useMemo(() => buildPlan(profile, split), [profile, split, lang]);
+  const planSwaps = useStore((s) => s.planSwaps);
+  const customSplit = useStore((s) => s.customSplit);
+  const plan = useMemo(() => planFor({ profile, split, planSwaps, customSplit }), [profile, split, planSwaps, customSplit, lang]);
   const weekday = weekdayOf(useTodayKey());
   const todaysPlan = plan.days.find((d) => d.weekday === weekday);
   const history = sessions.filter((s) => s.endedAt);

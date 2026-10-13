@@ -39,6 +39,10 @@ export interface AppState {
   mealPlan: PlannedMeal[];
   groceryDone: string[];
   challenges: Challenge[];
+  /** Exercises swapped in the training plan: "<day>#<position>" → exercise name. */
+  planSwaps: Record<string, string>;
+  /** "My own split": the muscle groups for each training day. */
+  customSplit: string[][];
   /** Preferences for the daily meal ideas. */
   mealPrefs: MealPrefs;
   /** Text size for easier reading (shared by everyone on the phone). */
@@ -156,6 +160,8 @@ const initial: AppState = {
   groceryDone: [],
   challenges: [],
   mealPrefs: DEFAULT_MEAL_PREFS,
+  planSwaps: {},
+  customSplit: [],
   textSize: "normal",
   deleted: [],
   stamps: {},
@@ -518,6 +524,18 @@ export const actions = {
     setState((s) => ({ challenges: s.challenges.filter((c) => c.id !== id) }));
   },
 
+  // ── Training plan ──
+  swapExercise(key: string, name: string | null) {
+    setState((s) => {
+      const planSwaps = { ...s.planSwaps };
+      if (name) planSwaps[key] = name;
+      else delete planSwaps[key];
+      return { planSwaps };
+    });
+  },
+  setCustomSplit(customSplit: string[][]) {
+    setState({ customSplit });
+  },
   // ── Daily meal ideas ──
   setMealPrefs(p: Partial<MealPrefs>) {
     setState((s) => ({ mealPrefs: { ...s.mealPrefs, ...p } }));

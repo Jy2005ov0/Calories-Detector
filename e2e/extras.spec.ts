@@ -448,3 +448,50 @@ test("Meal ideas in the morning: one idea per meal still ahead", async ({ page }
   await expect(chips).toHaveText(["Breakfast", "Lunch", "Snack"]);
   expect(errors).toEqual([]);
 });
+
+test("Training splits: more split types, train at home, swap an exercise, and my own split", async ({ page }) => {
+  const errors = await open(page);
+  await tab(page, "Plan");
+  // Chest & triceps, back & biceps, legs & shoulders.
+  await page.getByRole("button", { name: "Chest & Tri · Back & Bi · Legs" }).click();
+  await expect(page.getByText("Chest & Triceps", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Back & Biceps", { exact: true }).first()).toBeVisible();
+
+  // Open the chest day and swap its first exercise.
+  await page.getByRole("button", { name: /Chest & Triceps/ }).first().click();
+  const swap = page.getByRole("button", { name: /^Swap / }).first();
+  const before = (await swap.getAttribute("aria-label"))!.replace(/^Swap /, "");
+  await swap.click();
+  const sheet = page.getByRole("dialog", { name: "Swap exercise" });
+  await sheet.getByLabel("Search exercises").fill("machine chest press");
+  await sheet.getByTestId("swap-list").getByRole("button", { name: /Machine chest press/ }).first().click();
+  await expect(page.getByRole("button", { name: "Swap Machine chest press" })).toBeVisible();
+  expect(before).not.toBe("Machine chest press");
+  // And back to the suggestion.
+  await page.getByRole("button", { name: "Swap Machine chest press" }).click();
+  await sheet.getByRole("button", { name: "Back to the suggested exercise" }).click();
+  await expect(page.getByRole("button", { name: `Swap ${before}` })).toBeVisible();
+
+  // At home without weights: no barbells or machines.
+  await page.getByRole("tab", { name: "Home, no weights" }).click(); // labelled "Home"
+  const names = await page.getByRole("button", { name: /^Swap / }).evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")!.replace(/^Swap /, "")));
+  expect(names.length).toBeGreaterThanOrEqual(5);
+  for (const n of names) expect(n).not.toMatch(/barbell|machine|cable|pec deck|smith/i);
+
+  // My own split: pick the muscle groups for each day.
+  await page.getByRole("button", { name: "My own split", exact: true }).click();
+  const editor = page.getByTestId("custom-split");
+  await expect(editor).toBeVisible();
+  const day1 = editor.getByRole("group", { name: "Muscle groups for day 1" });
+  await day1.getByRole("button", { name: "Glutes", exact: true }).click();
+  await expect(day1.getByRole("button", { name: "Glutes", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(editor.locator(".card").first()).toContainText("Chest, Triceps & Glutes");
+
+  // Clock in from the plan: the session uses the plan's exercises.
+  await page.getByRole("tab", { name: "Gym" }).click();
+  await page.getByRole("button", { name: /Chest, Triceps & Glutes/ }).first().click();
+  const planned = await page.getByRole("button", { name: /^Swap / }).first().getAttribute("aria-label");
+  await page.getByRole("button", { name: "Clock in & start" }).first().click();
+  await expect(page.getByText(planned!.replace(/^Swap /, ""), { exact: true }).first()).toBeVisible();
+  expect(errors).toEqual([]);
+});

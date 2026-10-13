@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronDown, Lightbulb, LogIn, Plus } from "lucide-react";
+import { ArrowLeftRight, ChevronDown, Lightbulb, LogIn, Plus } from "lucide-react";
 import { t as tr, useLanguage } from "../i18n";
 import { exName, exTip, useExerciseNames } from "../i18n/exercises";
 import { ExerciseThumb } from "../components/ExercisePicture";
@@ -12,7 +12,8 @@ import { mealTiming, recommendedFoods, sampleDay } from "../lib/diet";
 import { foodIcon } from "../lib/foodIcon";
 import { FoodIcon, MealIcon, mealOfName } from "../components/FoodIcon";
 import { dislikeLabel } from "../lib/allergens";
-import { SPLITS, WEEKDAYS, buildPlan, sessionFromPlan, type PlannedDay } from "../lib/fitness";
+import { SPLITS, WEEKDAYS, planFor, sessionFromPlan, type PlannedDay, type PlannedExercise } from "../lib/fitness";
+import { CustomSplitEditor, EquipmentPicker, SwapSheet } from "../components/PlanTools";
 import { bmr, round, targets, tdee } from "../lib/nutrition";
 import { actions, todayKey, useStore, useTodayKey, weekdayOf } from "../lib/store";
 import type { Food, MealType } from "../lib/types";
@@ -55,7 +56,10 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
   const profile = useStore((s) => s.profile);
   const split = useStore((s) => s.split);
   const activeId = useStore((s) => s.activeSessionId);
-  const plan = useMemo(() => buildPlan(profile, split), [profile, split, lang]);
+  const planSwaps = useStore((s) => s.planSwaps);
+  const customSplit = useStore((s) => s.customSplit);
+  const plan = useMemo(() => planFor({ profile, split, planSwaps, customSplit }), [profile, split, planSwaps, customSplit, lang]);
+  const [swapping, setSwapping] = useState<PlannedExercise | null>(null);
   const today = weekdayOf(useTodayKey());
   const [open, setOpen] = useState<string | null>(plan.days.find((d) => d.weekday === today)?.key ?? plan.days[0]?.key ?? null);
 
@@ -85,12 +89,17 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
         {split === "auto" && " " + tr("Using {name}.", { name: tr(SPLITS.find((s) => s.id === plan.split)!.name) })}
       </p>
 
+      <SwapSheet exercise={swapping} onClose={() => setSwapping(null)} />
+      <EquipmentPicker />
+
       <div className="group" style={{ marginTop: 14 }}>
         <div className="row">
           <div className="row-main">{tr("Days per week")}</div>
           <Stepper value={profile.trainingDays} min={2} max={6} onChange={(v) => actions.updateProfile({ trainingDays: v })} />
         </div>
       </div>
+
+      {split === "custom" && <CustomSplitEditor plan={plan} />}
 
       <div className="card" style={{ marginTop: 14, padding: 10 }}>
         <div className="week">
@@ -141,7 +150,7 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
                 >
                   <div style={{ padding: "0 16px 16px" }}>
                     {d.exercises.map((e) => (
-                      <div key={e.name} style={{ display: "flex", gap: 12, padding: "10px 0", borderTop: "0.5px solid var(--separator)" }}>
+                      <div key={e.swapKey ?? e.name} style={{ display: "flex", gap: 12, padding: "10px 0", borderTop: "0.5px solid var(--separator)" }}>
                         <ExerciseThumb name={e.name} size={48} />
                         <div className="row-main">
                           <div style={{ fontWeight: 600 }}>{exName(e.name)}</div>
@@ -159,6 +168,11 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
                             </div>
                           )}
                         </div>
+                        {e.group && (
+                          <button className="icon-btn" style={{ alignSelf: "center" }} onClick={() => setSwapping(e)} aria-label={tr("Swap {name}", { name: exName(e.name) })}>
+                            <ArrowLeftRight size={17} />
+                          </button>
+                        )}
                       </div>
                     ))}
                     {d.cardio && (

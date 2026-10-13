@@ -84,6 +84,8 @@ export interface Profile {
   stepGoal?: number;
   /** Add calories burned walking (from the step counter) to the day's budget. */
   stepsInBudget?: boolean;
+  /** Where they train, so plans only use exercises they can do there (a full gym when unset). */
+  equipment?: "gym" | "dumbbells" | "home";
   /** Profile picture: a small square JPEG as a data URL. */
   photo?: string;
   onboarded: boolean;
