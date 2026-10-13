@@ -380,7 +380,7 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
     await expectNoHorizontalScroll(page);
     if (i === 3) {
       // Back goes to the previous step (and tab).
-      await page.getByRole("button", { name: "Back" }).click();
+      await page.getByRole("button", { name: "Back", exact: true }).click();
       await expect(guide("Body check & BMI")).toBeVisible();
       await page.getByRole("button", { name: "Next" }).click();
       await expect(guide(title)).toBeVisible();
@@ -440,7 +440,7 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
   await expect(page.locator('[data-tour="clock-out"]')).toBeInViewport({ ratio: 0.5 });
   await page.getByRole("button", { name: "Next" }).click();
   await expect(guide("Your training plan")).toBeVisible();
-  await page.getByRole("button", { name: "Back" }).click();
+  await page.getByRole("button", { name: "Back", exact: true }).click();
   await expect(guide("Clock in at the gym")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
