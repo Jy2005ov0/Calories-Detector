@@ -2844,3 +2844,13 @@ html[data-text="xlarge"] body {
 .chip-emoji::before {
   content: attr(data-emoji);
 }
+
+/* Steps inside the calorie summary card. */
+.steps-row .hairline {
+  margin: 14px 0 12px;
+}
+.icon-tile.small {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}

@@ -14,7 +14,7 @@ import { actions, getState, subscribe, todayKey, weekdayOf, type AppState } from
 // Apple Watch or Wear OS watch the phone's notifications appear on the wrist with their
 // action buttons, so "Clock in" and "Clock out" work from the watch.
 
-const ID = { meal: 1000, water: 1100, gym: 1200, workout: 2000, rest: 3000, period: 4000, supplement: 5000 };
+const ID = { meal: 1000, water: 1100, gym: 1200, workout: 2000, rest: 3000, restStart: 3001, period: 4000, supplement: 5000 };
 const GYM_TYPE = "GYM_REMINDER";
 const WORKOUT_TYPE = "WORKOUT_RUNNING";
 
@@ -137,7 +137,7 @@ async function syncWorkoutNotification(s: AppState) {
   const active = s.sessions.find((x) => x.id === s.activeSessionId && !x.endedAt);
   try {
     if (!active) {
-      await LocalNotifications.cancel({ notifications: [{ id: ID.workout }] });
+      await LocalNotifications.cancel({ notifications: [{ id: ID.workout }, { id: ID.rest }, { id: ID.restStart }] });
       return;
     }
     if (!(await notificationsReady())) return;
@@ -161,15 +161,29 @@ async function syncWorkoutNotification(s: AppState) {
   }
 }
 
-/** Let the phone (or watch) buzz when rest is over, even with the screen off. */
+/** "Rest 1:30" and "Next set at 10:32 AM.", for the notification shown when a set is done. */
+export function restMessage(endsAt: number, now = Date.now()) {
+  const secs = Math.max(0, Math.round((endsAt - now) / 1000));
+  const length = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
+  const clock = new Date(endsAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return { title: t("Rest {time}", { time: length }), body: t("Next set at {clock}. Your phone will buzz when it's time.", { clock }) };
+}
+
+/** Tell the person when their next set is, and buzz when rest is over, even with the screen off. */
 export async function scheduleRestEnd(endsAt: number | null) {
   if (!isNative) return;
   setLiveRest(endsAt);
   try {
-    await LocalNotifications.cancel({ notifications: [{ id: ID.rest }] });
+    await LocalNotifications.cancel({ notifications: [{ id: ID.rest }, { id: ID.restStart }] });
     if (endsAt && (await notificationsReady())) {
+      const { title, body } = restMessage(endsAt);
       await LocalNotifications.schedule({
-        notifications: [{ id: ID.rest, title: t("Rest over"), body: t("Time for your next set."), channelId: "reminders", schedule: { at: new Date(endsAt), allowWhileIdle: true } }],
+        notifications: [
+          // Now: how long to rest and when the next set is.
+          { id: ID.restStart, title, body, channelId: "workout" },
+          // When it's time: buzz.
+          { id: ID.rest, title: t("Rest over"), body: t("Time for your next set."), channelId: "reminders", schedule: { at: new Date(endsAt), allowWhileIdle: true } },
+        ],
       });
     }
   } catch {
@@ -205,10 +219,10 @@ export function startNativeServices() {
   syncLiveActivity(prev);
   subscribe(() => {
     const s = getState();
-    if (s.activeSessionId !== prev.activeSessionId || s.sessions !== prev.sessions) {
-      syncWorkoutNotification(s);
-      syncLiveActivity(s);
-    }
+    // The "clocked in" notification is posted once per workout: re-posting it after every set
+    // made it pop up again each time a set was ticked.
+    if (s.activeSessionId !== prev.activeSessionId) syncWorkoutNotification(s);
+    if (s.activeSessionId !== prev.activeSessionId || s.sessions !== prev.sessions) syncLiveActivity(s);
     if (s.reminders !== prev.reminders || s.profile !== prev.profile || s.split !== prev.split || s.language !== prev.language || s.periods !== prev.periods || s.supplements !== prev.supplements) syncReminders(s);
     prev = s;
   });

@@ -230,3 +230,13 @@ describe("workout Live Activity", () => {
     expect(liveState(s, 70, { startedAt: now - 120_000, endsAt: now - 1 }, now).restEndsAt).toBeUndefined();
   });
 });
+
+describe("rest notification", () => {
+  it("says how long to rest and when the next set is", async () => {
+    const { restMessage } = await import("./native");
+    const now = new Date(2026, 9, 13, 10, 31, 0).getTime();
+    const m = restMessage(now + 90_000, now);
+    expect(m.title).toBe("Rest 1:30");
+    expect(m.body).toMatch(/^Next set at 10:32/);
+  });
+});

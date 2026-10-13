@@ -343,7 +343,12 @@ export const EXTRAS: AreaDict = {
     "EZ bar": "Bar EZ",
     "Home": "Rumah",
     "kcal": "kcal",
-    "Rest": "Rehat"
+    "Rest": "Rehat",
+    "Goal {goal}": "Matlamat {goal}",
+    "About {kcal} kcal walking": "Kira-kira {kcal} kcal berjalan",
+    "Uses your phone's motion sensor": "Menggunakan penderia gerakan telefon anda",
+    "Rest {time}": "Rehat {time}",
+    "Next set at {clock}. Your phone will buzz when it's time.": "Set seterusnya pada {clock}. Telefon anda akan bergetar apabila tiba masanya."
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -685,6 +690,11 @@ export const EXTRAS: AreaDict = {
     "EZ bar": "曲杆",
     "Home": "在家",
     "kcal": "千卡",
-    "Rest": "休息"
+    "Rest": "休息",
+    "Goal {goal}": "目标 {goal}",
+    "About {kcal} kcal walking": "步行约 {kcal} 千卡",
+    "Uses your phone's motion sensor": "使用手机的运动传感器",
+    "Rest {time}": "休息 {time}",
+    "Next set at {clock}. Your phone will buzz when it's time.": "下一组在 {clock} 开始。到时手机会振动提醒。"
   }
 };

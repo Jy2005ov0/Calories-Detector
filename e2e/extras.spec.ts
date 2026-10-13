@@ -496,11 +496,13 @@ test("Training splits: more split types, train at home, swap an exercise, and my
   expect(errors).toEqual([]);
 });
 
-test("Water is right under steps on Today, and the library has thousands of exercises in every language", async ({ page }) => {
+test("Steps inside the calorie card with water right after it, and the library has thousands of exercises in every language", async ({ page }) => {
   const state = { ...seedState(), profile: { ...seedState().profile, stepsOn: true } };
   const errors = await open(page, state, { steps: 4200 });
-  // Water logging comes straight after the step counter.
-  const next = await page.getByTestId("steps-card").evaluate((el) => el.nextElementSibling?.getAttribute("data-tour"));
+  // Steps sit inside the calorie summary card, and water logging comes straight after it.
+  const summary = page.locator(".card", { has: page.locator("[data-tour=summary]") });
+  await expect(summary.getByTestId("steps-card")).toContainText("4,200 steps");
+  const next = await summary.evaluate((el) => el.nextElementSibling?.getAttribute("data-tour"));
   expect(next).toBe("water");
   await page.getByRole("button", { name: /^Add \d+ ml of water$/ }).click();
 

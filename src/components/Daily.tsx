@@ -7,52 +7,57 @@ import { actions, uid, useStore } from "../lib/store";
 import type { Supplement } from "../lib/types";
 import { Bar, Sheet, Stepper, Switch, haptic, showToast } from "./ui";
 
-/** Steps today from the phone's motion sensor, or a prompt to turn the step counter on. */
-export function StepsCard({ today }: { today: string }) {
+/**
+ * Steps today, as a compact row inside the calorie summary card (or a prompt to turn the step
+ * counter on). Nothing shows where the phone can't count steps.
+ */
+export function StepsRow({ today }: { today: string }) {
   useLanguage();
   const profile = useStore((s) => s.profile);
   const steps = useStore((s) => s.days.find((d) => d.id === today)?.steps ?? 0);
   if (!stepsSupported()) return null;
   const goal = profile.stepGoal || DEFAULT_STEP_GOAL;
-  if (!profile.stepsOn) {
-    return (
-      <div className="card" style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }} data-testid="steps-card">
-        <div className="icon-tile" style={{ background: "var(--teal)" }}>
-          <Footprints size={18} />
-        </div>
-        <div className="row-main">
-          <div className="tile-title">{t("Count your steps")}</div>
-          <div className="tile-sub">{t("Uses your phone's motion sensor. No Apple Health or Google Fit needed.")}</div>
-        </div>
-        <button
-          className="btn small tinted"
-          onClick={async () => {
-            if (await enableSteps()) {
-              actions.updateProfile({ stepsOn: true });
-              haptic("success");
-            } else showToast(t("Steps aren't available: allow motion & fitness access in your phone's settings."));
-          }}
-        >
-          {t("Turn on")}
-        </button>
-      </div>
-    );
-  }
   return (
-    <div className="card" style={{ marginTop: 12 }} data-testid="steps-card">
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div className="icon-tile" style={{ background: "var(--teal)" }}>
-          <Footprints size={18} />
+    <div className="steps-row" data-testid="steps-card">
+      <div className="hairline" />
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="icon-tile small" style={{ background: "var(--teal)" }}>
+          <Footprints size={15} />
         </div>
-        <div className="row-main">
-          <div className="tile-title tabular">{t("{n} steps", { n: steps.toLocaleString() })}</div>
-          <div className="tile-sub">
-            {t("Goal {goal} · about {kcal} kcal walking", { goal: goal.toLocaleString(), kcal: round(stepKcal(steps, profile.weightKg)) })}
+        {profile.stepsOn ? (
+          <div className="row-main">
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+              <span className="tile-title tabular">{t("{n} steps", { n: steps.toLocaleString() })}</span>
+              <span className="tile-sub tabular" style={{ flex: "none" }}>
+                {t("Goal {goal}", { goal: goal.toLocaleString() })}
+              </span>
+            </div>
+            <div style={{ marginTop: 6 }}>
+              <Bar value={steps} max={goal} color="var(--teal)" />
+            </div>
+            <div className="tile-sub" style={{ marginTop: 4 }}>
+              {t("About {kcal} kcal walking", { kcal: round(stepKcal(steps, profile.weightKg)) })}
+            </div>
           </div>
-        </div>
-      </div>
-      <div style={{ marginTop: 10 }}>
-        <Bar value={steps} max={goal} color="var(--teal)" />
+        ) : (
+          <>
+            <div className="row-main">
+              <div className="tile-title">{t("Count your steps")}</div>
+              <div className="tile-sub">{t("Uses your phone's motion sensor")}</div>
+            </div>
+            <button
+              className="btn small tinted"
+              onClick={async () => {
+                if (await enableSteps()) {
+                  actions.updateProfile({ stepsOn: true });
+                  haptic("success");
+                } else showToast(t("Steps aren't available: allow motion & fitness access in your phone's settings."));
+              }}
+            >
+              {t("Turn on")}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

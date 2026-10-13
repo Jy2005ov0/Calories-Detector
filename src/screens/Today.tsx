@@ -54,7 +54,7 @@ import { CycleCalendar } from "../components/CycleCalendar";
 import { LateAdviceSheetBody } from "../components/LateAdviceSheet";
 import { PeopleSheet, PersonAvatar, householdSize } from "../components/People";
 import { QuickAddSheet, VoiceLogSheet } from "../components/QuickLog";
-import { CheckInCard, StepsCard, SupplementsCard } from "../components/Daily";
+import { CheckInCard, StepsRow, SupplementsCard } from "../components/Daily";
 import { WeeklyReportSheet } from "../components/WeeklyReport";
 import { MealIdeasCard } from "../components/MealIdeas";
 import { stepKcal, useStepUpdates } from "../lib/steps";
@@ -521,11 +521,9 @@ export function Today({
         <div className="spacer" />
         <div className="spacer" />
         <MacroBars n={eaten} t={tg} />
+        <StepsRow today={today} />
       </div>
 
-      <FastCard now={now} />
-      <CycleCard today={today} />
-      <StepsCard today={today} />
       <div className="card" style={{ marginTop: 12 }} data-tour="water">
         <WaterControl compact />
         <div className="hairline" />
@@ -558,6 +556,8 @@ export function Today({
         </button>
       </div>
 
+      <FastCard now={now} />
+      <CycleCard today={today} />
       <CheckInCard today={today} />
 
       <div className="tiles" style={{ marginTop: 12 }}>
