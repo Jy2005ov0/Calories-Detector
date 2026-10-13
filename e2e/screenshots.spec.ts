@@ -33,7 +33,7 @@ let seedPhoto: string | undefined;
 
 function seed() {
   return {
-    profile: { name: "Aisyah", sex: "female", age: 27, heightCm: 162, weightKg: 61, activity: 1.55, goal: "lose", experience: "intermediate", trainingDays: 5, diet: "halal", onboarded: true, photo: seedPhoto },
+    profile: { name: "Aisyah", sex: "female", age: 27, heightCm: 162, weightKg: 61, activity: 1.55, goal: "lose", experience: "intermediate", trainingDays: 5, diet: "halal", onboarded: true, photo: seedPhoto, stepsOn: true },
     log: [
       entry("l1", "breakfast", "Oats (dry)", 50, 300),
       entry("l2", "breakfast", "Greek yogurt (plain, nonfat)", 170, 299),
@@ -124,6 +124,8 @@ for (const set of SETS) {
           localStorage.setItem("calories-detector:v1", s);
           localStorage.setItem("calories-detector:account", JSON.stringify({ guest: true }));
         }, JSON.stringify(state));
+      // Steps counted so far today (the phone's step counter in the app).
+      await ctx.addInitScript(() => ((globalThis as { __wSteps?: number }).__wSteps = 6420));
       // A pretend camera showing a snack pack, so the scanner screenshot isn't a black box.
       await ctx.addInitScript(() => {
         navigator.mediaDevices.getUserMedia = async () => {
@@ -222,6 +224,36 @@ for (const set of SETS) {
     await page.getByRole("button", { name: /Weekly report/ }).click();
     await shot("weekly-report");
     await closeSheet();
+
+    // Water: one cup, caught as it drains.
+    const cupCard = page.getByTestId("water").first();
+    await cupCard.evaluate((el) => el.scrollIntoView({ block: "center" }));
+    await page.waitForTimeout(400);
+    await cupCard.getByRole("button", { name: /^Add \d+ ml of water$/ }).click();
+    await shot("water-cup", 380);
+    await expect(page.locator(".toast")).toHaveCount(0, { timeout: 15_000 });
+    // Sleep on a 24-hour clock.
+    const checkin = page.getByTestId("checkin");
+    await checkin.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 60));
+    await shot("sleep-clock");
+    // Your own calorie target.
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.getByRole("button", { name: /^Daily target \d+ kcal, change$/ }).click();
+    await sheet().getByRole("tab", { name: "My own" }).click();
+    await sheet().getByRole("textbox", { name: "Calories a day" }).fill("1500");
+    await sheet().getByRole("textbox", { name: "Calories a day" }).blur();
+    await shot("calorie-target");
+    await sheet().getByRole("tab", { name: "Automatic" }).click();
+    await closeSheet();
+    // Swiping between tabs, caught halfway.
+    const vp = page.viewportSize()!;
+    await page.mouse.move(vp.width - 40, vp.height * 0.45);
+    await page.mouse.down();
+    await page.mouse.move(vp.width * 0.45, vp.height * 0.45 + 4, { steps: 10 });
+    await shot("swipe-between-tabs", 120);
+    await page.mouse.move(vp.width + 20, vp.height * 0.45 + 4, { steps: 6 });
+    await page.mouse.up();
+    await page.waitForTimeout(500);
     await page.evaluate(() => window.scrollTo(0, 0));
 
     // Barcode
@@ -289,6 +321,14 @@ for (const set of SETS) {
     await shot("exercise-detail");
     await sheet().getByRole("button", { name: "Close", exact: true }).click();
     await expect(page.getByRole("dialog")).toHaveCount(1);
+    // Not in the library: create it.
+    await sheet().getByPlaceholder(/Search .* exercises/).fill("Landmine row");
+    await sheet().getByTestId("create-exercise").click();
+    await sheet().getByRole("group", { name: "Main muscle" }).getByRole("button", { name: "Back", exact: true }).click();
+    await sheet().getByRole("group", { name: "Equipment" }).getByRole("button", { name: "Barbell", exact: true }).click();
+    await shot("create-exercise");
+    await sheet().getByRole("button", { name: "Close", exact: true }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(1);
     await closeSheet();
     await page.getByRole("button", { name: /Clock in & start/ }).click();
     const bench = page.locator(".card", { hasText: "Barbell bench press" }).first();
@@ -321,6 +361,27 @@ for (const set of SETS) {
     // Plan
     await tab("Plan");
     await shot("training-plan");
+    // Press and hold a day, caught while it's being dragged up the week.
+    const opened = page.locator("[data-testid=plan-day] [aria-expanded=true]");
+    if (await opened.count()) await opened.first().click();
+    const shoulder = page.getByTestId("plan-day").filter({ hasText: "Shoulder Day" });
+    await page.getByTestId("plan-day").filter({ hasText: "Arm Day" }).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+    const sb = (await shoulder.boundingBox())!;
+    await page.mouse.move(sb.x + sb.width / 2, sb.y + 30);
+    await page.mouse.down();
+    await page.waitForTimeout(600);
+    await page.mouse.move(sb.x + sb.width / 2, sb.y - 50, { steps: 8 });
+    await shot("plan-press-and-hold", 300);
+    await page.mouse.up();
+    await page.waitForTimeout(500);
+    if (await page.getByRole("button", { name: "Suggested order" }).count()) await page.getByRole("button", { name: "Suggested order" }).click();
+    // Tap an exercise in the plan to see how it's done.
+    await page.getByTestId("plan-day").first().getByRole("button", { expanded: false }).first().click();
+    await page.getByRole("button", { name: /^How to do / }).first().click();
+    await shot("exercise-from-plan");
+    await closeSheet();
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.getByRole("tab", { name: "Nutrition" }).click();
     await shot("nutrition-plan");
     await page.evaluate(() => window.scrollTo(0, 1500));
