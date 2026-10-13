@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { PHOTO_URL, dayKey, seedState } from "./support/audit";
 
 // Journeys for the on-phone extras: faster logging, steps, check-in, supplements, weekly report,
@@ -496,39 +496,68 @@ test("Training splits: more split types, train at home, swap an exercise, and my
   expect(errors).toEqual([]);
 });
 
-test("Plan: shoulders before legs, exercises in my own order, and tap an exercise to see how it's done", async ({ page }) => {
+/** Press and hold an element, then drag it onto another one. */
+async function holdAndDrag(page: Page, from: Locator, to: Locator) {
+  await to.scrollIntoViewIfNeeded();
+  await from.scrollIntoViewIfNeeded();
+  const a = (await from.boundingBox())!;
+  const b = (await to.boundingBox())!;
+  await page.mouse.move(a.x + a.width / 2, a.y + Math.min(30, a.height / 2));
+  await page.mouse.down();
+  await page.waitForTimeout(600);
+  const y = b.y + Math.min(20, b.height / 3);
+  await page.mouse.move(a.x + a.width / 2, y, { steps: 15 });
+  await page.waitForTimeout(200);
+  await page.mouse.up();
+  await page.waitForTimeout(400);
+}
+
+test("Plan: press and hold to put shoulders before legs and exercises in my own order; tap an exercise to see how it's done", async ({ page }) => {
   const errors = await open(page);
   await tab(page, "Plan");
   await page.getByRole("button", { name: "Body-part split", exact: true }).click();
-  const dayTitles = () => page.locator("[aria-expanded]").evaluateAll((els) => els.map((e) => e.querySelector("div[style*='font-weight: 700']")?.textContent ?? ""));
+  const days = page.getByTestId("plan-day");
+  const dayTitles = () => page.locator("[data-testid=plan-day] .day-title").allInnerTexts();
   const before = await dayTitles();
-  expect(before.indexOf("Leg Day")).toBeLessThan(before.indexOf("Shoulder Day"));
+  const legs = before.indexOf("Leg Day");
+  expect(legs).toBeLessThan(before.indexOf("Shoulder Day"));
+  // Close the open day so the cards are short.
+  const opened = page.locator("[data-testid=plan-day] [aria-expanded=true]");
+  if (await opened.count()) await opened.first().click();
 
-  // Shoulders before legs.
-  await page.getByRole("button", { name: "Arrange days & exercises" }).click();
-  await page.getByRole("button", { name: "Move Shoulder Day earlier in the week" }).click();
+  // Press and hold Shoulder Day, drag it onto Leg Day.
+  await holdAndDrag(page, days.filter({ hasText: "Shoulder Day" }), days.filter({ hasText: "Leg Day" }));
   const after = await dayTitles();
-  expect(after.indexOf("Shoulder Day")).toBe(before.indexOf("Leg Day"));
-  expect(after.indexOf("Leg Day")).toBe(before.indexOf("Leg Day") + 1);
+  expect(after.indexOf("Shoulder Day")).toBe(legs);
+  expect(after.indexOf("Leg Day")).toBe(legs + 1);
+  // Holding didn't open the day.
+  await expect(days.filter({ hasText: "Shoulder Day" }).getByRole("button", { expanded: true })).toHaveCount(0);
 
-  // Exercises in my own order: the first one goes second.
-  await page.getByRole("button", { name: /Shoulder Day/ }).first().click();
-  const exNames = () => page.getByRole("button", { name: /^How to do / }).evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")!.replace(/^How to do /, "")));
-  const first = (await exNames())[0];
-  const second = (await exNames())[1];
-  await page.getByRole("button", { name: `Move ${first} down` }).click();
-  expect((await exNames()).slice(0, 2)).toEqual([second, first]);
-  await page.getByRole("button", { name: "Done", exact: true }).click();
-  await expect(page.getByRole("button", { name: `Move ${first} down` })).toHaveCount(0);
+  // A quick swipe is still a scroll, not a move.
+  await page.mouse.wheel(0, 200);
+  expect(await dayTitles()).toEqual(after);
+
+  // Exercises: hold the first and drag it below the second.
+  await days.filter({ hasText: "Shoulder Day" }).getByRole("button", { expanded: false }).first().click();
+  const rows = days.filter({ hasText: "Shoulder Day" }).getByTestId("plan-exercise");
+  const names = () => rows.getByRole("button", { name: /^How to do / }).evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")!.replace(/^How to do /, "")));
+  const [first, second, third] = await names();
+  await holdAndDrag(page, rows.nth(0), rows.nth(1).locator(".row-sub").first());
+  expect((await names()).slice(0, 2)).toEqual([second, first]);
+  // From the keyboard too: Alt + ↓.
+  await rows.nth(1).getByRole("button", { name: `How to do ${first}` }).focus();
+  await page.keyboard.press("Alt+ArrowDown");
+  expect((await names()).slice(0, 3)).toEqual([second, third, first]);
 
   // Kept after a reload.
   await page.reload();
   await tab(page, "Plan");
-  expect((await dayTitles()).indexOf("Shoulder Day")).toBe(before.indexOf("Leg Day"));
+  expect((await dayTitles()).indexOf("Shoulder Day")).toBe(legs);
 
-  // Tap an exercise: its page with pictures and how to do it, and a way to swap it.
-  await page.getByRole("button", { name: /Shoulder Day/ }).first().click();
-  await page.getByRole("button", { name: `How to do ${second}` }).click();
+  // A tap on an exercise opens its page: how to do it, and a way to swap it.
+  const shoulder = days.filter({ hasText: "Shoulder Day" });
+  if (!(await shoulder.getByRole("button", { expanded: true }).count())) await shoulder.getByRole("button", { expanded: false }).first().click();
+  await shoulder.getByRole("button", { name: `How to do ${second}` }).click();
   const detail = page.getByRole("dialog").last();
   await expect(detail.getByRole("heading", { name: second })).toBeVisible();
   await expect(detail.getByText("In your plan")).toBeVisible();

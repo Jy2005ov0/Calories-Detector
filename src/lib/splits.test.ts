@@ -80,7 +80,7 @@ describe("training splits", () => {
 describe("your own order", () => {
   it("moves a day earlier in the week and keeps exercises in the order you chose", async () => {
     const { dayOrderKey, exerciseOrderKey } = await import("./fitness");
-    const { moveInOrder, inOrder } = await import("./order");
+    const { inOrder } = await import("./order");
     const base = buildPlan(p, "bodypart");
     const titles = base.days.map((d) => d.title);
     const shoulders = titles.findIndex((x) => /Shoulder/.test(x));
@@ -88,18 +88,21 @@ describe("your own order", () => {
     expect(legs).toBeLessThan(shoulders);
 
     // Shoulders before legs: the shoulder day takes the legs day's place in the week.
-    const order = { [dayOrderKey(base.split, base.days.length)]: moveInOrder(undefined, base.days.length, shoulders, legs) };
+    const ids = base.days.map((_, i) => i);
+    ids.splice(legs, 0, ids.splice(shoulders, 1)[0]);
+    const order: Record<string, number[]> = { [dayOrderKey(base.split, base.days.length)]: ids };
     const moved = buildPlan(p, "bodypart", { order });
     expect(moved.days[legs].title).toBe(titles[shoulders]);
     expect(moved.days[legs].weekday).toBe(base.days[legs].weekday);
     expect(moved.days[legs + 1].title).toBe(titles[legs]);
     // A moved day keeps its key (so it stays open on screen).
     expect(moved.days[legs].key).toBe(base.days[shoulders].key);
+    expect(moved.days[legs].index).toBe(shoulders);
 
     // Exercises: last one first.
     const day = base.days[0];
     const n = day.exercises.length;
-    order[exerciseOrderKey(day.template, n)] = moveInOrder(undefined, n, n - 1, 0);
+    order[exerciseOrderKey(day.template, n)] = [n - 1, ...Array.from({ length: n - 1 }, (_, i) => i)];
     const ex = buildPlan(p, "bodypart", { order }).days.find((d) => d.key === day.key)!.exercises;
     expect(ex.map((e) => e.name)).toEqual([day.exercises[n - 1].name, ...day.exercises.slice(0, -1).map((e) => e.name)]);
     // Swaps still follow the exercise, not the position.
@@ -108,6 +111,5 @@ describe("your own order", () => {
     // An order saved for a different plan size is ignored.
     expect(inOrder([1, 2, 3], [1, 0])).toEqual([1, 2, 3]);
     expect(inOrder([1, 2, 3], [0, 0, 1])).toEqual([1, 2, 3]);
-    expect(moveInOrder([2, 0, 1], 3, 0, 2)).toEqual([0, 1, 2]);
   });
 });

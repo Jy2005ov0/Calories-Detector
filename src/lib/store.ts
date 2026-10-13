@@ -1,6 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { SplitId } from "./fitness";
-import { moveInOrder } from "./order";
 import { readDurable, writeDurable } from "./platform";
 import type { Challenge, CustomMeal, DayStats, Exercise, Food, LogEntry, MealPrefs, Measurement, PeriodEntry, PlannedMeal, Profile, ProgressPhoto, Reminders, Routine, Supplement, WeightEntry, WorkoutSession } from "./types";
 
@@ -543,9 +542,9 @@ export const actions = {
   setCustomSplit(customSplit: string[][]) {
     setState({ customSplit });
   },
-  /** Move a plan day or exercise from one place to another. */
-  movePlanItem(key: string, length: number, from: number, to: number) {
-    setState((s) => ({ planOrder: { ...s.planOrder, [key]: moveInOrder(s.planOrder[key], length, from, to) } }));
+  /** Put plan days or a day's exercises in this order (their original positions). */
+  setPlanOrder(key: string, order: number[]) {
+    setState((s) => ({ planOrder: { ...s.planOrder, [key]: order } }));
   },
   /** Back to the suggested order for these days and their exercises. */
   resetPlanOrder(keys: string[]) {

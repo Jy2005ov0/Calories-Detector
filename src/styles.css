@@ -2877,6 +2877,29 @@ html[data-text="xlarge"] body {
   margin-top: 2px;
 }
 
+/* Press and hold to move: no text selection or iOS callout while holding. */
+.hold-move {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.hold-move.moving {
+  cursor: grabbing;
+}
+.plan-ex-row {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 0.5px solid var(--separator);
+  position: relative;
+  background: var(--bg-elev);
+}
+.plan-ex-row .grip {
+  align-self: center;
+  color: var(--label-3);
+  flex: none;
+}
+
 /* A plan exercise: tap the picture or name to see how it's done. */
 .plan-ex {
   display: flex;
@@ -2889,7 +2912,4 @@ html[data-text="xlarge"] body {
   color: inherit;
   font: inherit;
   text-align: left;
-}
-.icon-btn:disabled {
-  opacity: 0.3;
 }

@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { ArrowDown, ArrowLeftRight, ArrowUp, ArrowUpDown, Check, ChevronDown, Lightbulb, LogIn, Plus, RotateCcw } from "lucide-react";
+import { AnimatePresence, Reorder, motion } from "motion/react";
+import { ArrowLeftRight, ChevronDown, GripVertical, Lightbulb, LogIn, Plus, RotateCcw } from "lucide-react";
 import { t as tr, useLanguage } from "../i18n";
 import { exName, exTip, useExerciseNames } from "../i18n/exercises";
 import { ExerciseThumb } from "../components/ExercisePicture";
+import { LIFTED, useHoldToMove } from "../components/HoldToMove";
 import { ExerciseDetailSheet } from "../components/ExerciseLibrary";
 import { exerciseByName } from "../data/exercisePools";
 import { FOODS } from "../data/foods";
@@ -65,18 +66,12 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
   const plan = useMemo(() => planFor({ profile, split, planSwaps, customSplit, planOrder }), [profile, split, planSwaps, customSplit, planOrder, lang, myExercises]);
   const [swapping, setSwapping] = useState<PlannedExercise | null>(null);
   const [viewing, setViewing] = useState<PlannedExercise | null>(null);
-  const [arranging, setArranging] = useState(false);
   const dayKey = dayOrderKey(plan.split, plan.days.length);
   const orderKeys = [dayKey, ...plan.days.map((d) => exerciseOrderKey(d.template, d.exercises.length))];
   const reordered = orderKeys.some((k) => planOrder[k]);
-  const moveDay = (from: number, to: number) => {
-    actions.movePlanItem(dayKey, plan.days.length, from, to);
-    haptic();
-  };
-  const moveExercise = (d: PlannedDay, from: number, to: number) => {
-    actions.movePlanItem(exerciseOrderKey(d.template, d.exercises.length), d.exercises.length, from, to);
-    haptic();
-  };
+  // Orders are kept as the plan's own positions: a day's index, an exercise's place in its swap key.
+  const orderDays = (keys: string[]) => actions.setPlanOrder(dayKey, keys.map((k) => plan.days.find((d) => d.key === k)!.index));
+  const orderExercises = (d: PlannedDay, keys: string[]) => actions.setPlanOrder(exerciseOrderKey(d.template, d.exercises.length), keys.map((k) => Number(k.split("#")[1])));
   const today = weekdayOf(useTodayKey());
   const [open, setOpen] = useState<string | null>(plan.days.find((d) => d.weekday === today)?.key ?? plan.days[0]?.key ?? null);
 
@@ -165,116 +160,31 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0 16px", marginInline: 4 }}>
-        <button className="link tap-link" onClick={() => setArranging((v) => !v)} aria-pressed={arranging}>
-          {arranging ? <Check size={16} /> : <ArrowUpDown size={16} />} {arranging ? tr("Done") : tr("Arrange days & exercises")}
+      <p className="footnote" style={{ marginInline: 4, marginBottom: 0 }}>
+        {tr("Press and hold a day or an exercise, then drag it to change the order.")}
+      </p>
+      {reordered && (
+        <button className="link tap-link" style={{ marginInline: 4 }} onClick={() => actions.resetPlanOrder(orderKeys)}>
+          <RotateCcw size={15} /> {tr("Suggested order")}
         </button>
-        {reordered && (
-          <button className="link tap-link" onClick={() => actions.resetPlanOrder(orderKeys)}>
-            <RotateCcw size={15} /> {tr("Suggested order")}
-          </button>
-        )}
-      </div>
-      {arranging && <p className="footnote" style={{ marginTop: 0, marginInline: 4 }}>{tr("Move a day up to train it earlier in the week, or move exercises to do them in your own order.")}</p>}
+      )}
 
-      {plan.days.map((d, di) => {
-        const isOpen = open === d.key;
-        return (
-          <motion.div layout transition={SPRING} key={d.key} className="card" style={{ marginTop: 12, padding: 0, overflow: "hidden" }}>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <button
-                className="row"
-                style={{ background: "transparent", padding: "14px 16px", flex: 1, minWidth: 0 }}
-                onClick={() => setOpen(isOpen ? null : d.key)}
-                aria-expanded={isOpen}
-              >
-                <div className="row-main">
-                  <div className="muted" style={{ fontSize: 13, fontWeight: 600 }}>
-                    {tr(WEEKDAYS[d.weekday]).toUpperCase()}
-                    {d.weekday === today && ` · ${tr("Today").toUpperCase()}`}
-                  </div>
-                  <div style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-0.02em" }}>{d.title}</div>
-                  <div className="row-sub">
-                    {d.focus} · ~{d.estMinutes} min
-                  </div>
-                </div>
-                <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={SPRING} style={{ display: "grid", color: "var(--label-3)" }}>
-                  <ChevronDown size={20} />
-                </motion.span>
-              </button>
-              {arranging && (
-                <MoveButtons
-                  first={di === 0}
-                  last={di === plan.days.length - 1}
-                  onUp={() => moveDay(di, di - 1)}
-                  onDown={() => moveDay(di, di + 1)}
-                  earlier={tr("Move {name} earlier in the week", { name: d.title })}
-                  later={tr("Move {name} later in the week", { name: d.title })}
-                />
-              )}
-            </div>
-            <AnimatePresence initial={false}>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={SPRING}
-                  style={{ overflow: "hidden" }}
-                >
-                  <div style={{ padding: "0 16px 16px" }}>
-                    {d.exercises.map((e, ei) => (
-                      <div key={e.swapKey ?? e.name} style={{ display: "flex", gap: 12, padding: "10px 0", borderTop: "0.5px solid var(--separator)" }}>
-                        <button className="plan-ex" onClick={() => setViewing(e)} aria-label={tr("How to do {name}", { name: exName(e.name) })}>
-                          <ExerciseThumb name={e.name} size={48} />
-                          <div className="row-main">
-                            <div style={{ fontWeight: 600 }}>{exName(e.name)}</div>
-                            <div className="row-sub" style={{ whiteSpace: "normal" }}>
-                              {tr("{sets} sets × {reps} reps · rest {rest} · RIR {rir}", {
-                                sets: e.sets,
-                                reps: e.reps,
-                                rest: e.restSec >= 120 ? `${e.restSec / 60} min` : `${e.restSec}s`,
-                                rir: e.rir,
-                              })}
-                            </div>
-                            {e.tip && (
-                              <div className="row-sub" style={{ whiteSpace: "normal", marginTop: 2, fontStyle: "italic" }}>
-                                {exTip(e.tip)}
-                              </div>
-                            )}
-                          </div>
-                        </button>
-                        {arranging ? (
-                          <MoveButtons
-                            first={ei === 0}
-                            last={ei === d.exercises.length - 1}
-                            onUp={() => moveExercise(d, ei, ei - 1)}
-                            onDown={() => moveExercise(d, ei, ei + 1)}
-                            earlier={tr("Move {name} up", { name: exName(e.name) })}
-                            later={tr("Move {name} down", { name: exName(e.name) })}
-                          />
-                        ) : e.group && (
-                          <button className="icon-btn" style={{ alignSelf: "center" }} onClick={() => setSwapping(e)} aria-label={tr("Swap {name}", { name: exName(e.name) })}>
-                            <ArrowLeftRight size={17} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    {d.cardio && (
-                      <div className="row-sub" style={{ whiteSpace: "normal", padding: "10px 0", borderTop: "0.5px solid var(--separator)" }}>
-                        + {d.cardio}
-                      </div>
-                    )}
-                    <button className="btn" style={{ marginTop: 6 }} onClick={() => start(d)}>
-                      <LogIn size={18} /> {tr("Clock in & start")}
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        );
-      })}
+      <Reorder.Group as="div" axis="y" values={plan.days.map((d) => d.key)} onReorder={orderDays} data-testid="plan-days">
+        {plan.days.map((d, di) => (
+          <DayCard
+            key={d.key}
+            day={d}
+            today={today}
+            open={open === d.key}
+            onToggle={() => setOpen(open === d.key ? null : d.key)}
+            onKeyMove={(step) => orderDays(moved(plan.days.map((x) => x.key), di, di + step))}
+            onOrderExercises={(keys) => orderExercises(d, keys)}
+            onView={setViewing}
+            onSwap={setSwapping}
+            onStart={() => start(d)}
+          />
+        ))}
+      </Reorder.Group>
 
       <div className="section-header">{tr("How to progress")}</div>
       <div className="card">
@@ -446,16 +356,150 @@ function NutritionPlan() {
   );
 }
 
-/** Up and down buttons for putting a day or exercise in another place. */
-function MoveButtons({ first, last, onUp, onDown, earlier, later }: { first: boolean; last: boolean; onUp: () => void; onDown: () => void; earlier: string; later: string }) {
+/** A list with one item moved (for the keyboard); unchanged when it can't move further. */
+function moved(keys: string[], from: number, to: number) {
+  if (to < 0 || to >= keys.length) return keys;
+  const out = [...keys];
+  const [k] = out.splice(from, 1);
+  out.splice(to, 0, k);
+  return out;
+}
+
+/** One training day: tap to open, press and hold to drag it to another day of the week. */
+function DayCard({
+  day: d,
+  today,
+  open: isOpen,
+  onToggle,
+  onKeyMove,
+  onOrderExercises,
+  onView,
+  onSwap,
+  onStart,
+}: {
+  day: PlannedDay;
+  today: number;
+  open: boolean;
+  onToggle: () => void;
+  onKeyMove: (step: -1 | 1) => void;
+  onOrderExercises: (keys: string[]) => void;
+  onView: (e: PlannedExercise) => void;
+  onSwap: (e: PlannedExercise) => void;
+  onStart: () => void;
+}) {
+  const hold = useHoldToMove(onKeyMove);
+  const keys = d.exercises.map((e) => e.swapKey ?? e.name);
   return (
-    <div style={{ display: "flex", gap: 6, alignSelf: "center", paddingRight: 8 }}>
-      <button className="icon-btn" disabled={first} onClick={onUp} aria-label={earlier}>
-        <ArrowUp size={18} />
+    <Reorder.Item
+      as="div"
+      value={d.key}
+      dragListener={false}
+      dragControls={hold.controls}
+      onDragEnd={hold.end}
+      whileDrag={LIFTED}
+      transition={SPRING}
+      className={`card hold-move${hold.moving ? " moving" : ""}`}
+      style={{ marginTop: 12, padding: 0, overflow: "hidden", position: "relative" }}
+      data-testid="plan-day"
+      {...hold.bind}
+    >
+      <button
+        className="row"
+        style={{ background: "transparent", padding: "14px 16px" }}
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+      >
+        <div className="row-main">
+          <div className="muted" style={{ fontSize: 13, fontWeight: 600 }}>
+            {tr(WEEKDAYS[d.weekday]).toUpperCase()}
+            {d.weekday === today && ` · ${tr("Today").toUpperCase()}`}
+          </div>
+          <div className="day-title" style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-0.02em" }}>
+            {d.title}
+          </div>
+          <div className="row-sub">
+            {d.focus} · ~{d.estMinutes} min
+          </div>
+        </div>
+        <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={SPRING} style={{ display: "grid", color: "var(--label-3)" }}>
+          <ChevronDown size={20} />
+        </motion.span>
       </button>
-      <button className="icon-btn" disabled={last} onClick={onDown} aria-label={later}>
-        <ArrowDown size={18} />
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={SPRING} style={{ overflow: "hidden" }}>
+            <div style={{ padding: "0 16px 16px" }}>
+              <Reorder.Group as="div" axis="y" values={keys} onReorder={onOrderExercises}>
+                {d.exercises.map((e, ei) => (
+                  <ExerciseRow
+                    key={keys[ei]}
+                    value={keys[ei]}
+                    exercise={e}
+                    onKeyMove={(step) => onOrderExercises(moved(keys, ei, ei + step))}
+                    onView={() => onView(e)}
+                    onSwap={() => onSwap(e)}
+                  />
+                ))}
+              </Reorder.Group>
+              {d.cardio && (
+                <div className="row-sub" style={{ whiteSpace: "normal", padding: "10px 0", borderTop: "0.5px solid var(--separator)" }}>
+                  + {d.cardio}
+                </div>
+              )}
+              <button className="btn" style={{ marginTop: 6 }} onClick={onStart}>
+                <LogIn size={18} /> {tr("Clock in & start")}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Reorder.Item>
+  );
+}
+
+/** One exercise in a day: tap to see how it's done, press and hold to drag it up or down. */
+function ExerciseRow({ value, exercise: e, onKeyMove, onView, onSwap }: { value: string; exercise: PlannedExercise; onKeyMove: (step: -1 | 1) => void; onView: () => void; onSwap: () => void }) {
+  const hold = useHoldToMove(onKeyMove);
+  return (
+    <Reorder.Item
+      as="div"
+      value={value}
+      dragListener={false}
+      dragControls={hold.controls}
+      onDragEnd={hold.end}
+      whileDrag={{ ...LIFTED, borderRadius: 14 }}
+      transition={SPRING}
+      className={`plan-ex-row hold-move${hold.moving ? " moving" : ""}`}
+      data-testid="plan-exercise"
+      {...hold.bind}
+    >
+      <button className="plan-ex" onClick={onView} aria-label={tr("How to do {name}", { name: exName(e.name) })} aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown">
+        <ExerciseThumb name={e.name} size={48} />
+        <div className="row-main">
+          <div style={{ fontWeight: 600 }}>{exName(e.name)}</div>
+          <div className="row-sub" style={{ whiteSpace: "normal" }}>
+            {tr("{sets} sets × {reps} reps · rest {rest} · RIR {rir}", {
+              sets: e.sets,
+              reps: e.reps,
+              rest: e.restSec >= 120 ? `${e.restSec / 60} min` : `${e.restSec}s`,
+              rir: e.rir,
+            })}
+          </div>
+          {e.tip && (
+            <div className="row-sub" style={{ whiteSpace: "normal", marginTop: 2, fontStyle: "italic" }}>
+              {exTip(e.tip)}
+            </div>
+          )}
+        </div>
       </button>
-    </div>
+      {e.group ? (
+        <button className="icon-btn" style={{ alignSelf: "center" }} onClick={onSwap} aria-label={tr("Swap {name}", { name: exName(e.name) })}>
+          <ArrowLeftRight size={17} />
+        </button>
+      ) : (
+        <GripVertical size={18} className="grip" aria-hidden />
+      )}
+    </Reorder.Item>
   );
 }

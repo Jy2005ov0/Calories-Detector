@@ -272,6 +272,8 @@ export interface PlannedDay {
   key: string;
   /** The day it's built from, for keeping its exercises in the order the person chose. */
   template: string;
+  /** Its place in the suggested plan, before the person changed the order. */
+  index: number;
   weekday: number;
   title: string;
   focus: string;
@@ -406,6 +408,7 @@ export function buildPlan(p: Pick<Profile, "goal" | "experience" | "trainingDays
       // Stays the same when the day is moved.
       key: `${key}-${orig}`,
       template: key,
+      index: orig,
       weekday: WEEK_LAYOUT[days][idx],
       // Day titles and focus are translated here; nothing compares them to English text.
       title: resolved === "custom" ? tpl.title : t(tpl.title),
