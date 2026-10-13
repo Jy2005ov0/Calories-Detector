@@ -44,8 +44,13 @@ describe("exercise icons", () => {
       counts.set(k, (counts.get(k) ?? 0) + 1);
     }
     expect(counts.size).toBeGreaterThan(120);
-    // No single icon stands for more than 6% of the library.
-    expect(Math.max(...counts.values())).toBeLessThan(EXERCISES.length * 0.06);
+    // No single icon stands for more than 6% of the hand-built library…
+    const library = EXERCISES.filter((e) => !e.id.startsWith("v"));
+    const libCounts = new Map<string, number>();
+    for (const e of library) libCounts.set(exerciseIconKey(e), (libCounts.get(exerciseIconKey(e)) ?? 0) + 1);
+    expect(Math.max(...libCounts.values())).toBeLessThan(library.length * 0.06);
+    // …or 8% with the thousands of variations, which share their movement's drawing.
+    expect(Math.max(...counts.values())).toBeLessThan(EXERCISES.length * 0.08);
     // Every gym-movement key used has a drawing.
     for (const e of EXERCISES.filter((x) => x.kind === "strength")) {
       const k = exerciseIconKey(e);

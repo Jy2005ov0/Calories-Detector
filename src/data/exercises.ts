@@ -1,4 +1,5 @@
 import type { Exercise } from "../lib/types";
+import { variantExercises } from "./exerciseVariants";
 import { MORE_CARDIO, MORE_STRENGTH } from "./moreExercises";
 import { MORE_CARDIO_2, MORE_STRENGTH_2 } from "./moreExercises2";
 import { OPEN_CARDIO, OPEN_STRENGTH } from "./openExercises";
@@ -285,7 +286,7 @@ const strengthOf = (rows: StrengthRow[], prefix: string) =>
     tip,
   }));
 
-export const EXERCISES: Exercise[] = [
+const LIBRARY: Exercise[] = [
   ...cardio.map(([name, category, met, aliases], i): Exercise => ({
     id: `c-${i}`,
     name,
@@ -330,6 +331,9 @@ export const EXERCISES: Exercise[] = [
   ...cardioOf(OPEN_CARDIO, "co"),
   ...strengthOf(OPEN_STRENGTH, "so"),
 ];
+
+/** The library plus thousands of variations of its lifts (equipment, angle, grip, position, tempo). */
+export const EXERCISES: Exercise[] = [...LIBRARY, ...variantExercises(new Set(LIBRARY.map((e) => e.name)))];
 
 export const EXERCISE_BY_NAME = new Map(EXERCISES.map((e) => [e.name, e]));
 

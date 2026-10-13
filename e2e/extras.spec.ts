@@ -495,3 +495,32 @@ test("Training splits: more split types, train at home, swap an exercise, and my
   await expect(page.getByText(planned!.replace(/^Swap /, ""), { exact: true }).first()).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test("Water is right under steps on Today, and the library has thousands of exercises in every language", async ({ page }) => {
+  const state = { ...seedState(), profile: { ...seedState().profile, stepsOn: true } };
+  const errors = await open(page, state, { steps: 4200 });
+  // Water logging comes straight after the step counter.
+  const next = await page.getByTestId("steps-card").evaluate((el) => el.nextElementSibling?.getAttribute("data-tour"));
+  expect(next).toBe("water");
+  await page.getByRole("button", { name: /^Add \d+ ml of water$/ }).click();
+
+  await tab(page, "Train");
+  await page.getByRole("button", { name: /Exercise library/ }).click();
+  const lib = page.getByRole("dialog").last();
+  const search = lib.getByRole("textbox").first();
+  const placeholder = (await search.getAttribute("placeholder"))!;
+  expect(Number(placeholder.replace(/\D/g, ""))).toBeGreaterThan(6000);
+  await search.fill("incline close-grip barbell bench press, paused");
+  await expect(lib.locator(".row", { hasText: "Incline close-grip barbell bench press, paused" }).first()).toBeVisible();
+  await close(page);
+
+  // The same variation in Chinese.
+  await tab(page, "Profile");
+  await page.getByRole("button", { name: "中文" }).click();
+  await page.getByRole("navigation").getByRole("button").nth(2).click();
+  await page.getByRole("button", { name: /动作库|Exercise library|运动库/ }).first().click();
+  const zh = page.getByRole("dialog").last();
+  await zh.getByRole("textbox").first().fill("上斜窄握杠铃卧推");
+  await expect(zh.locator(".row", { hasText: "上斜窄握杠铃卧推（停顿）" }).first()).toBeVisible();
+  expect(errors).toEqual([]);
+});

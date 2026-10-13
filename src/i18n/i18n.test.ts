@@ -68,7 +68,8 @@ describe("exercise names", () => {
     );
     for (const lang of ["ms", "zh"] as const) {
       const pack = (await import(`./exercises/${lang}.json`)).default as { names: Record<string, string>; labels: Record<string, string> };
-      const missing = [...new Set([...EXERCISES.map((e) => e.name), ...PLAN_EXERCISE_NAMES])].filter((n) => !pack.names[n]);
+      const { variantName } = await import("../data/exerciseVariants");
+      const missing = [...new Set([...EXERCISES.map((e) => e.name), ...PLAN_EXERCISE_NAMES])].filter((n) => !pack.names[n] && !variantName(lang, n));
       expect(missing, `${lang} names`).toEqual([]);
       const labels = [...new Set(EXERCISES.flatMap((e) => [e.category, ...(e.muscles ?? []), e.equipment ?? ""]).filter(Boolean))];
       expect(labels.filter((l) => !pack.labels[l]), `${lang} labels`).toEqual([]);

@@ -526,6 +526,38 @@ export function Today({
       <FastCard now={now} />
       <CycleCard today={today} />
       <StepsCard today={today} />
+      <div className="card" style={{ marginTop: 12 }} data-tour="water">
+        <WaterControl compact />
+        <div className="hairline" />
+        <button
+          className="progress-link pressable"
+          onClick={() => openSheet("progress")}
+        >
+          <LineChart size={17} color="var(--green)" />
+          <span className="row-main" style={{ textAlign: "left" }}>
+            {t("Weight, water and streaks")}
+          </span>
+          <span className="link" style={{ fontSize: 15 }}>
+            {t("Progress")}
+          </span>
+          <ChevronRight size={16} className="chev" />
+        </button>
+        <div className="hairline" />
+        <button
+          className="progress-link pressable"
+          onClick={() => setQuick("report")}
+        >
+          <CalendarDays size={17} color="var(--blue)" />
+          <span className="row-main" style={{ textAlign: "left" }}>
+            {t("Your week at a glance")}
+          </span>
+          <span className="link" style={{ fontSize: 15 }}>
+            {t("Weekly report")}
+          </span>
+          <ChevronRight size={16} className="chev" />
+        </button>
+      </div>
+
       <CheckInCard today={today} />
 
       <div className="tiles" style={{ marginTop: 12 }}>
@@ -572,38 +604,6 @@ export function Today({
       </div>
 
       <MealIdeasCard today={today} meals={meals} burned={burned} now={now} />
-
-      <div className="card" style={{ marginTop: 12 }} data-tour="water">
-        <WaterControl compact />
-        <div className="hairline" />
-        <button
-          className="progress-link pressable"
-          onClick={() => openSheet("progress")}
-        >
-          <LineChart size={17} color="var(--green)" />
-          <span className="row-main" style={{ textAlign: "left" }}>
-            {t("Weight, water and streaks")}
-          </span>
-          <span className="link" style={{ fontSize: 15 }}>
-            {t("Progress")}
-          </span>
-          <ChevronRight size={16} className="chev" />
-        </button>
-        <div className="hairline" />
-        <button
-          className="progress-link pressable"
-          onClick={() => setQuick("report")}
-        >
-          <CalendarDays size={17} color="var(--blue)" />
-          <span className="row-main" style={{ textAlign: "left" }}>
-            {t("Your week at a glance")}
-          </span>
-          <span className="link" style={{ fontSize: 15 }}>
-            {t("Weekly report")}
-          </span>
-          <ChevronRight size={16} className="chev" />
-        </button>
-      </div>
 
       <SupplementsCard today={today} />
 

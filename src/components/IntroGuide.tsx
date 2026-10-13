@@ -32,7 +32,7 @@ export const INTRO_SLIDES: Slide[] = [
     colors: ["#ff9f0a", "#ff375f"],
     title: "Clock in at the gym",
     body: "Start a workout with one tap. A live timer counts your time and calories while you log sets and weights.",
-    points: ["1,900+ exercises and sports", "GPS runs and walks, steps and routines", "Workouts add calories back to your day"],
+    points: ["6,000+ exercises and sports", "GPS runs and walks, steps and routines", "Workouts add calories back to your day"],
   },
   {
     Icon: Target,

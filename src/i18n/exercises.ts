@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { getState, useStore } from "../lib/store";
+import { variantName, variantTip } from "../data/exerciseVariants";
 
 // Exercise names, categories, muscles and equipment in Malay and Chinese. There are almost 2,000
 // names, so each language is its own file, loaded only when that language is chosen.
@@ -38,12 +39,17 @@ const pack = () => {
 
 /** An exercise (or workout title that is an exercise name) in the app's language. */
 export function exName(name: string): string {
-  return pack()?.names[name] ?? name;
+  const lang = getState().language ?? "en";
+  if (lang === "en") return name;
+  // The thousands of variations compose their own names; the rest come from the language pack.
+  return pack()?.names[name] ?? variantName(lang, name) ?? name;
 }
 
 /** A form tip in the app's language. */
 export function exTip(tip: string): string {
-  return pack()?.tips?.[tip] ?? tip;
+  const lang = getState().language ?? "en";
+  if (lang === "en") return tip;
+  return pack()?.tips?.[tip] ?? variantTip(lang, tip) ?? tip;
 }
 
 /** A category, muscle or equipment label in the app's language. */

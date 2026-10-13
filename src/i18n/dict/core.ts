@@ -164,8 +164,8 @@ export const CORE: AreaDict = {
     "Tap Clock in when you start. A live timer counts your time and calories. Log sets and weights, then clock out to save the workout.":
       "Ketik Daftar masuk apabila anda mula. Pemasa langsung mengira masa dan kalori anda. Catat set dan berat, kemudian daftar keluar untuk menyimpan latihan.",
     "Log other activities": "Catat aktiviti lain",
-    "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 1,900+ exercises and sports.":
-      "Main futsal atau pergi berlari? Catat di sini bersama tempohnya dan kalori ditambah ke hari anda. Terdapat 1,900+ senaman dan sukan.",
+    "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 6,000+ exercises and sports.":
+      "Main futsal atau pergi berlari? Catat di sini bersama tempohnya dan kalori ditambah ke hari anda. Terdapat 6,000+ senaman dan sukan.",
     "Your training plan": "Pelan latihan anda",
     "Choose a split (Chest, Back, Legs, Shoulders, Arms, or others) and your days per week. Open a day to see sets, reps and form tips, then start it.":
       "Pilih pembahagian (Dada, Belakang, Kaki, Bahu, Lengan, atau lain-lain) dan bilangan hari seminggu. Buka satu hari untuk melihat set, ulangan dan tip teknik, kemudian mulakan.",
@@ -194,7 +194,7 @@ export const CORE: AreaDict = {
     "Daily limits on the Today screen": "Had harian pada skrin Hari ini",
     "Start a workout with one tap. A live timer counts your time and calories while you log sets and weights.":
       "Mulakan latihan dengan satu ketikan. Pemasa langsung mengira masa dan kalori semasa anda mencatat set dan berat.",
-    "1,900+ exercises and sports": "1,900+ senaman dan sukan",
+    "6,000+ exercises and sports": "6,000+ senaman dan sukan",
     "Workouts add calories back to your day": "Latihan menambah semula kalori ke hari anda",
     "A plan made for your body": "Pelan yang dibuat untuk badan anda",
     "Enter your height and weight to get your BMI, a training split and what to eat — chest, back, legs, arms and more.":
@@ -413,8 +413,8 @@ export const CORE: AreaDict = {
     "Tap Clock in when you start. A live timer counts your time and calories. Log sets and weights, then clock out to save the workout.":
       "开始时点击开始打卡，实时计时器会记录时间和热量。记录组数和重量，结束打卡即可保存训练。",
     "Log other activities": "记录其他活动",
-    "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 1,900+ exercises and sports.":
-      "踢了五人足球或去跑步了？在这里记录时长，热量会计入当天。共有 1,900+ 种运动项目。",
+    "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 6,000+ exercises and sports.":
+      "踢了五人足球或去跑步了？在这里记录时长，热量会计入当天。共有 6,000+ 种运动项目。",
     "Your training plan": "你的训练计划",
     "Choose a split (Chest, Back, Legs, Shoulders, Arms, or others) and your days per week. Open a day to see sets, reps and form tips, then start it.":
       "选择训练分化（胸、背、腿、肩、手臂等）和每周天数。打开某一天查看组数、次数和动作要点，然后开始训练。",
@@ -443,7 +443,7 @@ export const CORE: AreaDict = {
     "Daily limits on the Today screen": "今天页面显示每日上限",
     "Start a workout with one tap. A live timer counts your time and calories while you log sets and weights.":
       "一键开始训练。记录组数和重量时，实时计时器会统计时间和热量。",
-    "1,900+ exercises and sports": "1,900+ 种运动项目",
+    "6,000+ exercises and sports": "6,000+ 种运动项目",
     "Workouts add calories back to your day": "训练会把热量加回当天",
     "A plan made for your body": "为你的身体定制的计划",
     "Enter your height and weight to get your BMI, a training split and what to eat — chest, back, legs, arms and more.":
