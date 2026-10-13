@@ -496,6 +496,73 @@ test("Training splits: more split types, train at home, swap an exercise, and my
   expect(errors).toEqual([]);
 });
 
+test("My own exercise: create it from a search, train with it, swap it into the plan, rename and delete it", async ({ page }) => {
+  const errors = await open(page);
+  await tab(page, "Train");
+  await page.locator("[data-tour=clock-in]").click();
+  await page.getByRole("button", { name: "Add exercise" }).click();
+  const lib = sheet(page, "Exercises");
+  await lib.getByPlaceholder(/Search .* exercises/).fill("Garage bar row");
+  await lib.getByTestId("create-exercise").click();
+
+  const form = sheet(page, "New exercise");
+  await expect(form.getByLabel("Name")).toHaveValue("Garage bar row");
+  await form.getByRole("group", { name: "Main muscle" }).getByRole("button", { name: "Back", exact: true }).click();
+  await form.getByRole("group", { name: "Equipment" }).getByRole("button", { name: "Barbell", exact: true }).click();
+  await form.getByLabel("Note").fill("Elbows tight to the ribs");
+  await form.getByRole("button", { name: "Create exercise" }).click();
+
+  // Its own page, then into the workout.
+  const detail = sheet(page, "Your exercise");
+  await expect(detail.getByRole("heading", { name: "Garage bar row" })).toBeVisible();
+  await expect(detail.getByText("Elbows tight to the ribs")).toBeVisible();
+  await detail.getByRole("button", { name: "Add to workout" }).click();
+  await expect(page.getByText("Garage bar row", { exact: true }).first()).toBeVisible();
+
+  // A library name can't be reused.
+  await page.getByRole("button", { name: "Add exercise" }).click();
+  await lib.getByRole("tab", { name: "Strength" }).waitFor();
+  await lib.getByRole("button", { name: "My exercises", exact: true }).click();
+  await expect(lib.getByRole("button", { name: /Garage bar row/ })).toBeVisible();
+  await lib.getByTestId("create-exercise").click();
+  const again = sheet(page, "New exercise");
+  await again.getByLabel("Name").fill("Pull-up");
+  await expect(again.getByRole("alert")).toContainText("already in the library");
+  await expect(again.getByRole("button", { name: "Create exercise" })).toBeDisabled();
+  await close(page);
+  await close(page);
+
+  // In the plan's swap list for back exercises, first.
+  await tab(page, "Plan");
+  await page.getByRole("button", { name: "Chest & Tri · Back & Bi · Legs" }).click();
+  await page.getByRole("button", { name: /Back & Biceps/ }).first().click();
+  await page.getByRole("button", { name: /^Swap / }).first().click();
+  const swap = sheet(page, "Swap exercise");
+  await swap.getByTestId("swap-list").getByRole("button", { name: /Garage bar row/ }).first().click();
+  await expect(page.getByRole("button", { name: "Swap Garage bar row" })).toBeVisible();
+
+  // Rename it: the plan follows. Then delete it: the plan goes back to its suggestion.
+  await page.getByRole("navigation").getByRole("button", { name: /^Train/ }).click();
+  await page.getByRole("button", { name: "Add exercise" }).click();
+  await lib.getByRole("button", { name: "My exercises", exact: true }).click();
+  await lib.getByRole("button", { name: /Garage bar row/ }).click();
+  await detail.getByRole("button", { name: "Edit", exact: true }).click();
+  const edit = sheet(page, "Edit exercise");
+  await edit.getByLabel("Name").fill("Garage pendlay row");
+  await edit.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(detail.getByRole("heading", { name: "Garage pendlay row" })).toBeVisible();
+  page.once("dialog", (d) => d.accept());
+  await detail.getByRole("button", { name: "Delete", exact: true }).click();
+  await expect(lib.getByText("Exercises you create show up here.")).toBeVisible();
+  await close(page);
+  // The workout keeps the exercise under its new name.
+  await expect(page.getByText("Garage pendlay row", { exact: true }).first()).toBeVisible();
+  await tab(page, "Plan");
+  await page.getByRole("button", { name: /Back & Biceps/ }).first().click();
+  await expect(page.getByRole("button", { name: "Swap Garage pendlay row" })).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test("Steps inside the calorie card with water right after it, and the library has thousands of exercises in every language", async ({ page }) => {
   const state = { ...seedState(), profile: { ...seedState().profile, stepsOn: true } };
   const errors = await open(page, state, { steps: 4200 });

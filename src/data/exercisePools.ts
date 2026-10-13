@@ -1,4 +1,4 @@
-import { EXERCISES } from "./exercises";
+import { EXERCISES, EXERCISE_BY_NAME, myExercises } from "./exercises";
 
 /** Muscle groups a training day can be built from. */
 export type MuscleGroup = "chest" | "back" | "shoulders" | "biceps" | "triceps" | "quads" | "hamstrings" | "glutes" | "calves" | "core" | "forearms";
@@ -104,7 +104,7 @@ const PRIMARY: Record<MuscleGroup, string[]> = {
 /** Stretches, foam rolling, drills and stunts aren't workout exercises. */
 const NOT_A_LIFT = /stretch|smr\b|-smr|drill|technique|circles|balance board|claw|series|planche|front lever|back lever|human flag|muscle-up|atlas|tyre|sandbag|log press|sled|rickshaw|chain|power stairs|start|wall walk|handstand hold|body-up/i;
 
-const BY_NAME = new Map(EXERCISES.map((e) => [e.name, e]));
+const BY_NAME = EXERCISE_BY_NAME;
 
 /** What kind of place an exercise needs. Bands, TRX and small kit (ab wheel, ball) count as home. */
 export function equipmentOf(e: { equipment?: string; name: string }): Equipment {
@@ -129,8 +129,16 @@ export interface PoolEntry {
 
 const poolCache = new Map<MuscleGroup, PoolEntry[]>();
 
-/** Every exercise for a muscle group: the staples first, then the rest of the library. */
+/** Every exercise for a muscle group: the person's own first, then the staples, then the rest of the library. */
 export function poolFor(group: MuscleGroup): PoolEntry[] {
+  const base = libraryPool(group);
+  const own = myExercises().filter((e) => e.kind === "strength" && groupOf(e.name) === group && BY_NAME.get(e.name) === e);
+  if (!own.length) return base;
+  // Never picked for a plan over a staple; offered first when swapping.
+  return [...own.map((e) => ({ name: e.name, compound: (e.muscles?.length ?? 0) >= 3 || e.met >= 5, staple: false })), ...base];
+}
+
+function libraryPool(group: MuscleGroup): PoolEntry[] {
   const hit = poolCache.get(group);
   if (hit) return hit;
   const seen = new Set<string>();
@@ -153,8 +161,8 @@ export function poolFor(group: MuscleGroup): PoolEntry[] {
 
 /** The muscle group an exercise mainly trains, when it has one. */
 export function groupOf(name: string): MuscleGroup | null {
-  for (const g of MUSCLE_GROUPS) if (STAPLES[g.id].some(([n]) => n === name)) return g.id;
   const e = BY_NAME.get(name);
+  if (!e?.id.startsWith("my-")) for (const g of MUSCLE_GROUPS) if (STAPLES[g.id].some(([n]) => n === name)) return g.id;
   const m = e?.muscles?.[0];
   if (!m) return null;
   return (Object.keys(PRIMARY) as MuscleGroup[]).find((g) => PRIMARY[g].includes(m)) ?? null;

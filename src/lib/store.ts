@@ -1,13 +1,15 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { SplitId } from "./fitness";
 import { readDurable, writeDurable } from "./platform";
-import type { Challenge, CustomMeal, DayStats, Food, LogEntry, MealPrefs, Measurement, PeriodEntry, PlannedMeal, Profile, ProgressPhoto, Reminders, Routine, Supplement, WeightEntry, WorkoutSession } from "./types";
+import type { Challenge, CustomMeal, DayStats, Exercise, Food, LogEntry, MealPrefs, Measurement, PeriodEntry, PlannedMeal, Profile, ProgressPhoto, Reminders, Routine, Supplement, WeightEntry, WorkoutSession } from "./types";
 
 export interface AppState {
   profile: Profile;
   log: LogEntry[];
   customFoods: Food[];
   customMeals: CustomMeal[];
+  /** Exercises the person created themselves (ids start with "my-"). */
+  customExercises: Exercise[];
   sessions: WorkoutSession[];
   activeSessionId: string | null;
   split: SplitId;
@@ -138,6 +140,7 @@ const initial: AppState = {
   log: [],
   customFoods: [],
   customMeals: [],
+  customExercises: [],
   sessions: [],
   activeSessionId: null,
   split: "auto",
@@ -535,6 +538,29 @@ export const actions = {
   },
   setCustomSplit(customSplit: string[][]) {
     setState({ customSplit });
+  },
+  // ── My own exercises ──
+  /** Add a new exercise or save changes to one. A rename carries over to past workouts and the plan. */
+  saveCustomExercise(ex: Exercise) {
+    setState((s) => {
+      const old = s.customExercises.find((e) => e.id === ex.id);
+      const customExercises = old ? s.customExercises.map((e) => (e.id === ex.id ? ex : e)) : [ex, ...s.customExercises];
+      if (!old || old.name === ex.name) return { customExercises };
+      const rename = (n: string) => (n === old.name ? ex.name : n);
+      return {
+        customExercises,
+        sessions: s.sessions.map((w) =>
+          w.exercises.some((e) => e.exerciseId === ex.id) || w.title === old.name
+            ? { ...w, title: rename(w.title), exercises: w.exercises.map((e) => (e.exerciseId === ex.id ? { ...e, name: ex.name } : e)) }
+            : w,
+        ),
+        planSwaps: Object.fromEntries(Object.entries(s.planSwaps).map(([k, v]) => [k, rename(v)])),
+      };
+    });
+  },
+  /** Delete an exercise; workouts already logged with it stay as they are. */
+  deleteCustomExercise(id: string) {
+    setState((s) => ({ customExercises: s.customExercises.filter((e) => e.id !== id) }));
   },
   // ── Daily meal ideas ──
   setMealPrefs(p: Partial<MealPrefs>) {

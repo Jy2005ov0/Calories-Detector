@@ -1,15 +1,19 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { ChevronRight, Flame, Plus, Search } from "lucide-react";
-import { CARDIO_GROUPS, EXERCISES, STRENGTH_GROUPS } from "../data/exercises";
+import { ChevronRight, Flame, Pencil, Plus, Search, Trash2, UserRound } from "lucide-react";
+import { CARDIO_GROUPS, EXERCISES, STRENGTH_GROUPS, isMine } from "../data/exercises";
 import { useExerciseSteps } from "../lib/usda";
 import { t, useLanguage } from "../i18n";
 import { exLabel, exName, exTip, useExerciseNames } from "../i18n/exercises";
 import { kcalFor } from "../lib/fitness";
 import { round } from "../lib/nutrition";
-import { useStore } from "../lib/store";
+import { confirmDialog } from "../lib/platform";
+import { actions, useStore } from "../lib/store";
 import type { Exercise } from "../lib/types";
 import { Segmented, Sheet, Stepper, useShowMore } from "./ui";
 import { ExerciseHero, ExerciseThumb } from "./ExercisePicture";
+import { MyExerciseSheet } from "./MyExercise";
+
+const MINE = "__mine";
 
 export function ExerciseLibrary({
   open,
@@ -29,7 +33,10 @@ export function ExerciseLibrary({
   const [group, setGroup] = useState("All");
   const [q, setQ] = useState("");
   const [detail, setDetail] = useState<Exercise | null>(null);
-  const howTo = useExerciseSteps(detail?.name, lang);
+  const mine = useStore((s) => s.customExercises);
+  const [editor, setEditor] = useState<{ editing: Exercise | null; name: string } | null>(null);
+  // Your own exercises have no photos or step-by-step guide to look up.
+  const howTo = useExerciseSteps(isMine(detail ?? undefined) ? undefined : detail?.name, lang);
   const [minutes, setMinutes] = useState(30);
 
   useEffect(() => {
@@ -48,13 +55,21 @@ export function ExerciseLibrary({
   const query = useDeferredValue(q);
   const list = useMemo(() => {
     const term = query.trim().toLowerCase();
-    return EXERCISES.filter(
+    return [...mine, ...EXERCISES].filter(
       (e) =>
         (term ? true : e.kind === kind) &&
-        (term || group === "All" || e.category === group) &&
+        (term || group === "All" || (group === MINE ? isMine(e) : e.category === group)) &&
         (!term || haystack(e).includes(term)),
     );
-  }, [kind, group, query, lang]);
+  }, [kind, group, query, lang, mine]);
+  const typed = q.trim().replace(/\s+/g, " ");
+  const exact = list.some((e) => e.name.toLowerCase() === typed.toLowerCase() || exName(e.name).toLowerCase() === typed.toLowerCase());
+  const create = (name = "") => setEditor({ editing: null, name });
+  const remove = async (e: Exercise) => {
+    if (!(await confirmDialog(t("Delete {name}?", { name: e.name }), t("Workouts you already logged with it stay as they are.")))) return;
+    actions.deleteCustomExercise(e.id);
+    setDetail(null);
+  };
   const [shown, more] = useShowMore(list);
 
   return (
@@ -77,15 +92,32 @@ export function ExerciseLibrary({
               />
             </div>
             <div className="chips" style={{ marginTop: 12 }}>
-              {groups.map((g) => (
+              {[groups[0], MINE, ...groups.slice(1)].map((g) => (
                 <button key={g} className={`chip ${g === group ? "active" : ""}`} onClick={() => setGroup(g)}>
-                  {g === "All" ? t("All") : exLabel(g)}
+                  {g === "All" ? t("All") : g === MINE ? t("My exercises") : exLabel(g)}
                 </button>
               ))}
             </div>
           </>
         )}
+        {!q && group !== MINE && (
+          <button className="link" style={{ marginTop: 10 }} onClick={() => create()}>
+            <Plus size={16} /> {t("Create your own exercise")}
+          </button>
+        )}
         <div className="group" style={{ marginTop: 12 }}>
+          {((typed && !exact) || group === MINE) && (
+            <button className="row" onClick={() => create(typed)} data-testid="create-exercise">
+              <div className="icon-tile" style={{ background: "var(--blue)" }}>
+                <Plus size={18} />
+              </div>
+              <div className="row-main">
+                <div className="row-title wrap">{typed ? t("Create “{name}”", { name: typed }) : t("Create your own exercise")}</div>
+                <div className="row-sub wrap">{t("Not in the list? Add it and track it like any other.")}</div>
+              </div>
+              <ChevronRight size={16} className="chev" />
+            </button>
+          )}
           {shown.map((e) => (
             <button
               className="row"
@@ -99,18 +131,23 @@ export function ExerciseLibrary({
               <div className="row-main">
                 <div className="row-title">{exName(e.name)}</div>
                 <div className="row-sub">
-                  {e.kind === "strength" ? `${e.muscles?.map(exLabel).join(lang === "zh" ? "、" : ", ")} · ${exLabel(e.equipment)}` : `${exLabel(e.category)} · ${round(kcalFor(e.met, weight, 30))} kcal / 30 min`}
+                  {isMine(e) && (
+                    <span className="mine-tag">
+                      <UserRound size={12} aria-hidden /> {t("Mine")} ·{" "}
+                    </span>
+                  )}
+                  {e.kind === "cardio" && isMine(e) ? `${round(kcalFor(e.met, weight, 30))} kcal / 30 min` : e.kind === "strength" ? `${e.muscles?.map(exLabel).join(lang === "zh" ? "、" : ", ")} · ${exLabel(e.equipment)}` : `${exLabel(e.category)} · ${round(kcalFor(e.met, weight, 30))} kcal / 30 min`}
                 </div>
               </div>
               <ChevronRight size={16} className="chev" />
             </button>
           ))}
           {more}
-          {list.length === 0 && <div className="empty">{t("No exercises match.")}</div>}
+          {list.length === 0 && <div className="empty">{group === MINE && !q ? t("Exercises you create show up here.") : t("No exercises match.")}</div>}
         </div>
       </Sheet>
 
-      <Sheet open={!!detail} onClose={() => setDetail(null)} title={exLabel(detail?.category)} full>
+      <Sheet open={!!detail} onClose={() => setDetail(null)} title={isMine(detail ?? undefined) ? t("Your exercise") : exLabel(detail?.category)} full>
         {detail && (
           <>
             <ExerciseHero name={detail.name} category={detail.category} />
@@ -162,12 +199,24 @@ export function ExerciseLibrary({
                   <div className="row">
                     <div className="row-main" style={{ fontSize: 15 }}>
                       <div className="muted" style={{ fontSize: 13, marginBottom: 2 }}>
-                        {t("Form cue")}
+                        {isMine(detail) ? t("Note") : t("Form cue")}
                       </div>
-                      {exTip(detail.tip)}
+                      {isMine(detail) ? detail.tip : exTip(detail.tip)}
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+            {detail.kind === "cardio" && isMine(detail) && detail.tip && (
+              <div className="group" style={{ marginTop: 12 }}>
+                <div className="row">
+                  <div className="row-main" style={{ fontSize: 15 }}>
+                    <div className="muted" style={{ fontSize: 13, marginBottom: 2 }}>
+                      {t("Note")}
+                    </div>
+                    {detail.tip}
+                  </div>
+                </div>
               </div>
             )}
             {howTo.length > 0 && (
@@ -191,6 +240,16 @@ export function ExerciseLibrary({
                 </div>
               </div>
             )}
+            {isMine(detail) && (
+              <div className="row-buttons" style={{ display: "flex", gap: 10, marginTop: 12 }}>
+                <button className="btn secondary small" style={{ flex: 1 }} onClick={() => setEditor({ editing: detail, name: detail.name })}>
+                  <Pencil size={15} /> {t("Edit")}
+                </button>
+                <button className="btn secondary small" style={{ flex: 1, color: "var(--red)" }} onClick={() => remove(detail)}>
+                  <Trash2 size={15} /> {t("Delete")}
+                </button>
+              </div>
+            )}
             <p className="footnote">{t("Calories = MET × your weight ({kg} kg) × hours, using the Compendium of Physical Activities.", { kg: weight })}</p>
             {onPick && (
               <>
@@ -210,6 +269,18 @@ export function ExerciseLibrary({
           </>
         )}
       </Sheet>
+
+      <MyExerciseSheet
+        open={!!editor}
+        editing={editor?.editing}
+        initialName={editor?.name}
+        onClose={() => setEditor(null)}
+        onSaved={(ex) => {
+          setQ("");
+          setKind(ex.kind);
+          setDetail(ex);
+        }}
+      />
     </>
   );
 }

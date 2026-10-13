@@ -57,8 +57,9 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
   const split = useStore((s) => s.split);
   const activeId = useStore((s) => s.activeSessionId);
   const planSwaps = useStore((s) => s.planSwaps);
+  const myExercises = useStore((s) => s.customExercises);
   const customSplit = useStore((s) => s.customSplit);
-  const plan = useMemo(() => planFor({ profile, split, planSwaps, customSplit }), [profile, split, planSwaps, customSplit, lang]);
+  const plan = useMemo(() => planFor({ profile, split, planSwaps, customSplit }), [profile, split, planSwaps, customSplit, lang, myExercises]);
   const [swapping, setSwapping] = useState<PlannedExercise | null>(null);
   const today = weekdayOf(useTodayKey());
   const [open, setOpen] = useState<string | null>(plan.days.find((d) => d.weekday === today)?.key ?? plan.days[0]?.key ?? null);

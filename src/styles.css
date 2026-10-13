@@ -2854,3 +2854,16 @@ html[data-text="xlarge"] body {
   height: 30px;
   border-radius: 8px;
 }
+
+/* "Mine": an exercise the person created. */
+.mine-tag {
+  color: var(--blue);
+  font-weight: 600;
+}
+.mine-tag svg {
+  vertical-align: -1px;
+}
+.row-title.wrap,
+.row-sub.wrap {
+  white-space: normal;
+}

@@ -1,3 +1,4 @@
+import { getState, subscribe } from "../lib/store";
 import type { Exercise } from "../lib/types";
 import { variantExercises } from "./exerciseVariants";
 import { MORE_CARDIO, MORE_STRENGTH } from "./moreExercises";
@@ -335,7 +336,26 @@ const LIBRARY: Exercise[] = [
 /** The library plus thousands of variations of its lifts (equipment, angle, grip, position, tempo). */
 export const EXERCISES: Exercise[] = [...LIBRARY, ...variantExercises(new Set(LIBRARY.map((e) => e.name)))];
 
+/** Every exercise by name, including the ones the person created (kept in step with the store). */
 export const EXERCISE_BY_NAME = new Map(EXERCISES.map((e) => [e.name, e]));
+
+let mine: Exercise[] = [];
+
+/** The exercises the current person created themselves. */
+export const myExercises = () => mine;
+
+export const isMine = (e: { id?: string } | undefined) => !!e?.id?.startsWith("my-");
+
+function syncMine() {
+  const list = getState().customExercises ?? [];
+  if (list === mine) return;
+  for (const e of mine) if (EXERCISE_BY_NAME.get(e.name) === e) EXERCISE_BY_NAME.delete(e.name);
+  mine = list;
+  // A built-in exercise always keeps its name.
+  for (const e of list) if (!EXERCISE_BY_NAME.has(e.name)) EXERCISE_BY_NAME.set(e.name, e);
+}
+syncMine();
+subscribe(syncMine);
 
 export const STRENGTH_GROUPS = ["Chest", "Back", "Shoulders", "Arms", "Legs", "Core", "Full Body"];
 export const CARDIO_GROUPS = Array.from(new Set([...cardio, ...MORE_CARDIO, ...MORE_CARDIO_2, ...OPEN_CARDIO].map((c) => c[1])));

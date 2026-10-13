@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
-import { RotateCcw, Search } from "lucide-react";
+import { Plus, RotateCcw, Search } from "lucide-react";
 import { t, useLanguage } from "../i18n";
 import { exLabel, exName, useExerciseNames } from "../i18n/exercises";
+import { isMine } from "../data/exercises";
 import { MUSCLE_GROUPS, allowed, exerciseByName, poolFor, type Equipment, type MuscleGroup } from "../data/exercisePools";
 import { WEEKDAYS, customTitle, defaultCustomDays, type CustomDay, type PlannedExercise, type TrainingPlan } from "../lib/fitness";
 import { actions, useStore } from "../lib/store";
 import { ExerciseThumb } from "./ExercisePicture";
+import { MyExerciseSheet } from "./MyExercise";
 import { Segmented, Sheet, haptic } from "./ui";
 
 /** Where the person trains: the plan only uses exercises they can do there. */
@@ -68,8 +70,10 @@ export function SwapSheet({ exercise, onClose }: { exercise: PlannedExercise | n
   useExerciseNames();
   const equipment = useStore((s) => s.profile.equipment) ?? "gym";
   const swaps = useStore((s) => s.planSwaps);
+  const mine = useStore((s) => s.customExercises);
   const [q, setQ] = useState("");
   const [all, setAll] = useState(false);
+  const [creating, setCreating] = useState(false);
   const group = exercise?.group;
   const list = useMemo(() => {
     if (!group) return [];
@@ -79,7 +83,7 @@ export function SwapSheet({ exercise, onClose }: { exercise: PlannedExercise | n
       if (!ex || (!all && !allowed(equipment, ex))) return false;
       return !needle || e.name.toLowerCase().includes(needle) || exName(e.name).toLowerCase().includes(needle);
     });
-  }, [group, q, all, equipment]);
+  }, [group, q, all, equipment, mine]);
   const shown = list.slice(0, 80);
   const swapped = !!(exercise?.swapKey && swaps[exercise.swapKey]);
   const pick = (name: string) => {
@@ -122,7 +126,10 @@ export function SwapSheet({ exercise, onClose }: { exercise: PlannedExercise | n
                 <ExerciseThumb name={e.name} size={40} />
                 <div className="row-main">
                   <div className="row-title">{exName(e.name)}</div>
-                  <div className="row-sub">{exLabel(exerciseByName(e.name)?.equipment)}</div>
+                  <div className="row-sub">
+                    {isMine(exerciseByName(e.name)) && <span className="mine-tag">{t("Mine")} · </span>}
+                    {exLabel(exerciseByName(e.name)?.equipment)}
+                  </div>
                 </div>
                 {e.name === exercise.name && (
                   <span className="check-mark" aria-hidden>
@@ -133,6 +140,9 @@ export function SwapSheet({ exercise, onClose }: { exercise: PlannedExercise | n
             ))}
             {!shown.length && <div className="row muted">{t("No exercises match.")}</div>}
           </div>
+          <button className="link" style={{ marginTop: 10 }} onClick={() => setCreating(true)}>
+            <Plus size={16} /> {t("Create your own exercise")}
+          </button>
           {list.length > shown.length && <p className="footnote">{t("Showing {n} of {total}. Search to find more.", { n: shown.length, total: list.length })}</p>}
           {equipment !== "gym" && (
             <button className="link" style={{ marginTop: 10 }} onClick={() => setAll((v) => !v)}>
@@ -141,6 +151,7 @@ export function SwapSheet({ exercise, onClose }: { exercise: PlannedExercise | n
           )}
         </>
       )}
+      <MyExerciseSheet open={creating} initialName={q} initialGroup={group} onClose={() => setCreating(false)} onSaved={(ex) => pick(ex.name)} />
     </Sheet>
   );
 }
