@@ -290,7 +290,7 @@ export function paceNow(s: RunSnapshot, now = Date.now()): number | null {
 
 /** How good the GPS signal is now. */
 export function signal(s: RunSnapshot, now = Date.now()): "none" | "weak" | "ok" | "good" {
-  if (!s.here || now - s.here.at > 15_000) return "none";
+  if (!s.here || now - s.here.at > 30_000) return "none";
   if (s.here.acc <= 12) return "good";
   if (s.here.acc <= 35) return "ok";
   return "weak";

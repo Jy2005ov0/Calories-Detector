@@ -3599,15 +3599,14 @@ html[data-text="xlarge"] body {
 }
 .run-autopaused {
   position: absolute;
-  left: 50%;
-  bottom: 28px;
-  transform: translateX(-50%);
+  left: 10px;
+  top: 50px;
   z-index: 500;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
-  max-width: calc(100% - 80px);
+  max-width: calc(100% - 20px);
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 6px 12px;
