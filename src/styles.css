@@ -3225,6 +3225,10 @@ html[data-text="xlarge"] body {
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
+/* Room for the little ⌄ badge, which sits over the photo's corner: it must never push the row wider. */
+.avatar-switch.can-switch {
+  margin: 0 3px 3px 0;
+}
 .avatar-switch-stack {
   position: relative;
   display: block;
