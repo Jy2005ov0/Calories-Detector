@@ -98,45 +98,84 @@ export function PullToSwitch({ children }: { children: ReactNode }) {
     busy.current = false;
   };
 
-  // Fingers: native listeners, because React's touch listeners can't stop a scroll.
+  // Fingers: native listeners, because React's touch listeners can't stop a scroll. Once a finger is
+  // down, its moves and lift are followed on the whole window, so the lift is never missed.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const start = (e: TouchEvent) => (e.touches.length === 1 ? begin(e.touches[0].clientX, e.touches[0].clientY, e.touches[0].identifier) : (g.current = null));
+    const touchOf = (e: TouchEvent) => {
+      const s = g.current;
+      return s ? Array.from(e.changedTouches).find((x) => x.identifier === s.id) : undefined;
+    };
     const moveT = (e: TouchEvent) => {
       const s = g.current;
-      if (!s) return;
-      const tch = Array.from(e.changedTouches).find((x) => x.identifier === s.id);
-      if (!tch) return;
-      if (!e.cancelable && !s.pulling) return void (g.current = null);
+      const tch = touchOf(e);
+      if (!s || !tch) return;
+      if (!e.cancelable && !s.pulling) {
+        g.current = null;
+        return stop();
+      }
       if (move(tch.clientX, tch.clientY) && e.cancelable) e.preventDefault();
     };
-    const endT = () => end();
+    const endT = (e: TouchEvent) => {
+      if (!touchOf(e) && e.touches.length) return;
+      stop();
+      end();
+    };
     const cancel = () => {
+      stop();
       if (g.current?.pulling) {
         g.current = null;
         setArm(false);
         animate(pull, 0, { type: "spring", bounce: 0, duration: 0.3 });
-      }
+      } else g.current = null;
+    };
+    const stop = () => {
+      window.removeEventListener("touchmove", moveT);
+      window.removeEventListener("touchend", endT);
+      window.removeEventListener("touchcancel", cancel);
+    };
+    const start = (e: TouchEvent) => {
+      unstick();
+      if (e.touches.length !== 1) return void (g.current = null);
+      begin(e.touches[0].clientX, e.touches[0].clientY, e.touches[0].identifier);
+      if (!g.current) return;
+      stop();
+      window.addEventListener("touchmove", moveT, { passive: false });
+      window.addEventListener("touchend", endT);
+      window.addEventListener("touchcancel", cancel);
     };
     el.addEventListener("touchstart", start, { passive: true });
-    el.addEventListener("touchmove", moveT, { passive: false });
-    el.addEventListener("touchend", endT);
-    el.addEventListener("touchcancel", cancel);
     return () => {
       el.removeEventListener("touchstart", start);
-      el.removeEventListener("touchmove", moveT);
-      el.removeEventListener("touchend", endT);
-      el.removeEventListener("touchcancel", cancel);
+      stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** Safety net: a page left pulled down (no pull or switch running) springs back on the next touch. */
+  const unstick = () => {
+    if (!g.current && !busy.current && !pull.isAnimating() && pull.get() > 0.5) {
+      setArm(false);
+      animate(pull, 0, { type: "spring", bounce: 0, duration: 0.3 });
+    }
+  };
+
   // A mouse (a computer, or the tests): the same with pointer events.
   const mouse = {
-    onPointerDown: (e: PointerEvent) => e.pointerType === "mouse" && e.button === 0 && begin(e.clientX, e.clientY, e.pointerId),
-    onPointerMove: (e: PointerEvent) => e.pointerType === "mouse" && g.current?.id === e.pointerId && move(e.clientX, e.clientY),
+    onPointerDown: (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      unstick();
+      begin(e.clientX, e.clientY, e.pointerId);
+    },
+    onPointerMove: (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || g.current?.id !== e.pointerId) return;
+      const was = g.current.pulling;
+      // Once it's a pull, keep the pointer even if it leaves the window.
+      if (move(e.clientX, e.clientY) && !was) (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    },
     onPointerUp: (e: PointerEvent) => e.pointerType === "mouse" && g.current?.id === e.pointerId && end(),
+    onLostPointerCapture: (e: PointerEvent) => e.pointerType === "mouse" && g.current?.id === e.pointerId && end(),
   };
 
   const label = next ? nameOf(next.data.profile.name) : "";

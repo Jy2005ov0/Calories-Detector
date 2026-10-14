@@ -960,3 +960,46 @@ test("Pulling down when you're the only person does nothing", async ({ page }) =
   await expect(page.locator(".large-title:visible").first()).toContainText("Aisyah");
   expect(errors).toEqual([]);
 });
+
+test("A swipe never leaves the page stuck: let go off the screen, or the thing under the finger goes away", async ({ page }) => {
+  const errors = await open(page);
+  const { width, height } = page.viewportSize()!;
+  const offset = () => page.locator("main").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
+  // Mouse: drag sideways, then out past the edge and let go there.
+  await page.mouse.move(width - 40, height * 0.45);
+  await page.mouse.down();
+  await page.mouse.move(width * 0.45, height * 0.45 + 4, { steps: 10 });
+  await page.mouse.move(width + 30, height * 0.45 + 4, { steps: 6 });
+  await page.mouse.up();
+  await page.waitForTimeout(700);
+  expect(Math.abs(await offset())).toBeLessThan(1);
+  expect(await current(page)).toMatch(/^Today/);
+
+  // Finger: start on a food row, which then disappears mid-swipe. The browser sends the rest of that
+  // finger's events to the removed row, out of the app's sight, so the swipe is called off and the
+  // page springs back into place (and the next swipe works as normal).
+  await tab(page, "Food");
+  const row = page.locator("button.row:visible").first();
+  const b = (await row.boundingBox())!;
+  const f = await finger(page);
+  await f.down(b.x + b.width * 0.8, b.y + b.height / 2);
+  await f.move(b.x + b.width * 0.5, b.y + b.height / 2 + 4, 4);
+  await row.evaluate((el) => el.remove());
+  await f.move(b.x + 10, b.y + b.height / 2 + 8, 6);
+  await f.up();
+  await page.waitForTimeout(900);
+  expect(Math.abs(await offset())).toBeLessThan(1);
+  expect(await current(page)).toMatch(/^Food/);
+  await fingerSwipe(page, [width * 0.8, height * 0.5], [width * 0.2, height * 0.5 + 10]);
+  expect(await current(page)).toMatch(/^Train/);
+  // And a pull on Today let go off the top of the screen springs back.
+  await tab(page, "Today");
+  await page.mouse.move(width / 2, height * 0.3);
+  await page.mouse.down();
+  await page.mouse.move(width / 2, height * 0.3 + 80, { steps: 8 });
+  await page.mouse.move(width / 2, -20, { steps: 6 });
+  await page.mouse.up();
+  await page.waitForTimeout(700);
+  await expect(page.locator(".large-title:visible").first()).toContainText("Aisyah");
+  expect(errors).toEqual([]);
+});

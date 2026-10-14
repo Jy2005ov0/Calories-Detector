@@ -44,6 +44,9 @@ export function useTabSwipe<T extends string>(main: RefObject<HTMLElement | null
   const x = useMotionValue(0);
   const opacity = useMotionValue(1);
   const g = useRef<Gesture | null>(null);
+  // If a swipe stops hearing from the finger (the thing it started on was removed mid-swipe, so the
+  // browser sends the rest of its events nowhere we can see), put the page back rather than leave it.
+  const watchdog = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const swiped = useRef(false);
   // Which side the next screen comes in from, set by a swipe and used once it's showing.
   const incoming = useRef<0 | 1 | -1>(0);
@@ -52,6 +55,7 @@ export function useTabSwipe<T extends string>(main: RefObject<HTMLElement | null
   live.current = { tabs, tab, setTab, enabled, reduce };
 
   const settle = () => {
+    clearTimeout(watchdog.current);
     g.current = null;
     animate(x, 0, { type: "spring", bounce: 0, duration: 0.28 });
   };
@@ -86,6 +90,8 @@ export function useTabSwipe<T extends string>(main: RefObject<HTMLElement | null
     s.prevT = s.lastT;
     s.lastX = cx;
     s.lastT = performance.now();
+    clearTimeout(watchdog.current);
+    watchdog.current = setTimeout(() => g.current === s && settle(), 800);
     const { tabs, tab } = live.current;
     const i = tabs.indexOf(tab);
     // Follow the finger; past the first and last tab, rubber-band.
@@ -95,6 +101,7 @@ export function useTabSwipe<T extends string>(main: RefObject<HTMLElement | null
   };
 
   const end = (cx: number) => {
+    clearTimeout(watchdog.current);
     const s = g.current;
     g.current = null;
     if (!s?.sideways) return;
@@ -119,42 +126,64 @@ export function useTabSwipe<T extends string>(main: RefObject<HTMLElement | null
   };
 
   // Fingers: native listeners, because React's touch listeners are passive and can't stop a scroll.
+  // Once a finger is down, its moves and lift are followed on the whole window: if the thing it
+  // started on changes or goes away mid-swipe, the lift still arrives and the page never gets stuck.
   useEffect(() => {
     const el = main.current;
     if (!el) return;
-    const start = (e: TouchEvent) => {
-      if (e.touches.length !== 1) return (g.current = null);
-      const t = e.touches[0];
-      begin(t.clientX, t.clientY, e.target, t.identifier);
+    const touchOf = (e: TouchEvent) => {
+      const s = g.current;
+      return s ? Array.from(e.changedTouches).find((x) => x.identifier === s.id) : undefined;
     };
     const moveT = (e: TouchEvent) => {
       const s = g.current;
-      if (!s) return;
-      const t = Array.from(e.changedTouches).find((x) => x.identifier === s.id);
-      if (!t) return;
+      const t = touchOf(e);
+      if (!s || !t) return;
       // Already scrolling (the browser started before we decided): leave it alone.
-      if (!e.cancelable && !s.sideways) return (g.current = null);
+      if (!e.cancelable && !s.sideways) return stop();
       if (move(t.clientX, t.clientY) && e.cancelable) e.preventDefault();
     };
     const endT = (e: TouchEvent) => {
       const s = g.current;
-      if (!s) return;
-      const t = Array.from(e.changedTouches).find((x) => x.identifier === s.id);
+      if (!s) return stop();
+      const t = touchOf(e);
+      if (!t && e.touches.length) return;
+      stop();
       end(t ? t.clientX : s.lastX);
     };
-    const cancel = () => g.current?.sideways && settle();
+    const cancel = () => {
+      stop();
+      if (g.current?.sideways) settle();
+      else g.current = null;
+    };
+    const stop = () => {
+      window.removeEventListener("touchmove", moveT);
+      window.removeEventListener("touchend", endT);
+      window.removeEventListener("touchcancel", cancel);
+    };
+    const start = (e: TouchEvent) => {
+      unstick();
+      if (e.touches.length !== 1) return (g.current = null);
+      const t = e.touches[0];
+      begin(t.clientX, t.clientY, e.target, t.identifier);
+      if (!g.current) return;
+      stop();
+      window.addEventListener("touchmove", moveT, { passive: false });
+      window.addEventListener("touchend", endT);
+      window.addEventListener("touchcancel", cancel);
+    };
     el.addEventListener("touchstart", start, { passive: true });
-    el.addEventListener("touchmove", moveT, { passive: false });
-    el.addEventListener("touchend", endT);
-    el.addEventListener("touchcancel", cancel);
     return () => {
       el.removeEventListener("touchstart", start);
-      el.removeEventListener("touchmove", moveT);
-      el.removeEventListener("touchend", endT);
-      el.removeEventListener("touchcancel", cancel);
+      stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [main]);
+
+  /** Safety net: a page left out of place (no swipe or animation running) springs back on the next touch. */
+  const unstick = () => {
+    if (!g.current && !x.isAnimating() && Math.abs(x.get()) > 0.5) settle();
+  };
 
   /** Call after the tab has changed (in a layout effect): slides the new screen in, or fades it in after a tab tap. */
   const enter = () => {
@@ -181,11 +210,14 @@ export function useTabSwipe<T extends string>(main: RefObject<HTMLElement | null
   const handlers = {
     onPointerDown: (e: PointerEvent) => {
       if (e.pointerType === "touch" || e.button !== 0) return;
+      unstick();
       begin(e.clientX, e.clientY, e.target, e.pointerId);
     },
     onPointerMove: (e: PointerEvent) => {
       if (e.pointerType === "touch" || g.current?.id !== e.pointerId) return;
-      move(e.clientX, e.clientY);
+      const was = g.current.sideways;
+      // Once it's a page turn, keep the pointer even if it leaves the screen (taps never get here).
+      if (move(e.clientX, e.clientY) && !was) (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
     },
     onPointerUp: (e: PointerEvent) => {
       if (e.pointerType === "touch" || g.current?.id !== e.pointerId) return;
@@ -193,6 +225,10 @@ export function useTabSwipe<T extends string>(main: RefObject<HTMLElement | null
     },
     onPointerCancel: (e: PointerEvent) => {
       if (e.pointerType !== "touch" && g.current?.sideways) settle();
+    },
+    onLostPointerCapture: (e: PointerEvent) => {
+      // The release happened somewhere we couldn't see: finish as if let go where it last was.
+      if (e.pointerType !== "touch" && g.current?.id === e.pointerId && g.current.sideways) end(g.current.lastX);
     },
     // A sideways swipe isn't also a tap on whatever it started on.
     onClickCapture: (e: MouseEvent) => {
