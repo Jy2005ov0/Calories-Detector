@@ -107,7 +107,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/33-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/34-workout-done-records.jpg" width="190" alt="Share a workout"><br><sub>Share a workout</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/35-gym-tools.jpg" width="190" alt="Plates, 1-rep max, warm-ups"><br><sub>Plates, 1-rep max, warm-ups</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/36-run-tracker.jpg" width="190" alt="GPS run tracking"><br><sub>GPS run tracking</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/36-run-tracker.jpg" width="190" alt="Run tracking on a street map"><br><sub>Run tracking on a street map</sub></td>
 </tr></table>
 
 #### Plan and body check
@@ -218,7 +218,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/33-clock-out.jpg" width="190" alt="Clock out"><br><sub>Clock out</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/34-workout-done-records.jpg" width="190" alt="Share a workout"><br><sub>Share a workout</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/35-gym-tools.jpg" width="190" alt="Plates, 1-rep max, warm-ups"><br><sub>Plates, 1-rep max, warm-ups</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/36-run-tracker.jpg" width="190" alt="GPS run tracking"><br><sub>GPS run tracking</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/36-run-tracker.jpg" width="190" alt="Run tracking on a street map"><br><sub>Run tracking on a street map</sub></td>
 </tr></table>
 
 #### Plan and body check

@@ -361,9 +361,10 @@ for (const set of SETS) {
     // A short jog: north, then east along the next street.
     {
       let [lat, lng] = [3.1478, 101.6953];
-      for (const [dl, dg, n] of [[0.00006, 0, 18], [0, 0.00006, 12], [0.00006, 0, 8]] as const)
+      // ~4.4 m every 1.3 s: an easy 5-minute-km jog.
+      for (const [dl, dg, n] of [[0.00004, 0, 18], [0, 0.00004, 12], [0.00004, 0, 8]] as const)
         for (let i = 0; i < n; i++) {
-          await page.waitForTimeout(700);
+          await page.waitForTimeout(1300);
           lat += dl;
           lng += dg;
           await page.context().setGeolocation({ latitude: lat, longitude: lng, accuracy: 6 });
