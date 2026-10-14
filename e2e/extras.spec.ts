@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { PHOTO_URL, dayKey, seedState } from "./support/audit";
-import { fingerSwipe } from "./support/touch";
+import { finger, fingerSwipe } from "./support/touch";
 
 // Journeys for the on-phone extras: faster logging, steps, check-in, supplements, weekly report,
 // training tools, GPS runs, meal planner, body tracking, pregnancy mode, badges and text size.
@@ -894,5 +894,68 @@ test("Finger swipes (real touch) turn the page at natural angles on every tab, e
   // A tap still taps.
   await page.locator("button.row:visible").first().tap();
   await expect(page.getByRole("dialog")).toHaveCount(1);
+  expect(errors).toEqual([]);
+});
+
+test("Family: pull Today down to switch to the next person, and again to switch back", async ({ page }) => {
+  const errors = await open(page);
+  const { width, height } = page.viewportSize()!;
+  const title = page.locator(".large-title:visible").first();
+  await expect(title).toContainText("Aisyah");
+  const panel = page.getByTestId("pull-switch");
+
+  // Pull a little: the panel says who's next; let go early and nothing changes.
+  let f = await finger(page);
+  await f.down(width / 2, height * 0.3);
+  await f.move(width / 2 + 6, height * 0.3 + 90);
+  await expect(panel).toContainText("Pull to switch to Puan Rohana binti Ismail (Mum)");
+  await f.up();
+  await expect(title).toContainText("Aisyah");
+
+  // Pull far enough: it says Release; letting go switches to Mum, smoothly, on Today.
+  f = await finger(page);
+  await f.down(width / 2, height * 0.3);
+  await f.move(width / 2 - 8, height * 0.3 + 260);
+  await expect(panel).toContainText("Release to switch to Puan Rohana binti Ismail (Mum)");
+  await f.up();
+  await expect(title).toContainText("Puan Rohana");
+  await expect(page.getByRole("status")).toContainText("Now using W as Puan Rohana binti Ismail (Mum)");
+  expect(await current(page)).toMatch(/^Today/);
+
+  // And again: back to Aisyah.
+  await fingerSwipe(page, [width / 2, height * 0.3], [width / 2 + 10, height * 0.3 + 280], { steps: 14, ms: 260 });
+  await expect(title).toContainText("Aisyah");
+
+  // Scrolled down the page, pulling down only scrolls back up.
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await page.waitForTimeout(200);
+  await fingerSwipe(page, [width / 2, height * 0.3], [width / 2, height * 0.3 + 260]);
+  await expect(title).toContainText("Aisyah");
+  expect(await page.evaluate(() => window.scrollY)).toBeLessThan(600);
+
+  // Sideways still turns the tab, not the person.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await fingerSwipe(page, [width * 0.8, height * 0.4], [width * 0.2, height * 0.4 + 20]);
+  expect(await current(page)).toMatch(/^Food/);
+  expect(errors).toEqual([]);
+});
+
+test("Pull to switch works with a mouse too", async ({ page }) => {
+  const state = seedState();
+  const errors = await open(page, state);
+  const { width, height } = page.viewportSize()!;
+  const title = page.locator(".large-title:visible").first();
+  await drag(page, [width / 2, height * 0.3], [width / 2 + 4, height * 0.3 + 280], 16);
+  await expect(title).toContainText("Puan Rohana");
+  expect(errors).toEqual([]);
+});
+
+test("Pulling down when you're the only person does nothing", async ({ page }) => {
+  const state = { ...seedState(), people: [] };
+  const errors = await open(page, state);
+  const { width, height } = page.viewportSize()!;
+  await fingerSwipe(page, [width / 2, height * 0.3], [width / 2, height * 0.3 + 280]);
+  await expect(page.getByTestId("pull-switch")).toHaveCount(0);
+  await expect(page.locator(".large-title:visible").first()).toContainText("Aisyah");
   expect(errors).toEqual([]);
 });

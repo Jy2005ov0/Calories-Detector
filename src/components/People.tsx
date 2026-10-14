@@ -10,7 +10,7 @@ import { Sheet, showToast } from "./ui";
 
 const COLORS = ["var(--blue)", "var(--pink)", "var(--green)", "var(--orange)", "var(--purple)", "var(--teal)"];
 const colorFor = (id: string) => COLORS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
-const nameOf = (name: string) => name.trim() || t("No name");
+export const nameOf = (name: string) => name.trim() || t("No name");
 
 export function PersonAvatar({ id, name, photo, size = 34 }: { id: string; name: string; photo?: string; size?: number }) {
   if (photo) return <img className="avatar" src={photo} alt="" aria-hidden width={size} height={size} style={{ width: size, height: size, objectFit: "cover" }} />;
@@ -79,7 +79,7 @@ export function PhotoPicker({ id, name, photo, onChange }: { id: string; name: s
   );
 }
 
-function switchTo(id: string, name: string) {
+export function switchTo(id: string, name: string) {
   if (getState().activeSessionId) {
     showToast(t("Clock out of the current workout first"));
     return false;
@@ -159,6 +159,7 @@ export function PeopleSheet({ open, onClose }: { open: boolean; onClose: () => v
   return (
     <Sheet open={open} onClose={onClose} title={t("Who's using W?")}>
       <PeopleList onSwitched={onClose} />
+      <p className="footnote">{t("Tip: on Today, pull the page down to switch to the next person.")}</p>
     </Sheet>
   );
 }

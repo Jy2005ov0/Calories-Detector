@@ -3179,3 +3179,34 @@ html[data-text="xlarge"] body {
 .stat-button .stat-label svg {
   color: var(--blue);
 }
+
+/* Today: pull down from the top to switch to the next person. The panel opens above the page. */
+.pull-switch-wrap {
+  position: relative;
+}
+.pull-switch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+.pull-switch-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px 14px;
+  padding-top: var(--safe-top, 0px);
+}
+.pull-switch-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--label-2);
+}

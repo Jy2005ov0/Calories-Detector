@@ -56,6 +56,7 @@ import { PeopleSheet, PersonAvatar, householdSize } from "../components/People";
 import { QuickAddSheet, VoiceLogSheet } from "../components/QuickLog";
 import { CheckInCard, StepsRing, SupplementsCard } from "../components/Daily";
 import { DailyTargetButton } from "../components/CalorieTarget";
+import { PullToSwitch } from "../components/PullToSwitch";
 import { WeeklyReportSheet } from "../components/WeeklyReport";
 import { MealIdeasCard } from "../components/MealIdeas";
 import { stepKcal, useStepUpdates } from "../lib/steps";
@@ -391,6 +392,7 @@ export function Today({
   };
 
   return (
+    <PullToSwitch>
     <div className="screen">
       <PeopleSheet open={peopleOpen} onClose={() => setPeopleOpen(false)} />
       <LogEntrySheet entry={editing} onClose={() => setEditing(null)} />
@@ -785,5 +787,6 @@ export function Today({
         )}
       </div>
     </div>
+    </PullToSwitch>
   );
 }
