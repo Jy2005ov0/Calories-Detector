@@ -468,7 +468,7 @@ test("Nadia: no sign-up — adds a profile photo, backs up to a file and restore
   await expect(page.getByRole("button", { name: "Get started" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Sign up|Log in|Continue with/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Get started" }).click();
-  await page.getByLabel("Profile photo", { exact: true }).filter({ visible: true }).setInputFiles({ name: "me.png", mimeType: "image/png", buffer: PHOTO });
+  await page.getByLabel("Profile photo", { exact: true }).setInputFiles({ name: "me.png", mimeType: "image/png", buffer: PHOTO });
   await expect(page.locator("img.avatar")).toBeVisible();
   await page.getByLabel("Name").filter({ visible: true }).fill("Nadia");
   await page.getByRole("tab", { name: "Female", exact: true }).click();
@@ -505,14 +505,14 @@ test("Nadia: no sign-up — adds a profile photo, backs up to a file and restore
   await page2.goto("/");
   await page2.getByRole("button", { name: "Skip" }).click();
   page2.once("dialog", (d) => d.accept());
-  await page2.getByLabel("Backup file").filter({ visible: true }).setInputFiles(backup);
+  await page2.getByLabel("Backup file").setInputFiles(backup);
   await expect(page2.getByRole("heading", { name: /Good \w+, Nadia/ })).toBeVisible();
   await expect(mealHeader(page2, "Breakfast")).toContainText("185 kcal");
   await expect(page2.locator(".title-actions img.avatar")).toBeVisible();
 
   // 5. Something that isn't a backup is refused, and nothing changes.
   await tab(page2, "Profile");
-  await page2.getByLabel("Backup file").filter({ visible: true }).setInputFiles({ name: "notes.json", mimeType: "application/json", buffer: Buffer.from('{"hello":1}') });
+  await page2.getByLabel("Backup file").setInputFiles({ name: "notes.json", mimeType: "application/json", buffer: Buffer.from('{"hello":1}') });
   await expect(page2.getByRole("status").filter({ hasText: "That isn't a W backup file." })).toBeVisible();
 
   // 6. Removing the photo goes back to the initial.

@@ -3199,14 +3199,30 @@ html[data-text="xlarge"] body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 16px 14px;
-  padding-top: var(--safe-top, 0px);
+  /* Clear of the floating ? button on the right. */
+  max-width: calc(100% - 128px);
+  padding-bottom: 14px;
 }
 .pull-switch-text {
   display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.pull-switch-hint {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.9375rem;
+  gap: 5px;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--label-2);
+}
+.pull-switch-hint.armed {
+  color: var(--blue);
+}
+.pull-switch-name {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

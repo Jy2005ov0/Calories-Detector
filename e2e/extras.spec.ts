@@ -309,7 +309,7 @@ test("Body: measurements give a body-fat estimate, and two progress photos can b
   await expect(progress.getByTestId("body-fat")).toContainText(/Body fat about 1\d(\.\d)?%/);
   // Two photos (a tiny PNG each), then the before/after slider appears.
   const png = Buffer.from(PHOTO_URL.split(",")[1], "base64");
-  for (let i = 0; i < 2; i++) await progress.getByLabel("Progress photo").filter({ visible: true }).setInputFiles({ name: `p${i}.png`, mimeType: "image/png", buffer: png });
+  for (let i = 0; i < 2; i++) await progress.getByLabel("Progress photo").setInputFiles({ name: `p${i}.png`, mimeType: "image/png", buffer: png });
   await expect(progress.locator(".photo-thumb")).toHaveCount(2);
   await expect(progress.getByTestId("photo-compare")).toBeVisible();
   await progress.getByLabel("Slide to compare before and after").filter({ visible: true }).fill("20");
@@ -908,7 +908,8 @@ test("Family: pull Today down to switch to the next person, and again to switch 
   let f = await finger(page);
   await f.down(width / 2, height * 0.3);
   await f.move(width / 2 + 6, height * 0.3 + 90);
-  await expect(panel).toContainText("Pull to switch to Puan Rohana binti Ismail (Mum)");
+  await expect(panel.locator(".pull-switch-hint")).toHaveText("Pull to switch to");
+  await expect(panel.locator(".pull-switch-name")).toHaveText("Puan Rohana binti Ismail (Mum)");
   await f.up();
   await expect(title).toContainText("Aisyah");
 
@@ -916,7 +917,7 @@ test("Family: pull Today down to switch to the next person, and again to switch 
   f = await finger(page);
   await f.down(width / 2, height * 0.3);
   await f.move(width / 2 - 8, height * 0.3 + 260);
-  await expect(panel).toContainText("Release to switch to Puan Rohana binti Ismail (Mum)");
+  await expect(panel.locator(".pull-switch-hint")).toHaveText("Release to switch to");
   await f.up();
   await expect(title).toContainText("Puan Rohana");
   await expect(page.getByRole("status")).toContainText("Now using W as Puan Rohana binti Ismail (Mum)");

@@ -190,7 +190,7 @@ for (const set of SETS) {
     await page.getByRole("button", { name: "Skip" }).click();
     await shot("onboarding-welcome");
     await page.getByRole("button", { name: "Get started" }).click();
-    await page.getByLabel("Profile photo", { exact: true }).filter({ visible: true }).setInputFiles({ name: "me.jpg", mimeType: "image/jpeg", buffer: PROFILE_PHOTO });
+    await page.getByLabel("Profile photo", { exact: true }).setInputFiles({ name: "me.jpg", mimeType: "image/jpeg", buffer: PROFILE_PHOTO });
     await page.getByLabel("Name").filter({ visible: true }).fill("Aisyah");
     await page.getByRole("tab", { name: "Female", exact: true }).click();
     await shot("onboarding-about-you");

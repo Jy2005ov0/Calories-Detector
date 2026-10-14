@@ -34,7 +34,6 @@ export function PullToSwitch({ children }: { children: ReactNode }) {
   live.current = { next };
 
   const panelOpacity = useTransform(pull, [0, 36, ARM], [0, 0.6, 1]);
-  const iconTurn = useTransform(pull, [0, ARM], [0, 180]);
 
   const setArm = (on: boolean) => {
     if (armedRef.current === on) return;
@@ -148,8 +147,13 @@ export function PullToSwitch({ children }: { children: ReactNode }) {
           <div className="pull-switch-inner">
             <PersonAvatar id={next.id} name={next.data.profile.name} photo={next.data.profile.photo} size={40} />
             <div className="pull-switch-text">
-              <motion.span style={{ rotate: armed ? 0 : iconTurn, display: "inline-flex" }}>{armed ? <RefreshCw size={14} /> : <ArrowDown size={14} />}</motion.span>
-              {armed ? t("Release to switch to {name}", { name: label }) : t("Pull to switch to {name}", { name: label })}
+              <span className={`pull-switch-hint${armed ? " armed" : ""}`}>
+                <motion.span key={armed ? "on" : "off"} initial={{ rotate: armed ? -180 : 0, scale: 0.6 }} animate={{ rotate: 0, scale: 1 }} transition={{ type: "spring", bounce: 0.3, duration: 0.35 }} style={{ display: "inline-flex" }}>
+                  {armed ? <RefreshCw size={13} /> : <ArrowDown size={13} />}
+                </motion.span>
+                {armed ? t("Release to switch to") : t("Pull to switch to")}
+              </span>
+              <span className="pull-switch-name">{label}</span>
             </div>
           </div>
         </motion.div>
