@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { PHOTO_URL, dayKey, seedState } from "./support/audit";
+import { fingerSwipe } from "./support/touch";
 
 // Journeys for the on-phone extras: faster logging, steps, check-in, supplements, weekly report,
 // training tools, GPS runs, meal planner, body tracking, pregnancy mode, badges and text size.
@@ -509,7 +510,7 @@ test("Training splits: more split types, train at home, swap an exercise, and my
   await page.getByRole("button", { name: /Chest, Triceps & Glutes/ }).first().click();
   const planned = await page.getByRole("button", { name: /^Swap / }).first().getAttribute("aria-label");
   await page.getByRole("button", { name: "Clock in & start" }).first().click();
-  await expect(page.getByText(planned!.replace(/^Swap /, ""), { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(planned!.replace(/^Swap /, ""), { exact: true }).filter({ visible: true }).first()).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -837,5 +838,61 @@ test("Water cup: tap to drink, Undo, hold to take a cup back, and from the keybo
   await expect(remove).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(water).toContainText("2.5 of");
+  expect(errors).toEqual([]);
+});
+
+test("Finger swipes (real touch) turn the page at natural angles on every tab, even on a long list; a steep swipe scrolls", async ({ page }) => {
+  const errors = await open(page);
+  const { width, height } = page.viewportSize()!;
+  const names = ["Today", "Food", "Train", "Plan", "Profile"];
+  const at = async () => (await current(page)).split("\n")[0].replace(/Workout in progress/, "").trim();
+  // Thumb swipes are rarely flat: 0°, ~20°, ~35° and ~40°, up and down.
+  const slopes = [0, 0.36, -0.7, 0.84];
+  let k = 0;
+  for (let i = 0; i < names.length - 1; i++) {
+    expect(await at()).toBe(names[i]);
+    // Mid-screen, clear of the chip rows near the top (those scroll sideways first).
+    const y = height * (0.5 + 0.06 * (i % 3));
+    const dx = width * 0.6;
+    await fingerSwipe(page, [width * 0.8, y], [width * 0.2, y + dx * slopes[k++ % slopes.length]]);
+    expect(await at(), `swipe left from ${names[i]}`).toBe(names[i + 1]);
+  }
+  for (let i = names.length - 1; i > 0; i--) {
+    const y = height * (0.5 + 0.06 * (i % 3));
+    const dx = width * 0.6;
+    await fingerSwipe(page, [width * 0.2, y], [width * 0.8, y + dx * slopes[k++ % slopes.length]]);
+    expect(await at(), `swipe right from ${names[i]}`).toBe(names[i - 1]);
+  }
+
+  // A row of chips scrolls first; once it's at its end, the next swipe turns the page.
+  await tab(page, "Plan");
+  const chips = page.locator("[data-tour=split]");
+  const cb = (await chips.boundingBox())!;
+  const cy = cb.y + cb.height / 2;
+  await fingerSwipe(page, [width * 0.8, cy], [width * 0.3, cy + 6]);
+  expect(await at()).toBe("Plan");
+  expect(await chips.evaluate((el) => el.scrollLeft)).toBeGreaterThan(40);
+  await chips.evaluate((el) => (el.scrollLeft = el.scrollWidth));
+  await fingerSwipe(page, [width * 0.8, cy], [width * 0.2, cy + 6]);
+  expect(await at()).toBe("Profile");
+
+  // Food, scrolled down its long list: still turns to Train.
+  await tab(page, "Food");
+  await page.getByRole("tab", { name: "Browse" }).click();
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await page.waitForTimeout(300);
+  await fingerSwipe(page, [width * 0.85, height * 0.5], [width * 0.15, height * 0.5 - 90]);
+  expect(await at()).toBe("Train");
+
+  // A steep swipe (about 60°) is a scroll: the page moves, the tab stays.
+  await tab(page, "Food");
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(200);
+  await fingerSwipe(page, [width * 0.7, height * 0.75], [width * 0.4, height * 0.25]);
+  expect(await at()).toBe("Food");
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+  // A tap still taps.
+  await page.locator("button.row:visible").first().tap();
+  await expect(page.getByRole("dialog")).toHaveCount(1);
   expect(errors).toEqual([]);
 });

@@ -76,7 +76,9 @@ export default function App() {
     setTab("today");
   };
   // Swipe left or right to move between tabs (not while the guide is showing).
+  const mainRef = useRef<HTMLElement>(null);
   const swipe = useTabSwipe(
+    mainRef,
     TABS.map((x) => x.id),
     tab,
     setTab,
@@ -127,16 +129,18 @@ export default function App() {
       {/* The new tab shows at once (no waiting for the old one to fade out) with a quick fade-in. */}
       {/* Every screen is kept ready: the others are built quietly in the background once and stay
           alive (hidden), so switching, by tap or by swipe, shows the next screen at once. */}
-      <motion.main key={lang} style={{ x: swipe.x, opacity: swipe.opacity }} {...swipe.handlers}>
-        {TABS.map(({ id }) => (
-          <Activity key={id} mode={tab === id ? "visible" : "hidden"}>
-            {id === "today" && <Today go={setTab} openSheet={setSheet} />}
-            {id === "food" && <FoodScreen openSheet={setSheet} />}
-            {id === "train" && <Train />}
-            {id === "plan" && <Plan go={setTab} />}
-            {id === "profile" && <ProfileScreen openSheet={setSheet} />}
-          </Activity>
-        ))}
+      <motion.main ref={mainRef} style={{ x: swipe.x, opacity: swipe.opacity }} {...swipe.handlers}>
+        <div key={lang} className="screens">
+          {TABS.map(({ id }) => (
+            <Activity key={id} mode={tab === id ? "visible" : "hidden"}>
+              {id === "today" && <Today go={setTab} openSheet={setSheet} />}
+              {id === "food" && <FoodScreen openSheet={setSheet} />}
+              {id === "train" && <Train />}
+              {id === "plan" && <Plan go={setTab} />}
+              {id === "profile" && <ProfileScreen openSheet={setSheet} />}
+            </Activity>
+          ))}
+        </div>
       </motion.main>
 
       <nav className="tabbar" aria-label={t("Main")}>
