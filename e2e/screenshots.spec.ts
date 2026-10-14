@@ -465,7 +465,60 @@ for (const set of SETS) {
     await page.getByTestId("cycle-card").getByRole("button", { name: "What to do" }).click();
     await page.waitForTimeout(500);
     await shot("period-late-advice");
+    await page.context().close();
 
+    // Period add-ons: two days before a period, with symptoms from past cycles, the pill and extras on.
+    const care = seed();
+    care.profile = { ...care.profile, cycle: { on: true, length: 28, periodDays: 5, remind: true, lutealKcal: true, fertile: true, pill: { on: true, packStart: dayKey(-9), active: 21, breakDays: 7, time: "21:00", remind: true } } } as typeof care.profile;
+    care.periods = [-81, -53, -25].map((d, i) => ({ id: `p${i}`, date: dayKey(d), end: dayKey(d + 4), createdAt: i })) as typeof care.periods;
+    (care as Record<string, unknown>).days = [
+      ...[-55, -27].map((d) => ({ id: dayKey(d), waterMl: 0, symptoms: ["headache", "bloating"] })),
+      ...[-53, -25].map((d) => ({ id: dayKey(d), waterMl: 0, symptoms: ["cramps"], flow: "medium" })),
+    ];
+    page = await open(care);
+    const cycleCard = page.getByTestId("cycle-card").filter({ visible: true });
+    await cycleCard.getByRole("button", { name: "Craving something? Smart swaps" }).click();
+    await cycleCard.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 60));
+    await shot("cycle-patterns-swaps");
+    await cycleCard.getByTestId("symptom-log").click();
+    await sheet().getByRole("button", { name: "Cramps" }).click();
+    await sheet().getByRole("button", { name: "Light" }).click();
+    await shot("cycle-symptoms");
+    await closeSheet();
+    await cycleCard.getByRole("button", { name: "History" }).click();
+    await shot("cycle-history");
+    await closeSheet();
+    await cycleCard.getByRole("button", { name: "Period calendar" }).click();
+    await shot("cycle-fertile-window");
+    await closeSheet();
+    await page.getByTestId("pill-card").filter({ visible: true }).evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 300));
+    await shot("cycle-pill");
+    await tab("Train");
+    await shot("cycle-training");
+    await tab("Profile");
+    await page.getByTestId("pill-settings").filter({ visible: true }).evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 360));
+    await shot("cycle-settings");
+    await page.getByTestId("cycle-lock-row").filter({ visible: true }).click();
+    for (const k of "12") await sheet().getByRole("button", { name: k, exact: true }).click();
+    await shot("cycle-privacy-lock");
+    await page.context().close();
+
+    // Ramadan on a period day: no fast today, counted to replace later.
+    const haid = seed();
+    haid.profile = { ...haid.profile, fasting: "ramadan", cycle: { on: true, length: 28, periodDays: 5, remind: true } } as typeof haid.profile;
+    haid.periods = [-29, -1].map((d, i) => ({ id: `p${i}`, date: dayKey(d), createdAt: i })) as typeof haid.periods;
+    page = await open(haid);
+    await page.getByTestId("qada-card").filter({ visible: true }).evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 420));
+    await shot("ramadan-haid");
+
+    // Switching person: swipe the photo down.
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const photo = (await page.getByTestId("avatar-switch").filter({ visible: true }).boundingBox())!;
+    await page.mouse.move(photo.x + photo.width / 2, photo.y + photo.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(photo.x + photo.width / 2, photo.y + 80, { steps: 8 });
+    await shot("swipe-photo-to-switch", 200);
+    await page.mouse.up();
     await page.context().close();
   });
 }
