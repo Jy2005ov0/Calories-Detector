@@ -1,5 +1,4 @@
-import { Activity, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { motion } from "motion/react";
+import { Activity, startTransition, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { CalendarCheck, Dumbbell, Flame, Search, UserRound } from "lucide-react";
 import { IntroGuide } from "./components/IntroGuide";
 import { BodyCheckSheet } from "./components/BodyCheckSheet";
@@ -77,12 +76,35 @@ export default function App() {
   };
   // Swipe left or right to move between tabs (not while the guide is showing).
   const mainRef = useRef<HTMLElement>(null);
+  const pageRefs = useRef<Partial<Record<Tab, HTMLDivElement | null>>>({});
   const swipe = useTabSwipe(
     mainRef,
+    pageRefs,
     TABS.map((x) => x.id),
     tab,
     setTab,
     !tour,
+  );
+  // The screens either side of this one are laid out (out of sight) so a swipe can show them at once:
+  // the one just left straight away, the other a moment after a screen settles, when nothing's moving.
+  const [seen, setSeen] = useState<{ tab: Tab; prev: Tab | null }>({ tab, prev: null });
+  if (seen.tab !== tab) setSeen({ tab, prev: seen.tab });
+  const [warm, setWarm] = useState<Tab | null>(null);
+  useEffect(() => {
+    const id = setTimeout(() => startTransition(() => setWarm(tab)), 400);
+    return () => clearTimeout(id);
+  }, [tab]);
+  const at = TABS.findIndex((x) => x.id === tab);
+  // Made once, so changing tab (or anything else here) doesn't redraw every screen.
+  const screens = useMemo(
+    () => ({
+      today: <Today go={setTab} openSheet={setSheet} />,
+      food: <FoodScreen openSheet={setSheet} />,
+      train: <Train />,
+      plan: <Plan go={setTab} />,
+      profile: <ProfileScreen openSheet={setSheet} />,
+    }),
+    [],
   );
 
   // A different person (switched, or just added) starts on their own Today screen.
@@ -92,7 +114,7 @@ export default function App() {
     setSheet(null);
   }, [personId]);
 
-  // A new screen starts at the top and slides (after a swipe) or fades (after a tap) in.
+  // A new screen starts at the top, already in place after a page turn.
   const firstTab = useRef(true);
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
@@ -126,22 +148,31 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* The new tab shows at once (no waiting for the old one to fade out) with a quick fade-in. */}
       {/* Every screen is kept ready: the others are built quietly in the background once and stay
-          alive (hidden), so switching, by tap or by swipe, shows the next screen at once. */}
-      <motion.main ref={mainRef} style={{ x: swipe.x, opacity: swipe.opacity }} {...swipe.handlers}>
+          alive (hidden), so switching, by tap or by swipe, shows the next screen at once. The two
+          either side wait just off the edges (see useTabSwipe). */}
+      <main ref={mainRef} {...swipe.handlers}>
         <div key={lang} className="screens">
-          {TABS.map(({ id }) => (
-            <Activity key={id} mode={tab === id ? "visible" : "hidden"}>
-              {id === "today" && <Today go={setTab} openSheet={setSheet} />}
-              {id === "food" && <FoodScreen openSheet={setSheet} />}
-              {id === "train" && <Train />}
-              {id === "plan" && <Plan go={setTab} />}
-              {id === "profile" && <ProfileScreen openSheet={setSheet} />}
-            </Activity>
-          ))}
+          {TABS.map(({ id }, i) => {
+            const side = Math.abs(i - at) === 1;
+            const shown = id === tab || (side && (warm === tab || seen.prev === id));
+            return (
+              <div
+                key={id}
+                ref={(el) => {
+                  pageRefs.current[id] = el;
+                }}
+                className={id === tab ? "page current" : side ? "page side" : "page"}
+                data-ready={shown ? "" : undefined}
+                inert={id !== tab}
+                aria-hidden={id !== tab || undefined}
+              >
+                <Activity mode={shown ? "visible" : "hidden"}>{screens[id]}</Activity>
+              </div>
+            );
+          })}
         </div>
-      </motion.main>
+      </main>
 
       <nav className="tabbar" aria-label={t("Main")}>
         <div className="tabbar-inner">

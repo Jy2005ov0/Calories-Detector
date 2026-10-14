@@ -3226,3 +3226,39 @@ html[data-text="xlarge"] body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Tab pages. The screens either side of the current one wait, laid out but not drawn, just off each
+   edge; a swipe shows one (data-peek) and moves it in with the finger. */
+.page.side {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  max-width: 560px;
+  margin: 0 auto;
+  height: 100dvh;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+.page.side:not([data-ready]) {
+  display: none;
+}
+.page.side[data-peek] {
+  visibility: visible;
+}
+.page:not(.current):not(.side) {
+  display: none;
+}
+/* While a page turns: the moving layers stay on the graphics chip, and the glass blur behind the tab
+   bar rests (re-blurring a moving page every frame is what made swipes stutter). */
+.swiping .page.current,
+.swiping .page[data-peek] {
+  will-change: transform;
+}
+.swiping .tabbar,
+.swiping .help-btn {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
