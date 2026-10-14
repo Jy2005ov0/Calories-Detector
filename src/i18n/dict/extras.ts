@@ -548,7 +548,23 @@ export const EXTRAS: AreaDict = {
     "Fertile window (estimate, not birth control)": "Tempoh subur (anggaran, bukan perancang kehamilan)",
     "+{n} kcal added to today's target for the days before your period.": "+{n} kcal ditambah pada sasaran hari ini untuk hari-hari sebelum haid.",
     "Hide craving swaps": "Sembunyi pengganti idaman",
-    "Craving something? Smart swaps": "Mengidam sesuatu? Pengganti bijak"
+    "Craving something? Smart swaps": "Mengidam sesuatu? Pengganti bijak",
+    "Map of your route": "Peta laluan anda",
+    "Back to where I am": "Kembali ke lokasi saya",
+    "Waiting for GPS…": "Menunggu GPS…",
+    "Weak GPS": "GPS lemah",
+    "GPS OK": "GPS sederhana",
+    "Good GPS": "GPS baik",
+    "Auto-paused · start moving to carry on": "Jeda automatik · mula bergerak untuk teruskan",
+    "Pace now": "Kadar kini",
+    "Avg pace": "Purata kadar",
+    "Auto-pause": "Jeda automatik",
+    "Stops the clock when you stand still, at a crossing say": "Menghentikan jam apabila anda berhenti, contohnya di lintasan",
+    "Keeps tracking with the screen locked or the phone in your pocket. The map needs internet; your route records without it and stays on this phone.": "Terus menjejak walaupun skrin dikunci atau telefon dalam poket. Peta memerlukan internet; laluan anda tetap direkod tanpanya dan kekal di telefon ini.",
+    "Run in progress": "Larian sedang berjalan",
+    "W is tracking your route. Tap to open.": "W sedang menjejak laluan anda. Ketik untuk buka.",
+    "W needs location access to track your route. Turn it on in Settings → W → Location.": "W memerlukan akses lokasi untuk menjejak laluan anda. Hidupkan di Tetapan → W → Lokasi.",
+    "Finish": "Selesai"
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -1095,6 +1111,22 @@ export const EXTRAS: AreaDict = {
     "Fertile window (estimate, not birth control)": "易孕期（估算，不能用于避孕）",
     "+{n} kcal added to today's target for the days before your period.": "经期前几天，今天的目标已增加 +{n} 千卡。",
     "Hide craving swaps": "隐藏嘴馋替代",
-    "Craving something? Smart swaps": "嘴馋了？聪明替代"
+    "Craving something? Smart swaps": "嘴馋了？聪明替代",
+    "Map of your route": "你的路线地图",
+    "Back to where I am": "回到我的位置",
+    "Waiting for GPS…": "正在等待 GPS…",
+    "Weak GPS": "GPS 信号弱",
+    "GPS OK": "GPS 一般",
+    "Good GPS": "GPS 良好",
+    "Auto-paused · start moving to carry on": "已自动暂停 · 开始移动即可继续",
+    "Pace now": "当前配速",
+    "Avg pace": "平均配速",
+    "Auto-pause": "自动暂停",
+    "Stops the clock when you stand still, at a crossing say": "停下来时（例如在路口）自动停止计时",
+    "Keeps tracking with the screen locked or the phone in your pocket. The map needs internet; your route records without it and stays on this phone.": "锁屏或手机放在口袋里也能继续追踪。地图需要联网；没有网络也会记录路线，路线只保存在这部手机上。",
+    "Run in progress": "跑步进行中",
+    "W is tracking your route. Tap to open.": "W 正在记录你的路线。点按打开。",
+    "W needs location access to track your route. Turn it on in Settings → W → Location.": "W 需要位置权限才能记录路线。请在 设置 → W → 位置 中开启。",
+    "Finish": "完成"
   }
 };

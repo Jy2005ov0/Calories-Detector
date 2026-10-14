@@ -259,7 +259,7 @@ test("GPS run: start, move, pause, finish, and it's saved with distance and pace
   await expect(time).toHaveText(/^0:[3-5]\d$|^1:[0-2]\d$/);
   await page.waitForTimeout(2500);
   await expect(time).toHaveText(/^0:[3-5]\d$|^1:[0-2]\d$/);
-  await run.getByRole("button", { name: "Finish and save" }).click();
+  await run.getByRole("button", { name: "Finish", exact: true }).click();
   const saved = page.getByRole("status").filter({ hasText: /Saved 0\.\d\d km/ });
   await expect(saved).toBeVisible();
   expect(Number((await saved.innerText()).match(/(\d+) kcal/)![1])).toBeLessThan(60);

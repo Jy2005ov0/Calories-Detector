@@ -73,12 +73,18 @@
 	<key>NSMotionUsageDescription</key>
 	<string>Count your steps with the phone's motion sensor, to show them on Today and add the calories you burn walking.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Track the distance and pace of a run or walk while you record it. Your route stays on your phone.</string>
+	<string>Track the distance and pace of a run or walk while you record it, even with the screen locked. Your route stays on your phone.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Keep tracking your run or walk with the screen locked or the phone in your pocket. Only while you're recording; your route stays on your phone.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Say what you ate (for example "two roti canai and teh tarik") to log it.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Turn what you say into foods to log, using your phone's speech recognition.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>W only saves photos to your library if you ask it to.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 </dict>
 </plist>

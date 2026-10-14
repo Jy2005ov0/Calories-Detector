@@ -15,6 +15,8 @@ const config: CapacitorConfig = {
   android: {
     // Older Android System WebViews lack features the UI relies on (backdrop-filter, dvh).
     minWebViewVersion: 105,
+    // Keeps GPS updates coming to a run in the background past 5 minutes (background-geolocation).
+    useLegacyBridge: true,
   },
   plugins: {
     SystemBars: {

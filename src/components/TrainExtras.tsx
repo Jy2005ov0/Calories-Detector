@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Geolocation } from "@capacitor/geolocation";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, Dumbbell, Link2, MapPin, Pause, Play, Plus, Square, Trash2 } from "lucide-react";
 import { t, useLanguage } from "../i18n";
 import { exName, useExerciseNames } from "../i18n/exercises";
@@ -7,9 +6,10 @@ import { EXERCISE_BY_NAME } from "../data/exercises";
 import { exerciseHistory, liftedExercises, oneRepMax, platesFor, roundToPlate, trainingDays, warmupSets, weightForReps } from "../lib/lifting";
 import { formatDuration } from "../lib/fitness";
 import { round } from "../lib/nutrition";
-import { isNative } from "../lib/platform";
 import { addDays } from "../lib/progress";
-import { acceptFix, formatPace, pace, routeDistance, runKcal, simplify, type Fix } from "../lib/run";
+import { formatPace, pace, runKcal, simplify } from "../lib/run";
+import { discard as discardRun, distance as runDistance, endPreview, finish as finishRun, paceNow, pause as pauseRun, preview, seconds as runSeconds, setAutoPause, setMode as setRunMode, signal, start as startRun, useRun } from "../lib/runTracking";
+import { RunMap } from "./RunMap";
 import { actions, todayKey, uid, useStore, useTodayKey } from "../lib/store";
 import type { Exercise, Routine, RoutineItem, SessionExercise } from "../lib/types";
 import { TrendChart } from "./Charts";
@@ -368,143 +368,98 @@ export function WorkoutCalendar() {
 
 // ── GPS run / walk ──
 
-type Mode = "walk" | "run";
-
 export function RunTracker({ open, onClose }: { open: boolean; onClose: () => void }) {
   useLanguage();
   const weightKg = useStore((s) => s.profile.weightKg);
-  const [mode, setMode] = useState<Mode>("run");
-  const [state, setState] = useState<"idle" | "running" | "paused">("idle");
-  const [route, setRoute] = useState<[number, number][]>([]);
-  const [segments, setSegments] = useState<[number, number][][]>([]);
-  const [elapsed, setElapsed] = useState(0);
-  const [startedAt, setStartedAt] = useState(0);
-  const [error, setError] = useState("");
-  const runningSince = useRef<number | null>(null);
-  const last = useRef<Fix | null>(null);
-  const watch = useRef<string | number | null>(null);
-  const now = useNow(1000, state === "running");
-  // (now can be a moment older than the start; never count backwards.)
-  const seconds = elapsed + (runningSince.current ? Math.max(0, Math.round((now - runningSince.current) / 1000)) : 0);
-  const distance = segments.reduce((a, s) => a + routeDistance(s), 0) + routeDistance(route);
+  const run = useRun();
+  const { status, mode } = run;
+  const now = useNow(1000, open && status !== "idle");
+  const seconds = runSeconds(run, now);
+  const distance = runDistance(run.segments);
   const kcal = runKcal(distance, seconds, weightKg);
+  const gps = signal(run, now);
+  const current = paceNow(run, now);
 
-  const stopWatch = async () => {
-    const id = watch.current;
-    watch.current = null;
-    if (id === null) return;
-    if (isNative) await Geolocation.clearWatch({ id: String(id) }).catch(() => {});
-    else navigator.geolocation.clearWatch(id as number);
-  };
-  const onFix = (f: Fix) => {
-    if (!acceptFix(last.current, f)) return;
-    last.current = f;
-    setRoute((r) => [...r, [f.lat, f.lng]]);
-  };
-  const startWatch = async () => {
-    setError("");
-    try {
-      if (isNative) {
-        const perm = await Geolocation.requestPermissions({ permissions: ["location"] });
-        if (perm.location !== "granted") throw new Error("permission");
-        watch.current = await Geolocation.watchPosition({ enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }, (p) => {
-          if (p) onFix({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy, t: p.timestamp });
-        });
-      } else {
-        if (!navigator.geolocation) throw new Error("unavailable");
-        watch.current = navigator.geolocation.watchPosition(
-          (p) => onFix({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy, t: p.timestamp }),
-          () => setError(t("Can't get your location. Allow location access for W and go outside for a clear GPS signal.")),
-          { enableHighAccuracy: true, maximumAge: 0 },
-        );
-      }
-    } catch {
-      setError(t("Can't get your location. Allow location access for W and go outside for a clear GPS signal."));
-      throw new Error("no-gps");
-    }
-  };
-  const start = async () => {
-    try {
-      await startWatch();
-    } catch {
-      return;
-    }
-    if (state === "idle") setStartedAt(Date.now());
-    runningSince.current = Date.now();
-    last.current = null;
-    setState("running");
-    haptic("success");
-  };
-  const pause = async () => {
-    await stopWatch();
-    // Read the start time now: the state update runs later, after it has been cleared.
-    const since = runningSince.current;
-    if (since) setElapsed((e) => e + Math.round((Date.now() - since) / 1000));
-    runningSince.current = null;
-    // Keep each stretch separate so the paused gap doesn't count as distance.
-    setSegments((s) => (route.length ? [...s, route] : s));
-    setRoute([]);
-    setState("paused");
-  };
-  const reset = () => {
-    setState("idle");
-    setRoute([]);
-    setSegments([]);
-    setElapsed(0);
-    runningSince.current = null;
-    last.current = null;
+  // While the sheet is open before starting, show where you are and how good the GPS is.
+  useEffect(() => {
+    if (!open) return;
+    void preview();
+    return () => void endPreview();
+  }, [open]);
+
+  const begin = async () => {
+    if (await startRun()) haptic("success");
   };
   const finish = async () => {
-    await stopWatch();
-    const all = [...segments, route].filter((s) => s.length);
-    const total = all.reduce((a, s) => a + routeDistance(s), 0);
-    const secs = elapsed + (runningSince.current ? Math.round((Date.now() - runningSince.current) / 1000) : 0);
+    const r = await finishRun();
+    const total = runDistance(r.segments);
+    const secs = r.seconds;
     if (total < 50 || secs < 30) {
       showToast(t("Too short to save. Keep going a little longer next time."));
-      reset();
       onClose();
       return;
     }
     const kmh = total / 1000 / (secs / 3600);
-    const ex = EXERCISE_BY_NAME.get(mode === "walk" ? "Walking, brisk (6.4 km/h)" : kmh >= 10 ? "Running (11.3 km/h, 5:18 /km)" : "Running (9.7 km/h, 6:12 /km)");
+    const ex = EXERCISE_BY_NAME.get(r.mode === "walk" ? "Walking, brisk (6.4 km/h)" : kmh >= 10 ? "Running (11.3 km/h, 5:18 /km)" : "Running (9.7 km/h, 6:12 /km)");
     const minutes = Math.max(1, Math.round(secs / 60));
     const kcalDone = Math.round(runKcal(total, secs, weightKg));
     actions.addSession({
       id: uid(),
       date: todayKey(),
-      title: mode === "walk" ? t("Walk") : t("Run"),
-      startedAt: startedAt || Date.now() - secs * 1000,
+      title: r.mode === "walk" ? t("Walk") : t("Run"),
+      startedAt: r.startedAt || Date.now() - secs * 1000,
       endedAt: Date.now(),
-      exercises: [{ id: uid(), exerciseId: ex?.id ?? "gps", name: ex?.name ?? (mode === "walk" ? "Walking" : "Running"), kind: "cardio", met: ex?.met ?? 8, minutes }],
+      exercises: [{ id: uid(), exerciseId: ex?.id ?? "gps", name: ex?.name ?? (r.mode === "walk" ? "Walking" : "Running"), kind: "cardio", met: ex?.met ?? 8, minutes }],
       kcal: kcalDone,
       distanceM: Math.round(total),
-      route: simplify(all.flat()),
+      route: simplify(r.segments.flat().map((p) => [p[0], p[1]] as [number, number])),
     });
     haptic("success");
     showToast(t("Saved {km} km · {kcal} kcal", { km: (total / 1000).toFixed(2), kcal: kcalDone }));
-    reset();
     onClose();
   };
-  useEffect(() => () => void stopWatch(), []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const allPoints = [...segments.flat(), ...route];
+  const signalText = { none: t("Waiting for GPS…"), weak: t("Weak GPS"), ok: t("GPS OK"), good: t("Good GPS") }[gps];
   return (
     <Sheet
       open={open}
+      full
       onClose={() => {
-        // The tracker stays mounted, so a run in progress keeps going while the sheet is closed.
-        if (state === "running") showToast(t("Your run keeps going. Open Track a run to see it."));
+        // Tracking lives outside the sheet, so a run in progress keeps going while it's closed.
+        if (status === "running") showToast(t("Your run keeps going. Open Track a run to see it."));
         onClose();
       }}
       title={mode === "walk" ? t("Track a walk") : t("Track a run")}
     >
-      {state === "idle" && <Segmented value={mode} onChange={setMode} ariaLabel={t("Activity")} options={[{ value: "run", label: t("Run") }, { value: "walk", label: t("Walk") }]} />}
+      <div className="run-map-wrap">
+        <RunMap segments={run.segments} here={run.here} />
+        <div className={`gps-chip ${gps}`} role="status" data-testid="gps-signal">
+          <i aria-hidden /> {signalText}
+        </div>
+        {run.autoPaused && (
+          <div className="run-autopaused" role="status" data-testid="auto-paused">
+            <Pause size={14} /> {t("Auto-paused · start moving to carry on")}
+          </div>
+        )}
+      </div>
+      {status === "idle" && (
+        <div style={{ marginTop: 12 }}>
+          <Segmented value={mode} onChange={setRunMode} ariaLabel={t("Activity")} options={[{ value: "run", label: t("Run") }, { value: "walk", label: t("Walk") }]} />
+        </div>
+      )}
       <div className="card run-stats" style={{ marginTop: 12 }} data-testid="run-stats">
-        <div className="stat">
+        <div className="stat run-distance">
           <span className="stat-label">{t("Distance")}</span>
           <span className="stat-value tabular">
             {(distance / 1000).toFixed(2)}
             <small>km</small>
+          </span>
+        </div>
+        <div className="stat run-kcal">
+          <span className="stat-label">{t("Burned")}</span>
+          <span className="stat-value tabular">
+            {round(kcal)}
+            <small>kcal</small>
           </span>
         </div>
         <div className="stat">
@@ -512,56 +467,56 @@ export function RunTracker({ open, onClose }: { open: boolean; onClose: () => vo
           <span className="stat-value tabular">{`${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`}</span>
         </div>
         <div className="stat">
-          <span className="stat-label">{t("Pace")}</span>
+          <span className="stat-label">{t("Pace now")}</span>
+          <span className="stat-value tabular" data-testid="pace-now">
+            {formatPace(current)}
+            <small>/km</small>
+          </span>
+        </div>
+        <div className="stat">
+          <span className="stat-label">{t("Avg pace")}</span>
           <span className="stat-value tabular">
             {formatPace(pace(distance, seconds))}
             <small>/km</small>
           </span>
         </div>
-        <div className="stat">
-          <span className="stat-label">{t("Burned")}</span>
-          <span className="stat-value tabular">
-            {round(kcal)}
-            <small>kcal</small>
-          </span>
-        </div>
       </div>
-      <RouteSketch points={allPoints} />
-      {error && (
+      {run.error && (
         <p className="footnote" style={{ color: "var(--red)" }} role="alert">
-          {error}
+          {run.error}
         </p>
       )}
-      <div className="spacer" />
-      {state === "running" ? (
-        <button className="btn secondary" onClick={pause}>
-          <Pause size={18} /> {t("Pause")}
-        </button>
-      ) : (
-        <button className="btn green" onClick={start}>
-          <Play size={18} /> {state === "idle" ? t("Start") : t("Resume")}
-        </button>
-      )}
-      {state !== "idle" && (
-        <>
-          <div className="spacer" />
+      <div className="run-controls">
+        {status === "running" ? (
+          <button className="btn secondary" onClick={() => void pauseRun()}>
+            <Pause size={18} /> {t("Pause")}
+          </button>
+        ) : (
+          <button className="btn green" onClick={begin}>
+            <Play size={18} /> {status === "idle" ? t("Start") : t("Resume")}
+          </button>
+        )}
+        {status !== "idle" && (
           <button className="btn" onClick={finish}>
-            <Square size={16} /> {t("Finish and save")}
+            <Square size={16} /> {t("Finish")}
           </button>
-          <div className="spacer" />
-          <button
-            className="btn secondary"
-            style={{ color: "var(--red)" }}
-            onClick={async () => {
-              await stopWatch();
-              reset();
-            }}
-          >
-            {t("Discard")}
-          </button>
-        </>
+        )}
+      </div>
+      {status !== "idle" && (
+        <button className="link tap run-discard" onClick={() => void discardRun()}>
+          {t("Discard")}
+        </button>
       )}
-      <p className="footnote">{t("Keep W open with the screen on while you track. Your route stays on this phone, no map or internet needed.")}</p>
+      <div className="group" style={{ marginTop: 16 }}>
+        <div className="field">
+          <label>
+            {t("Auto-pause")}
+            <span className="field-sub">{t("Stops the clock when you stand still, at a crossing say")}</span>
+          </label>
+          <Switch checked={run.autoPause} onChange={setAutoPause} label={t("Auto-pause")} />
+        </div>
+      </div>
+      <p className="footnote">{t("Keeps tracking with the screen locked or the phone in your pocket. The map needs internet; your route records without it and stays on this phone.")}</p>
     </Sheet>
   );
 }
