@@ -2997,7 +2997,7 @@ html[data-text="xlarge"] body {
   white-space: normal;
 }
 
-/* Sleep: a 24-hour clock with a moon (bedtime) and sun (wake-up) to drag. */
+/* Sleep: a 12-hour clock with a moon (bedtime) and sun (wake-up) to drag. */
 .sleep-row {
   display: flex;
   flex-direction: column;

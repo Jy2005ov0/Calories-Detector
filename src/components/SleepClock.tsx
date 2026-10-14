@@ -17,10 +17,10 @@ export const toHHMM = (min: number) => {
 };
 /** Minutes asleep from bedtime to waking (past midnight if need be). */
 export const sleepMinutes = (bed: string, wake: string) => (toMinutes(wake) - toMinutes(bed) + DAY) % DAY;
-/** A time of day in the app's language: "11:30 pm", "23:30", "晚上11:30". */
+/** A time of day on a 12-hour clock in the app's language: "11:30 pm", "11:30 PTG", "晚上11:30". */
 export const clockLabel = (hhmm: string) => {
   const m = toMinutes(hhmm);
-  return new Date(2000, 0, 1, Math.floor(m / 60), m % 60).toLocaleTimeString(locale(), { hour: "numeric", minute: "2-digit" });
+  return new Date(2000, 0, 1, Math.floor(m / 60), m % 60).toLocaleTimeString(locale(), { hour: "numeric", minute: "2-digit", hour12: true });
 };
 /** "7 h 45 min". */
 export const durationLabel = (min: number) => {
@@ -29,20 +29,22 @@ export const durationLabel = (min: number) => {
   return m ? t("{h} h {m} min", { h, m }) : t("{h} h", { h });
 };
 
+const HALF = 12 * 60;
 const SIZE = 236;
 const C = SIZE / 2;
 const R = 90;
 const TRACK = 30;
 
-/** Where a time sits on the 24-hour dial: midnight at the top, noon at the bottom. */
+/** Where a time sits on the 12-hour dial: 12 at the top, 3 on the right, like a clock. */
 function point(min: number, r = R) {
-  const a = (min / DAY) * 2 * Math.PI;
+  const a = ((min % HALF) / HALF) * 2 * Math.PI;
   return { x: C + r * Math.sin(a), y: C - r * Math.cos(a) };
 }
 
 /**
- * Bedtime and wake-up on a 24-hour clock face. Drag the moon and the sun around the dial;
- * the hours asleep show in the middle. Arrow keys move a handle 5 minutes (Page Up/Down an hour).
+ * Bedtime and wake-up on a 12-hour clock face. Drag the moon and the sun around the dial; a handle
+ * goes from am to pm (or back) as it passes 12, and the hours asleep show in the middle. Arrow keys
+ * move a handle 5 minutes (Page Up/Down an hour).
  */
 export function SleepClock({ bed, wake, onChange }: { bed: string; wake: string; onChange: (bed: string, wake: string) => void }) {
   useLanguage();
@@ -65,7 +67,13 @@ export function SleepClock({ bed, wake, onChange }: { bed: string; wake: string;
     const dx = e.clientX - (box.left + box.width / 2);
     const dy = e.clientY - (box.top + box.height / 2);
     const turn = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
-    return turn * DAY;
+    return turn * HALF;
+  };
+  /** A spot on the 12-hour face is two times of day: take the one nearest where the handle was. */
+  const nearest = (onFace: number, was: number) => {
+    const options = [onFace, onFace + HALF];
+    const gap = (a: number) => Math.min(Math.abs(a - was), DAY - Math.abs(a - was));
+    return gap(options[0]) <= gap(options[1]) ? options[0] : options[1];
   };
   const handle = (which: "bed" | "wake") => ({
     onPointerDown: (e: PointerEvent) => {
@@ -75,7 +83,7 @@ export function SleepClock({ bed, wake, onChange }: { bed: string; wake: string;
       haptic("light");
     },
     onPointerMove: (e: PointerEvent) => {
-      if (dragging.current === which) set(which, fromPointer(e));
+      if (dragging.current === which) set(which, nearest(fromPointer(e), which === "bed" ? bedMin : wakeMin));
     },
     onPointerUp: () => (dragging.current = null),
     onPointerCancel: () => (dragging.current = null),
@@ -90,8 +98,9 @@ export function SleepClock({ bed, wake, onChange }: { bed: string; wake: string;
   // The asleep part of the dial, clockwise from bedtime to waking.
   const a = point(bedMin);
   const b = point(wakeMin);
-  const arc = asleep === 0 ? "" : `M ${a.x} ${a.y} A ${R} ${R} 0 ${asleep > DAY / 2 ? 1 : 0} 1 ${b.x} ${b.y}`;
-  const hours = Array.from({ length: 24 }, (_, h) => h);
+  const full = asleep >= HALF;
+  const arc = asleep === 0 || full ? "" : `M ${a.x} ${a.y} A ${R} ${R} 0 ${asleep > HALF / 2 ? 1 : 0} 1 ${b.x} ${b.y}`;
+  const hours = Array.from({ length: 12 }, (_, h) => h);
 
   return (
     <div className="sleep-clock" ref={ref} style={{ width: SIZE, height: SIZE }} data-testid="sleep-clock">
@@ -99,17 +108,18 @@ export function SleepClock({ bed, wake, onChange }: { bed: string; wake: string;
         <circle cx={C} cy={C} r={R} fill="none" stroke="var(--bg-fill)" strokeWidth={TRACK} />
         {hours.map((h) => {
           const outer = point(h * 60, R - TRACK / 2 - 4);
-          const inner = point(h * 60, R - TRACK / 2 - (h % 6 ? 8 : 13));
-          return <line key={h} x1={outer.x} y1={outer.y} x2={inner.x} y2={inner.y} stroke="var(--label-3)" strokeWidth={h % 6 ? 1 : 2} strokeLinecap="round" />;
+          const inner = point(h * 60, R - TRACK / 2 - (h % 3 ? 8 : 13));
+          return <line key={h} x1={outer.x} y1={outer.y} x2={inner.x} y2={inner.y} stroke="var(--label-3)" strokeWidth={h % 3 ? 1 : 2} strokeLinecap="round" />;
         })}
-        {[0, 6, 12, 18].map((h) => {
-          const p = point(h * 60, R - TRACK / 2 - 25);
+        {[12, 3, 6, 9].map((h) => {
+          const p = point((h % 12) * 60, R - TRACK / 2 - 25);
           return (
             <text key={h} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" className="sleep-hour">
-              {new Date(2000, 0, 1, h).toLocaleTimeString(locale(), { hour: "numeric" })}
+              {h}
             </text>
           );
         })}
+        {full && <circle cx={C} cy={C} r={R} fill="none" stroke="var(--indigo)" strokeWidth={TRACK - 6} opacity={0.9} />}
         {arc && <path d={arc} fill="none" stroke="var(--indigo)" strokeWidth={TRACK - 6} strokeLinecap="round" opacity={0.9} />}
       </svg>
       <div className="sleep-center">

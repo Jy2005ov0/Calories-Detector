@@ -232,7 +232,7 @@ for (const set of SETS) {
     await cupCard.getByRole("button", { name: /^Add \d+ ml of water$/ }).click();
     await shot("water-cup", 380);
     await expect(page.locator(".toast")).toHaveCount(0, { timeout: 15_000 });
-    // Sleep on a 24-hour clock.
+    // Sleep on a 12-hour clock.
     const checkin = page.getByTestId("checkin");
     await checkin.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 60));
     await shot("sleep-clock");

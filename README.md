@@ -63,7 +63,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/06-today.jpg" width="190" alt="Calories and steps rings, water, streak"><br><sub>Calories and steps rings, water, streak</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/12-water-cup.jpg" width="190" alt="Tap the cup to drink"><br><sub>Tap the cup to drink</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/13-sleep-clock.jpg" width="190" alt="Sleep on a 24-hour clock"><br><sub>Sleep on a 24-hour clock</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/13-sleep-clock.jpg" width="190" alt="Sleep on a 12-hour clock"><br><sub>Sleep on a 12-hour clock</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/14-calorie-target.jpg" width="190" alt="Set your own calorie target"><br><sub>Set your own calorie target</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/15-swipe-between-tabs.jpg" width="190" alt="Swipe between tabs"><br><sub>Swipe between tabs</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/07-today-meals.jpg" width="190" alt="Daily limits and meals"><br><sub>Daily limits and meals</sub></td>
@@ -159,7 +159,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/06-today.jpg" width="190" alt="Calories and steps rings, water, streak"><br><sub>Calories and steps rings, water, streak</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/12-water-cup.jpg" width="190" alt="Tap the cup to drink"><br><sub>Tap the cup to drink</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/13-sleep-clock.jpg" width="190" alt="Sleep on a 24-hour clock"><br><sub>Sleep on a 24-hour clock</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/13-sleep-clock.jpg" width="190" alt="Sleep on a 12-hour clock"><br><sub>Sleep on a 12-hour clock</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/14-calorie-target.jpg" width="190" alt="Set your own calorie target"><br><sub>Set your own calorie target</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/15-swipe-between-tabs.jpg" width="190" alt="Swipe between tabs"><br><sub>Swipe between tabs</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/07-today-meals.jpg" width="190" alt="Daily limits and meals"><br><sub>Daily limits and meals</sub></td>
@@ -260,7 +260,7 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 | **Progress** | Log your weight and see a chart with your weekly trend and whether it's on pace for your goal. Water against a goal of ~35 ml per kg, and 7-day charts. Body measurements (waist, neck, hips, chest, arm, thigh) with a US Navy body-fat estimate and charts, and progress photos kept only on the phone with a before/after slider. |
 | **Steps** | Counted by the phone's own motion sensor (no Apple Health or Google Fit needed), with a daily goal, shown as a ring beside the calorie ring; walking calories can be added to the day's budget. |
 | **Faster logging** | Quick add (just calories), say or type a meal in English, Malay or Chinese ("dua roti canai dan teh tarik"), copy yesterday's meal with Undo, and starred favourites. Barcodes scanned once work offline. |
-| **Daily habits** | Morning check-in — drag the moon and sun on a 24-hour sleep clock to your bedtime and wake-up, then mood and energy — with a sleep-and-training insight, and supplements or medicine with reminders and a tick-off list. |
+| **Daily habits** | Morning check-in — drag the moon and sun on a 12-hour sleep clock to your bedtime and wake-up, then mood and energy — with a sleep-and-training insight, and supplements or medicine with reminders and a tick-off list. |
 | **Weekly report** | The last 7 days against your targets: averages, best and toughest day, workouts, water, steps and sleep, and the one thing to work on next week. |
 | **Training tools** | Routines with supersets, warm-up sets, plate calculator, 1-rep max calculator, strength charts per lift, a 12-week workout calendar, and GPS run/walk tracking with distance, pace, calories and a route sketch. |
 | **Meal planner** | Plan the week's meals, log a planned meal in one tap, and share a grocery list. |
