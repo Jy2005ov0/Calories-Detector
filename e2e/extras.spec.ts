@@ -255,7 +255,7 @@ test("GPS run: start, move, pause, finish, and it's saved with distance and pace
   await expect(run.getByRole("button", { name: "Pause" })).toBeVisible();
   await run.getByRole("button", { name: "Pause" }).click();
   // About 40 seconds, not decades (a pause once added the time since 1970).
-  const time = run.getByTestId("run-stats").locator(".stat-value").nth(1);
+  const time = run.getByTestId("run-stats").locator(".stat", { hasText: "Time" }).locator(".stat-value");
   await expect(time).toHaveText(/^0:[3-5]\d$|^1:[0-2]\d$/);
   await page.waitForTimeout(2500);
   await expect(time).toHaveText(/^0:[3-5]\d$|^1:[0-2]\d$/);

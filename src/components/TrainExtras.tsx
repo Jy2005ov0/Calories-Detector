@@ -373,7 +373,10 @@ export function RunTracker({ open, onClose }: { open: boolean; onClose: () => vo
   const weightKg = useStore((s) => s.profile.weightKg);
   const run = useRun();
   const { status, mode } = run;
-  const now = useNow(1000, open && status !== "idle");
+  // Ticks once a second while showing; the time itself is read fresh, so reopening the sheet
+  // mid-run never shows the clock from when it was last open.
+  useNow(1000, open && status !== "idle");
+  const now = Date.now();
   const seconds = runSeconds(run, now);
   const distance = runDistance(run.segments);
   const kcal = runKcal(distance, seconds, weightKg);

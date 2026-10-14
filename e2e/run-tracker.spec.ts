@@ -85,6 +85,8 @@ test("A run keeps going on other tabs and when the app is reopened", async ({ pa
   test.setTimeout(120_000);
   const errors = await open(page, context);
   await openTracker(page);
+  // Standing still while switching tabs would auto-pause the clock; this run is about distance.
+  await tracker(page).getByRole("switch", { name: "Auto-pause" }).click();
   await tracker(page).getByRole("button", { name: "Start", exact: true }).click();
   const at = { lat: START.latitude };
   await jog(page, context, at, 6);
@@ -106,8 +108,11 @@ test("A run keeps going on other tabs and when the app is reopened", async ({ pa
   await openTracker(page);
   await expect(tracker(page).getByRole("button", { name: "Pause" })).toBeVisible();
   expect(await km(page)).toBeGreaterThanOrEqual(sofar - 0.001);
-  await jog(page, context, at, 4);
-  await expect.poll(() => km(page)).toBeGreaterThan(sofar + 0.01);
+  // The clock is right straight away, not stuck at when the sheet was last open.
+  const [m, sec] = (await clock(page).innerText()).split(":").map(Number);
+  expect(m * 60 + sec).toBeGreaterThanOrEqual(15);
+  await jog(page, context, at, 8);
+  await expect.poll(() => km(page)).toBeGreaterThan(sofar + 0.02);
 
   await tracker(page).getByRole("button", { name: "Finish", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: /Saved 0\.\d\d km/ })).toBeVisible();
