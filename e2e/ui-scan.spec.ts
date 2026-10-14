@@ -1,5 +1,6 @@
 import { devices, expect, test, type Browser } from "@playwright/test";
 import { audit, dayKey, seedState, type Issue } from "./support/audit";
+import { fakeMapTiles } from "./support/mapTiles";
 
 /**
  * Deep UI scan: visits every screen and sheet on small, regular and large iPhones and
@@ -13,6 +14,8 @@ const SCHEMES = ["light", "dark"] as const;
 async function scan(browser: Browser, device: (typeof DEVICES)[number], scheme: (typeof SCHEMES)[number]) {
   const issues: Issue[] = [];
   const ctx = await browser.newContext({ ...devices[device], colorScheme: scheme, locale: "en-MY", timezoneId: "Asia/Kuala_Lumpur", baseURL: test.info().project.use.baseURL });
+  // The run map's street tiles, as on a phone with internet (stand-ins here).
+  await fakeMapTiles(ctx);
   const page = await ctx.newPage();
   page.on("pageerror", (e) => issues.push({ screen: "runtime", kind: "page-error", detail: e.message }));
   page.on("console", (m) => {

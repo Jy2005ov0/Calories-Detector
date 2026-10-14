@@ -90,7 +90,8 @@ export async function audit(page: Page, screen: string, issues: Issue[]) {
       return r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
     };
     // Areas that scroll sideways on purpose.
-    const sideScroll = (el: Element) => !!el.closest(".chips, .intro-viewport");
+    // (and the run map, whose street tiles run past its edges by design).
+    const sideScroll = (el: Element) => !!el.closest(".chips, .intro-viewport, .run-map");
 
     if (document.documentElement.scrollWidth > vw + 1) out.push({ kind: "page-overflow", detail: `page is ${document.documentElement.scrollWidth}px wide on a ${vw}px screen` });
 

@@ -13,7 +13,8 @@ const TILES = {
   light: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
   dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
 };
-const ATTRIBUTION = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>';
+// Credited in plain text: links this small would be too fiddly to tap.
+const ATTRIBUTION = "© OpenStreetMap contributors © CARTO";
 
 const isDark = () => document.documentElement.style.colorScheme === "dark" || (!document.documentElement.style.colorScheme && matchMedia("(prefers-color-scheme: dark)").matches);
 
@@ -114,8 +115,8 @@ export function RunMap({ segments, here, height }: { segments: Pt[][]; here: { l
   };
 
   return (
-    <div className="run-map" style={height ? { height } : undefined} data-testid="run-map">
-      <div ref={box} className="run-map-canvas" role="img" aria-label={t("Map of your route")} />
+    <div className="run-map" style={height ? { height } : undefined} data-testid="run-map" role="region" aria-label={t("Map of your route")}>
+      <div ref={box} className="run-map-canvas" />
       {!follow && (
         <button className="run-map-recenter" onClick={recenter} aria-label={t("Back to where I am")}>
           <LocateFixed size={20} />
