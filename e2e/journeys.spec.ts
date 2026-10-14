@@ -46,11 +46,11 @@ async function onboard(
   p: { name: string; sex: "Male" | "Female"; age: string; height: string; weight: string; goal: RegExp; activity: RegExp; experience: RegExp; days: number; diet: string },
 ) {
   await page.getByRole("button", { name: "Get started" }).click();
-  await page.getByLabel("Name").fill(p.name);
+  await page.getByLabel("Name").filter({ visible: true }).fill(p.name);
   await page.getByRole("tab", { name: p.sex, exact: true }).click();
-  await page.getByLabel("Age").fill(p.age);
-  await page.getByLabel("Height").fill(p.height);
-  await page.getByLabel("Weight").fill(p.weight);
+  await page.getByLabel("Age").filter({ visible: true }).fill(p.age);
+  await page.getByLabel("Height").filter({ visible: true }).fill(p.height);
+  await page.getByLabel("Weight").filter({ visible: true }).fill(p.weight);
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: p.goal }).click();
   await page.getByRole("button", { name: "Continue" }).click();
@@ -72,9 +72,9 @@ async function onboard(
 
 async function searchAndOpen(page: Page, query: string, exactName: string) {
   await tab(page, "Food");
-  const search = page.getByLabel("Search foods");
+  const search = page.getByLabel("Search foods").filter({ visible: true });
   await search.fill(query);
-  await page.locator(".row", { has: page.locator(".row-title", { hasText: new RegExp(`^${escape(exactName)}$`) }) }).first().click();
+  await page.locator(".row:visible", { has: page.locator(".row-title", { hasText: new RegExp(`^${escape(exactName)}$`) }) }).first().click();
   await expect(page.getByRole("dialog").getByRole("heading", { name: exactName })).toBeVisible();
 }
 
@@ -138,14 +138,14 @@ test("Aiman: cutting, logs a hawker breakfast and lunch, trains, comes back tomo
 
   // 5. Monday is Full Body A for a 3-day beginner. Clock in from the plan, do 3 sets, train 45 min.
   await tab(page, "Train");
-  await expect(page.locator(".card", { hasText: "Today's plan" })).toContainText("Full Body A");
+  await expect(page.locator(".card:visible", { hasText: "Today's plan" })).toContainText("Full Body A");
   await page.getByRole("button", { name: /Clock in & start Full Body A/ }).click();
-  await expect(page.getByText("LIVE")).toBeVisible();
+  await expect(page.getByText("LIVE").filter({ visible: true })).toBeVisible();
   await expect(page.getByRole("navigation").locator(".live-dot")).toBeVisible();
-  const firstExercise = page.locator(".card", { hasText: "Goblet squat" });
+  const firstExercise = page.locator(".card:visible", { hasText: "Goblet squat" });
   for (let set = 1; set <= 3; set++) {
-    await firstExercise.getByLabel(`Set ${set} weight`).fill("20");
-    await firstExercise.getByLabel(`Set ${set} reps`).fill("12");
+    await firstExercise.getByLabel(`Set ${set} weight`).filter({ visible: true }).fill("20");
+    await firstExercise.getByLabel(`Set ${set} reps`).filter({ visible: true }).fill("12");
     await firstExercise.getByRole("button", { name: "Mark set done" }).first().click();
   }
   expect(await statValue(page, "Volume")).toBe(720);
@@ -165,12 +165,12 @@ test("Aiman: cutting, logs a hawker breakfast and lunch, trains, comes back tomo
   expect(burned).toBeLessThanOrEqual(158);
   await page.getByRole("button", { name: "Finish workout" }).click();
   await expect(page.getByRole("status").filter({ hasText: `Workout saved · ${burned} kcal` })).toBeVisible();
-  await expect(page.locator(".row", { hasText: "Full Body A" })).toContainText(`${burned} kcal`);
+  await expect(page.locator(".row:visible", { hasText: "Full Body A" })).toContainText(`${burned} kcal`);
 
   // 6. Today adds the workout back to the budget: left = target − eaten + burned.
   await tab(page, "Today");
   expect(await statValue(page, "Burned")).toBe(burned);
-  await expect(page.locator(".card").first()).toContainText(String(2270 - 1389 + burned));
+  await expect(page.locator(".card:visible").first()).toContainText(String(2270 - 1389 + burned));
   await expectNoHorizontalScroll(page);
 
   // 7. Close and reopen the app: everything is still there.
@@ -209,10 +209,10 @@ test("Mei Ling: vegetarian bulking, custom food and meal, body-part split, logs 
   await page.getByRole("tab", { name: "Nutrition" }).click();
   const nutrition = page.locator("main");
   await expect(nutrition).toContainText("Lean protein");
-  await expect(nutrition.locator(".card", { hasText: "Lean protein" })).not.toContainText(/chicken|fish|beef|tuna|salmon/i);
-  await expect(nutrition.locator(".card", { hasText: "Easy to over-eat" })).not.toContainText(/chicken/i);
-  await expect(nutrition.locator(".card", { hasText: "Breakfast" })).toBeVisible();
-  for (const meal of await nutrition.locator(".card", { hasText: /am|pm/ }).allInnerTexts()) {
+  await expect(nutrition.locator(".card:visible", { hasText: "Lean protein" })).not.toContainText(/chicken|fish|beef|tuna|salmon/i);
+  await expect(nutrition.locator(".card:visible", { hasText: "Easy to over-eat" })).not.toContainText(/chicken/i);
+  await expect(nutrition.locator(".card:visible", { hasText: "Breakfast" })).toBeVisible();
+  for (const meal of await nutrition.locator(".card:visible", { hasText: /am|pm/ }).allInnerTexts()) {
     expect(meal, "sample day must be vegetarian").not.toMatch(/chicken|fish|beef|tuna|salmon|prawn|pork/i);
   }
   await expectNoHorizontalScroll(page);
@@ -221,19 +221,19 @@ test("Mei Ling: vegetarian bulking, custom food and meal, body-part split, logs 
   await page.getByRole("tab", { name: "Training" }).click();
   await page.getByRole("button", { name: "Body-part split" }).click();
   for (const day of ["Chest Day", "Back Day", "Leg Day", "Shoulder Day", "Arm Day"]) {
-    await expect(page.locator(".card", { hasText: day }).first()).toBeVisible();
+    await expect(page.locator(".card:visible", { hasText: day }).first()).toBeVisible();
   }
   await page.getByRole("button", { name: /Arm Day/ }).click();
-  await expect(page.locator(".card", { hasText: "Arm Day" })).toContainText("Barbell curl");
+  await expect(page.locator(".card:visible", { hasText: "Arm Day" })).toContainText("Barbell curl");
   // Bulking: compounds 6–8 reps, 4 sets for an intermediate.
-  await expect(page.locator(".card", { hasText: "Arm Day" })).toContainText("4 sets × 6–8 reps");
+  await expect(page.locator(".card:visible", { hasText: "Arm Day" })).toContainText("4 sets × 6–8 reps");
 
   // 3. Her mum's tempeh sambal isn't in any database — add it from the recipe card.
   await tab(page, "Food");
   await page.getByRole("button", { name: "New food" }).first().click();
   await page.getByPlaceholder("Food name").fill("Mum's tempeh sambal");
   for (const [label, value] of [["Serving size", "150"], ["Calories", "320"], ["Protein", "18"], ["Carbohydrate", "12"], ["Fat", "22"]] as const) {
-    await page.getByLabel(label, { exact: true }).fill(value);
+    await page.getByLabel(label, { exact: true }).filter({ visible: true }).fill(value);
   }
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("status").filter({ hasText: "added to My Foods" })).toBeVisible();
@@ -243,17 +243,17 @@ test("Mei Ling: vegetarian bulking, custom food and meal, body-part split, logs 
   await page.getByRole("button", { name: "Add to Dinner" }).click();
 
   // 4. Build and save a breakfast she'll repeat: oats 60 g + Greek yogurt 170 g + blueberries 148 g = 412 kcal.
-  await page.getByLabel("Clear search").click();
+  await page.getByLabel("Clear search").filter({ visible: true }).click();
   await page.getByRole("button", { name: "Build meal" }).click();
   await page.getByPlaceholder(/Meal name/).fill("Overnight oats");
   const add = async (q: string, name: string) => {
     await page.getByRole("button", { name: /Add (another )?food/ }).first().click();
     const picker = page.getByRole("dialog", { name: "Add food" });
     await picker.getByPlaceholder("Search foods").fill(q);
-    await picker.locator(".row", { hasText: name }).first().click();
+    await picker.locator(".row:visible", { hasText: name }).first().click();
   };
   await add("oats dry", "Oats (dry)");
-  await page.getByLabel("Oats (dry) grams").fill("60");
+  await page.getByLabel("Oats (dry) grams").filter({ visible: true }).fill("60");
   await add("greek yogurt", "Greek yogurt (plain, nonfat)");
   await add("blueberries", "Blueberries");
   const builder = page.getByRole("dialog", { name: "Build a meal" });
@@ -262,17 +262,17 @@ test("Mei Ling: vegetarian bulking, custom food and meal, body-part split, logs 
   await builder.getByRole("button", { name: "Save meal" }).click();
   await builder.getByRole("button", { name: "Close" }).click();
   await page.getByRole("tab", { name: "My Meals" }).click();
-  await expect(page.locator(".row", { hasText: "Overnight oats" })).toContainText("3 items · 412 kcal");
-  await page.locator(".row", { hasText: "Overnight oats" }).getByRole("button", { name: /Log/ }).click();
+  await expect(page.locator(".row:visible", { hasText: "Overnight oats" })).toContainText("3 items · 412 kcal");
+  await page.locator(".row:visible", { hasText: "Overnight oats" }).getByRole("button", { name: /Log/ }).click();
   await expect(page.getByRole("status").filter({ hasText: "Overnight oats → Breakfast · 412 kcal" })).toBeVisible();
 
   // 5. Futsal with friends last night — log it without clocking in. 9.0 MET × 52 kg × 1 h = 468 kcal.
   await tab(page, "Train");
   await page.getByRole("button", { name: /Log activity/ }).click();
   await page.getByPlaceholder(/Search \d+ exercises/).fill("futsal");
-  await page.locator(".row", { has: page.locator(".row-title", { hasText: /^Futsal$/ }) }).click();
+  await page.locator(".row:visible", { has: page.locator(".row-title", { hasText: /^Futsal$/ }) }).click();
   const activity = page.getByRole("dialog", { name: "Sports" });
-  const duration = activity.locator(".row", { hasText: "Duration" });
+  const duration = activity.locator(".row:visible", { hasText: "Duration" });
   for (let i = 0; i < 6; i++) await duration.getByRole("button", { name: "Increase" }).click();
   await expect(duration).toContainText("60 min");
   await expect(duration).toContainText("468 kcal");
@@ -301,12 +301,12 @@ test("Failures are explained, not silent", async ({ page }) => {
 
   // Onboarding blocks impossible numbers.
   await page.getByRole("button", { name: "Get started" }).click();
-  await page.getByLabel("Age").fill("");
+  await page.getByLabel("Age").filter({ visible: true }).fill("");
   await expect(page.getByRole("button", { name: "Continue" })).toBeDisabled();
-  await page.getByLabel("Age").fill("30");
-  await page.getByLabel("Weight").fill("5");
+  await page.getByLabel("Age").filter({ visible: true }).fill("30");
+  await page.getByLabel("Weight").filter({ visible: true }).fill("5");
   await expect(page.getByRole("button", { name: "Continue" })).toBeDisabled();
-  await page.getByLabel("Weight").fill("70");
+  await page.getByLabel("Weight").filter({ visible: true }).fill("70");
   await page.getByRole("button", { name: "Continue" }).click();
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: /Continue|Build my plan/ }).click();
   await page.getByRole("button", { name: "Skip" }).click();
@@ -315,9 +315,9 @@ test("Failures are explained, not silent", async ({ page }) => {
   await page.unroute("https://world.openfoodfacts.org/**");
   await page.route("https://world.openfoodfacts.org/**", (r) => r.abort());
   await tab(page, "Food");
-  await page.getByLabel("Search foods").fill("milo");
+  await page.getByLabel("Search foods").filter({ visible: true }).fill("milo");
   await expect(page.locator(".row-title", { hasText: /^Milo/ }).first()).toBeVisible();
-  await expect(page.getByText("Online search unavailable right now.")).toBeVisible();
+  await expect(page.getByText("Online search unavailable right now.").filter({ visible: true })).toBeVisible();
 
   // Online search up → packaged products appear and can be opened.
   await page.unroute("https://world.openfoodfacts.org/**");
@@ -337,8 +337,8 @@ test("Failures are explained, not silent", async ({ page }) => {
       },
     }),
   );
-  await page.getByLabel("Search foods").fill("milo 3in1");
-  await page.locator(".row", { hasText: "Milo 3in1 Activ-Go" }).click();
+  await page.getByLabel("Search foods").filter({ visible: true }).fill("milo 3in1");
+  await page.locator(".row:visible", { hasText: "Milo 3in1 Activ-Go" }).click();
   await expect(page.getByRole("dialog").locator(".big-number")).toHaveText("140"); // 33 g × 424 / 100
   await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
 });
@@ -407,8 +407,8 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
   // 3. Body check: 170 cm, 95 kg → BMI 32.9, obese; healthy range 54–66 kg.
   await page.getByRole("button", { name: /Body check · BMI/ }).click();
   const sheet = page.getByRole("dialog", { name: "Body check" });
-  await sheet.getByLabel("Height").fill("170");
-  await sheet.getByLabel("Weight").fill("95");
+  await sheet.getByLabel("Height").filter({ visible: true }).fill("170");
+  await sheet.getByLabel("Weight").filter({ visible: true }).fill("95");
   await expect(sheet.getByTestId("bmi-value")).toHaveText("32.9");
   await expect(sheet).toContainText("Obese");
   await expect(sheet).toContainText("Healthy weight for 170 cm: 54–66 kg");
@@ -418,10 +418,10 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
   await expect(sheet).toContainText(/Full body/);
 
   // Typing nonsense explains the valid range instead of showing a wrong BMI.
-  await sheet.getByLabel("Height").fill("17");
+  await sheet.getByLabel("Height").filter({ visible: true }).fill("17");
   await expect(sheet.getByRole("alert")).toContainText("between 120 and 230 cm");
   await expect(sheet.getByTestId("bmi-value")).toHaveCount(0);
-  await sheet.getByLabel("Height").fill("170");
+  await sheet.getByLabel("Height").filter({ visible: true }).fill("170");
 
   // 4. Apply it: profile, Today and the training plan all update.
   await sheet.getByRole("button", { name: "Use this plan" }).click();
@@ -431,7 +431,7 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
   await expect(page.locator(".chip.active", { hasText: "Full body" })).toBeVisible();
   await expect(page.locator(".field:visible, .row:visible", { hasText: "Days per week" }).locator(".stepper span")).toHaveText("3");
   await tab(page, "Profile");
-  await expect(page.getByLabel("Weight")).toHaveValue("95");
+  await expect(page.getByLabel("Weight").filter({ visible: true })).toHaveValue("95");
   await expect(page.getByRole("button", { name: /Lose fat/ })).toHaveAttribute("aria-pressed", "true");
 
   // 5. Mid-workout the guide still works: it points at Clock out and skips "Log other activities".
@@ -452,10 +452,10 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
 
 async function onboardWithoutSkipping(page: Page) {
   await page.getByRole("button", { name: "Get started" }).click();
-  await page.getByLabel("Name").fill("Farid");
-  await page.getByLabel("Age").fill("30");
-  await page.getByLabel("Height").fill("170");
-  await page.getByLabel("Weight").fill("80");
+  await page.getByLabel("Name").filter({ visible: true }).fill("Farid");
+  await page.getByLabel("Age").filter({ visible: true }).fill("30");
+  await page.getByLabel("Height").filter({ visible: true }).fill("170");
+  await page.getByLabel("Weight").filter({ visible: true }).fill("80");
   for (let i = 0; i < 4; i++) await page.getByRole("button", { name: /Continue|Build my plan/ }).click();
 }
 
@@ -468,13 +468,13 @@ test("Nadia: no sign-up — adds a profile photo, backs up to a file and restore
   await expect(page.getByRole("button", { name: "Get started" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Sign up|Log in|Continue with/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Get started" }).click();
-  await page.getByLabel("Profile photo", { exact: true }).setInputFiles({ name: "me.png", mimeType: "image/png", buffer: PHOTO });
+  await page.getByLabel("Profile photo", { exact: true }).filter({ visible: true }).setInputFiles({ name: "me.png", mimeType: "image/png", buffer: PHOTO });
   await expect(page.locator("img.avatar")).toBeVisible();
-  await page.getByLabel("Name").fill("Nadia");
+  await page.getByLabel("Name").filter({ visible: true }).fill("Nadia");
   await page.getByRole("tab", { name: "Female", exact: true }).click();
-  await page.getByLabel("Age").fill("26");
-  await page.getByLabel("Height").fill("158");
-  await page.getByLabel("Weight").fill("55");
+  await page.getByLabel("Age").filter({ visible: true }).fill("26");
+  await page.getByLabel("Height").filter({ visible: true }).fill("158");
+  await page.getByLabel("Weight").filter({ visible: true }).fill("55");
   for (let i = 0; i < 4; i++) await page.getByRole("button", { name: /Continue|Build my plan/ }).click();
   await page.getByRole("button", { name: "Skip" }).click();
   await expect(page.getByRole("heading", { name: /Good \w+, Nadia/ })).toBeVisible();
@@ -505,14 +505,14 @@ test("Nadia: no sign-up — adds a profile photo, backs up to a file and restore
   await page2.goto("/");
   await page2.getByRole("button", { name: "Skip" }).click();
   page2.once("dialog", (d) => d.accept());
-  await page2.getByLabel("Backup file").setInputFiles(backup);
+  await page2.getByLabel("Backup file").filter({ visible: true }).setInputFiles(backup);
   await expect(page2.getByRole("heading", { name: /Good \w+, Nadia/ })).toBeVisible();
   await expect(mealHeader(page2, "Breakfast")).toContainText("185 kcal");
   await expect(page2.locator(".title-actions img.avatar")).toBeVisible();
 
   // 5. Something that isn't a backup is refused, and nothing changes.
   await tab(page2, "Profile");
-  await page2.getByLabel("Backup file").setInputFiles({ name: "notes.json", mimeType: "application/json", buffer: Buffer.from('{"hello":1}') });
+  await page2.getByLabel("Backup file").filter({ visible: true }).setInputFiles({ name: "notes.json", mimeType: "application/json", buffer: Buffer.from('{"hello":1}') });
   await expect(page2.getByRole("status").filter({ hasText: "That isn't a W backup file." })).toBeVisible();
 
   // 6. Removing the photo goes back to the initial.
@@ -583,19 +583,19 @@ test("Hafiz: customises his nasi lemak — extra egg, no peanuts, add rendang", 
   // The standard plate and what's in it.
   await expect(sheet.locator(".big-number")).toHaveText("506");
   for (const part of ["Coconut rice", "Sambal", "Boiled egg", "Ikan bilis", "Peanuts", "Cucumber"]) await expect(parts).toContainText(part);
-  await expect(parts.locator(".row", { hasText: "Sambal" })).toContainText("2 tbsp");
-  await expect(parts.locator(".row", { hasText: "Boiled egg" })).toContainText("½ egg");
+  await expect(parts.locator(".row:visible", { hasText: "Sambal" })).toContainText("2 tbsp");
+  await expect(parts.locator(".row:visible", { hasText: "Boiled egg" })).toContainText("½ egg");
 
   // Whole egg instead of half, no peanuts, plus a portion of beef rendang.
   await parts.getByRole("button", { name: "More Boiled egg" }).click();
-  await expect(parts.locator(".row", { hasText: "Boiled egg" })).toContainText("1 egg");
+  await expect(parts.locator(".row:visible", { hasText: "Boiled egg" })).toContainText("1 egg");
   await parts.getByRole("button", { name: "Less Peanuts" }).click();
   await parts.getByRole("button", { name: "Less Peanuts" }).click();
-  await expect(parts.locator(".row", { hasText: "Peanuts" })).toContainText("Not included");
+  await expect(parts.locator(".row:visible", { hasText: "Peanuts" })).toContainText("Not included");
   await parts.getByRole("button", { name: "Add an ingredient" }).click();
   const picker = page.getByRole("dialog", { name: "Add food" });
   await picker.getByPlaceholder("Search foods").fill("rendang");
-  await picker.locator(".row", { has: page.getByText("Beef rendang", { exact: true }) }).click();
+  await picker.locator(".row:visible", { has: page.getByText("Beef rendang", { exact: true }).filter({ visible: true }) }).click();
   await expect(parts).toContainText("Beef rendang");
   await expect(sheet.locator(".big-number")).toHaveText("715");
   await expect(sheet).toContainText("Changed: Boiled egg: 1 egg · no Peanuts · + Beef rendang");
@@ -609,7 +609,7 @@ test("Hafiz: customises his nasi lemak — extra egg, no peanuts, add rendang", 
 
   // Today shows the customised dish and what changed.
   await tab(page, "Today");
-  const row = page.locator(".row", { hasText: "Nasi lemak (with sambal, egg, anchovies, peanuts) (customised)" });
+  const row = page.locator(".row:visible", { hasText: "Nasi lemak (with sambal, egg, anchovies, peanuts) (customised)" });
   await expect(row).toContainText("Boiled egg: 1 egg · no Peanuts · + Beef rendang");
   await expect(row).toContainText("715");
   await expect(mealHeader(page, "Lunch")).toContainText("715 kcal");
@@ -665,15 +665,15 @@ test("A dish can take your own custom food as an extra (regression: used to cras
   await tab(page, "Food");
   await page.getByRole("button", { name: "New food" }).first().click();
   await page.getByPlaceholder("Food name").fill("Mak's sambal sotong");
-  await page.getByLabel("Serving size", { exact: true }).fill("100");
-  await page.getByLabel("Calories", { exact: true }).fill("180");
+  await page.getByLabel("Serving size", { exact: true }).filter({ visible: true }).fill("100");
+  await page.getByLabel("Calories", { exact: true }).filter({ visible: true }).fill("180");
   await page.getByRole("button", { name: "Save" }).click();
 
   await searchAndOpen(page, "nasi lemak", "Nasi lemak (with sambal, egg, anchovies, peanuts)");
   await page.getByTestId("dish-parts").getByRole("button", { name: "Add an ingredient" }).click();
   const picker = page.getByRole("dialog", { name: "Add food" });
   await picker.getByPlaceholder("Search foods").fill("sotong");
-  await picker.locator(".row", { hasText: "Mak's sambal sotong" }).click();
+  await picker.locator(".row:visible", { hasText: "Mak's sambal sotong" }).click();
   await expect(page.getByTestId("dish-parts")).toContainText("Mak's sambal sotong");
   await expect(page.getByRole("dialog").first().locator(".big-number")).toHaveText("686"); // 506 + 180
   expect(errors).toEqual([]);

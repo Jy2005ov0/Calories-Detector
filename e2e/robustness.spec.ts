@@ -110,8 +110,8 @@ const SHEETS: { name: string; open: (page: Page) => Promise<void> }[] = [
     name: "Food",
     open: async (p) => {
       await tab(p, 1);
-      await p.getByLabel("Search foods").fill("nasi lemak");
-      await p.locator(".row").first().click();
+      await p.getByLabel("Search foods").filter({ visible: true }).fill("nasi lemak");
+      await p.locator(".row:visible").first().click();
     },
   },
   {
@@ -164,7 +164,7 @@ test.describe("Every sheet, closed every way", () => {
     const openBoth = async () => {
       await tab(page, 2);
       await page.locator('[data-tour="log-activity"]').click();
-      await page.getByRole("dialog").last().locator(".row").first().click();
+      await page.getByRole("dialog").last().locator(".row:visible").first().click();
       await expect(page.getByRole("dialog")).toHaveCount(2);
     };
     for (const first of CLOSE_WAYS) {
@@ -280,14 +280,14 @@ for (const language of ["ms", "zh"] as const) {
     await sheet("Edit a logged food", () => page.locator(".log-edit").first().click());
     await tab(page, 1);
     await audit(page, "Food", issues);
-    await page.getByLabel(/.+/).first().fill("nasi");
+    await page.getByLabel(/.+/).filter({ visible: true }).first().fill("nasi");
     await audit(page, "Food · search", issues);
-    await sheet("Food · item", () => page.locator(".row").first().click());
+    await sheet("Food · item", () => page.locator(".row:visible").first().click());
     await tab(page, 2);
     await audit(page, "Train", issues);
     await sheet("Exercise library", () => page.locator('[data-tour="log-activity"]').click());
     await page.locator('[data-tour="log-activity"]').click();
-    await page.getByRole("dialog").locator(".row").first().click();
+    await page.getByRole("dialog").locator(".row:visible").first().click();
     await audit(page, "Exercise page", issues);
     await closeAll(page);
     await tab(page, 3);

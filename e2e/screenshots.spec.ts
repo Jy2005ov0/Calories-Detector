@@ -190,8 +190,8 @@ for (const set of SETS) {
     await page.getByRole("button", { name: "Skip" }).click();
     await shot("onboarding-welcome");
     await page.getByRole("button", { name: "Get started" }).click();
-    await page.getByLabel("Profile photo", { exact: true }).setInputFiles({ name: "me.jpg", mimeType: "image/jpeg", buffer: PROFILE_PHOTO });
-    await page.getByLabel("Name").fill("Aisyah");
+    await page.getByLabel("Profile photo", { exact: true }).filter({ visible: true }).setInputFiles({ name: "me.jpg", mimeType: "image/jpeg", buffer: PROFILE_PHOTO });
+    await page.getByLabel("Name").filter({ visible: true }).fill("Aisyah");
     await page.getByRole("tab", { name: "Female", exact: true }).click();
     await shot("onboarding-about-you");
     await page.getByRole("button", { name: "Continue" }).click();
@@ -260,7 +260,7 @@ for (const set of SETS) {
     await page.getByRole("button", { name: /Scan barcode/ }).click();
     await page.waitForTimeout(800);
     await shot("barcode-scanner");
-    await sheet().getByLabel("Barcode number").fill("9556001234567");
+    await sheet().getByLabel("Barcode number").filter({ visible: true }).fill("9556001234567");
     await sheet().getByRole("button", { name: "Look up" }).click();
     await expect(page.getByRole("dialog").getByRole("heading", { name: "Milo 3in1 Activ-Go" })).toBeVisible();
     await shot("barcode-product");
@@ -282,15 +282,15 @@ for (const set of SETS) {
     // Food
     await tab("Food");
     await shot("food");
-    await page.getByLabel("Search foods").fill("chicken");
+    await page.getByLabel("Search foods").filter({ visible: true }).fill("chicken");
     await shot("food-search");
-    await page.getByLabel("Search foods").fill("chicken tikka masala");
-    await page.locator(".row", { hasText: "Chicken tikka masala" }).first().click();
+    await page.getByLabel("Search foods").filter({ visible: true }).fill("chicken tikka masala");
+    await page.locator(".row:visible", { hasText: "Chicken tikka masala" }).first().click();
     await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, 380));
     await shot("food-health-check");
     await closeSheet();
-    await page.getByLabel("Search foods").fill("nasi lemak");
-    await page.locator(".row", { hasText: "Nasi lemak ayam goreng" }).first().click();
+    await page.getByLabel("Search foods").filter({ visible: true }).fill("nasi lemak");
+    await page.locator(".row:visible", { hasText: "Nasi lemak ayam goreng" }).first().click();
     const parts = page.getByTestId("dish-parts");
     await parts.getByRole("button", { name: "More Fried egg" }).click();
     await parts.getByRole("button", { name: "Less Peanuts" }).click();
@@ -298,17 +298,17 @@ for (const set of SETS) {
     await page.locator(".sheet-body").evaluate((el) => el.scrollTo(0, 250));
     await shot("customise-dish");
     await closeSheet();
-    await page.getByLabel("Search foods").fill("char siu");
+    await page.getByLabel("Search foods").filter({ visible: true }).fill("char siu");
     await page.getByRole("button", { name: /Hiding foods you avoid/ }).click();
     await shot("halal-filter");
-    await page.locator(".row", { hasText: "Char siu (BBQ pork)" }).first().click();
+    await page.locator(".row:visible", { hasText: "Char siu (BBQ pork)" }).first().click();
     await page.getByRole("dialog").getByRole("alert").evaluate((el) => el.scrollIntoView({ block: "center" }));
     await shot("halal-warning");
     await closeSheet();
     await page.getByRole("button", { name: /Showing all foods/ }).click();
-    await page.getByLabel("Clear search").click();
+    await page.getByLabel("Clear search").filter({ visible: true }).click();
     await page.getByRole("tab", { name: "My Meals" }).click();
-    await page.locator(".row", { hasText: "Post-gym bowl" }).locator(".row-main").click();
+    await page.locator(".row:visible", { hasText: "Post-gym bowl" }).locator(".row-main").click();
     await shot("meal-builder");
     await closeSheet();
 
@@ -317,7 +317,7 @@ for (const set of SETS) {
     await shot("train");
     await page.getByRole("button", { name: /Exercise library/ }).click();
     await shot("exercise-library");
-    await sheet().locator(".row", { hasText: "Barbell bench press" }).first().click();
+    await sheet().locator(".row:visible", { hasText: "Barbell bench press" }).first().click();
     await shot("exercise-detail");
     await sheet().getByRole("button", { name: "Close", exact: true }).click();
     await expect(page.getByRole("dialog")).toHaveCount(1);
@@ -331,17 +331,17 @@ for (const set of SETS) {
     await expect(page.getByRole("dialog")).toHaveCount(1);
     await closeSheet();
     await page.getByRole("button", { name: /Clock in & start/ }).click();
-    const bench = page.locator(".card", { hasText: "Barbell bench press" }).first();
+    const bench = page.locator(".card:visible", { hasText: "Barbell bench press" }).first();
     // Last week was 40 kg × 10 on every set, so the app pre-fills 42.5 kg — set 1 is a new record.
-    await bench.getByLabel("Set 1 reps").fill("10");
+    await bench.getByLabel("Set 1 reps").filter({ visible: true }).fill("10");
     await bench.getByRole("button", { name: "Mark set done" }).first().click();
     await expect(page.locator(".toast", { hasText: "New personal record" })).toBeVisible();
     await shot("workout-rest-timer-record", 600);
     await page.getByRole("timer", { name: "Rest timer" }).getByRole("button", { name: "Skip" }).click();
-    await bench.getByLabel("Set 2 reps").fill("10");
+    await bench.getByLabel("Set 2 reps").filter({ visible: true }).fill("10");
     await bench.getByRole("button", { name: "Mark set done" }).first().click();
     await page.getByRole("timer", { name: "Rest timer" }).getByRole("button", { name: "Skip" }).click();
-    await bench.getByLabel("Set 3 reps").fill("8");
+    await bench.getByLabel("Set 3 reps").filter({ visible: true }).fill("8");
     await bench.getByRole("button", { name: "Mark set done" }).first().click();
     await page.getByRole("timer", { name: "Rest timer" }).getByRole("button", { name: "Skip" }).click();
     await page.clock.setSystemTime(new Date(LUNCHTIME.getTime() + 38 * 60000));

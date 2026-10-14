@@ -24,11 +24,11 @@ const sheet = (page: Page, name: string) => page.getByRole("dialog", { name });
 
 async function onboard(page: Page, name: string, opts: { sex?: "Male" | "Female"; weight?: string; diet?: string } = {}) {
   await page.getByRole("button", { name: "Get started" }).click();
-  await page.getByLabel("Name").fill(name);
+  await page.getByLabel("Name").filter({ visible: true }).fill(name);
   await page.getByRole("tab", { name: opts.sex ?? "Female", exact: true }).click();
-  await page.getByLabel("Age").fill("28");
-  await page.getByLabel("Height").fill("160");
-  await page.getByLabel("Weight").fill(opts.weight ?? "64");
+  await page.getByLabel("Age").filter({ visible: true }).fill("28");
+  await page.getByLabel("Height").filter({ visible: true }).fill("160");
+  await page.getByLabel("Weight").filter({ visible: true }).fill(opts.weight ?? "64");
   // Only women are asked about period tracking.
   await expect(page.getByRole("switch", { name: "Track my period?" })).toHaveCount(opts.sex === "Male" ? 0 : 1);
   await page.getByRole("button", { name: "Continue" }).click();
@@ -51,7 +51,7 @@ test("Siti: halal, peanut allergy and Ramadan — warnings, filters, sahur/iftar
   await page.getByRole("button", { name: "Peanuts", exact: true }).click();
   await expect(page.getByRole("button", { name: "Peanuts", exact: true })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("tab", { name: "Ramadan" }).click();
-  await expect(page.getByLabel("Iftar (maghrib)")).toHaveValue("19:20");
+  await expect(page.getByLabel("Iftar (maghrib)").filter({ visible: true })).toHaveValue("19:20");
 
   // Today: the fast card counts down to iftar, and meals become Sahur / Iftar / Moreh.
   await tab(page, "Today");
@@ -61,17 +61,17 @@ test("Siti: halal, peanut allergy and Ramadan — warnings, filters, sahur/iftar
 
   // Food: satay (peanut sauce) and pork dishes are hidden until she chooses to see them.
   await tab(page, "Food");
-  await page.getByLabel("Search foods").fill("satay");
+  await page.getByLabel("Search foods").filter({ visible: true }).fill("satay");
   await expect(page.locator(".row-title", { hasText: /^Satay/ })).toHaveCount(0);
   await page.getByRole("button", { name: /Hiding foods you avoid/ }).click();
-  const satay = page.locator(".row", { hasText: "Satay (chicken)" });
+  const satay = page.locator(".row:visible", { hasText: "Satay (chicken)" });
   await expect(satay.locator(".avoid-flag")).toHaveAttribute("aria-label", /Usually contains peanuts/);
   await satay.click();
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Usually contains peanuts");
   await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
 
-  await page.getByLabel("Search foods").fill("char siu");
-  await page.locator(".row", { hasText: "Char siu (BBQ pork)" }).click();
+  await page.getByLabel("Search foods").filter({ visible: true }).fill("char siu");
+  await page.locator(".row:visible", { hasText: "Char siu (BBQ pork)" }).click();
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Not halal · contains pork");
   // The verdict agrees with the warning instead of calling it a good fit.
   await expect(page.getByRole("dialog")).toContainText("Not suitable for you");
@@ -80,12 +80,12 @@ test("Siti: halal, peanut allergy and Ramadan — warnings, filters, sahur/iftar
   // Plan: the sample day is sahur, iftar (with dates) and moreh, with nothing she avoids.
   await tab(page, "Plan");
   await page.getByRole("tab", { name: "Nutrition" }).click();
-  await expect(page.locator(".card", { hasText: "Sahur" }).first()).toBeVisible();
-  await expect(page.locator(".card", { hasText: "Iftar" }).first()).toContainText("Dates");
-  await expect(page.locator(".card", { hasText: "Moreh" }).first()).toBeVisible();
-  await expect(page.getByText("a 15% deficit (gentler during Ramadan)", { exact: false })).toBeVisible();
+  await expect(page.locator(".card:visible", { hasText: "Sahur" }).first()).toBeVisible();
+  await expect(page.locator(".card:visible", { hasText: "Iftar" }).first()).toContainText("Dates");
+  await expect(page.locator(".card:visible", { hasText: "Moreh" }).first()).toBeVisible();
+  await expect(page.getByText("a 15% deficit (gentler during Ramadan)", { exact: false }).filter({ visible: true })).toBeVisible();
   await expect(page.locator("body")).not.toContainText("Peanut butter ·");
-  await expect(page.getByText("Break your fast with water and 2–3 dates", { exact: false })).toBeVisible();
+  await expect(page.getByText("Break your fast with water and 2–3 dates", { exact: false }).filter({ visible: true })).toBeVisible();
 });
 
 test("Wei: scans a barcode, logs it, tracks water and weight, and builds a streak", async ({ page }) => {
@@ -109,52 +109,52 @@ test("Wei: scans a barcode, logs it, tracks water and weight, and builds a strea
   await page.getByRole("button", { name: /Scan barcode/ }).click();
   const scan = sheet(page, "Scan barcode");
   // An unknown product offers to add it as a new food.
-  await scan.getByLabel("Barcode number").fill("1111111111111");
+  await scan.getByLabel("Barcode number").filter({ visible: true }).fill("1111111111111");
   await scan.getByRole("button", { name: "Look up" }).click();
   await expect(scan.getByRole("status")).toContainText("1111111111111 isn't in the database yet.");
   await expect(scan.getByRole("button", { name: "Add it as a new food" })).toBeVisible();
-  await scan.getByLabel("Barcode number").fill("9556 0012 34567");
+  await scan.getByLabel("Barcode number").filter({ visible: true }).fill("9556 0012 34567");
   await scan.getByRole("button", { name: "Look up" }).click();
   const milo = page.getByRole("dialog").filter({ has: page.getByRole("heading", { name: "Milo 3in1" }) });
   await expect(milo).toBeVisible();
   await expect(milo).toContainText("Nestlé");
   await milo.getByRole("button", { name: /^Add to Breakfast/ }).click();
-  await expect(page.locator(".row", { hasText: "Milo 3in1" })).toContainText("33 g");
+  await expect(page.locator(".row:visible", { hasText: "Milo 3in1" })).toContainText("33 g");
 
   // Logging food starts a streak.
   await expect(page.getByRole("button", { name: "1-day logging streak" })).toBeVisible();
 
   // Water: three 250 ml cups, then a 500 ml bottle as the cup size, and a one-off 330 ml can.
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Add 250 ml of water" }).click();
-  await expect(page.getByText(/^0\.75 of 2\.75 L water$/)).toBeVisible();
+  await expect(page.getByText(/^0\.75 of 2\.75 L water$/).filter({ visible: true })).toBeVisible();
   await page.getByRole("button", { name: "Cup size 250 ml, change" }).click();
   await sheet(page, "Cup size").getByRole("button", { name: "500 ml" }).click();
   await page.getByRole("button", { name: "Add 500 ml of water" }).click();
-  await expect(page.getByText(/^1\.25 of 2\.75 L water$/)).toBeVisible();
+  await expect(page.getByText(/^1\.25 of 2\.75 L water$/).filter({ visible: true })).toBeVisible();
   await page.getByRole("button", { name: "Cup size 500 ml, change" }).click();
-  await sheet(page, "Cup size").getByLabel("Other amount").fill("330");
+  await sheet(page, "Cup size").getByLabel("Other amount").filter({ visible: true }).fill("330");
   await sheet(page, "Cup size").getByRole("button", { name: "Add once" }).click();
-  await expect(page.getByText(/^1\.58 of 2\.75 L water$/)).toBeVisible();
+  await expect(page.getByText(/^1\.58 of 2\.75 L water$/).filter({ visible: true })).toBeVisible();
   // Hold the cup to take a cup back.
   const cupBtn = page.getByRole("button", { name: "Add 500 ml of water" });
   await cupBtn.hover();
   await page.mouse.down();
   await page.waitForTimeout(800);
   await page.mouse.up();
-  await expect(page.getByText(/^1\.08 of 2\.75 L water$/)).toBeVisible();
+  await expect(page.getByText(/^1\.08 of 2\.75 L water$/).filter({ visible: true })).toBeVisible();
 
   // Progress: a few weigh-ins over two weeks draw the chart and the trend. (No step counting.)
   await page.getByRole("button", { name: /streaks Progress$/ }).click();
   const progress = sheet(page, "Progress");
-  await expect(progress.getByText(/steps/i)).toHaveCount(0);
-  await progress.getByLabel("Weight in kg").fill("82");
+  await expect(progress.getByText(/steps/i).filter({ visible: true })).toHaveCount(0);
+  await progress.getByLabel("Weight in kg").filter({ visible: true }).fill("82");
   await progress.locator(".field", { hasText: "kg" }).getByRole("button", { name: "Save" }).click();
   await progress.getByRole("button", { name: "Close", exact: true }).click();
 
   for (const kg of ["81.4", "80.9"]) {
     await advance(page, 7 * 86400000);
     await page.getByRole("button", { name: /streaks Progress$/ }).click();
-    await progress.getByLabel("Weight in kg").fill(kg);
+    await progress.getByLabel("Weight in kg").filter({ visible: true }).fill(kg);
     await progress.locator(".field", { hasText: "kg" }).getByRole("button", { name: "Save" }).click();
     await progress.getByRole("button", { name: "Close", exact: true }).click();
   }
@@ -166,7 +166,7 @@ test("Wei: scans a barcode, logs it, tracks water and weight, and builds a strea
 
   // The profile weight follows the latest weigh-in, so targets update.
   await tab(page, "Profile");
-  await expect(page.getByLabel("Weight", { exact: true })).toHaveValue("80.9");
+  await expect(page.getByLabel("Weight", { exact: true }).filter({ visible: true })).toHaveValue("80.9");
 });
 
 test("Arif: trains with a rest timer, beats a record, shares and exports", async ({ page }) => {
@@ -176,10 +176,10 @@ test("Arif: trains with a rest timer, beats a record, shares and exports", async
   // Week 1: chest day at 40 kg; finishing a set starts the rest timer.
   await tab(page, "Train");
   await page.getByRole("button", { name: /Clock in & start/ }).click();
-  const bench = page.locator(".card", { hasText: "Barbell bench press" }).first();
+  const bench = page.locator(".card:visible", { hasText: "Barbell bench press" }).first();
   for (const set of [1, 2, 3]) {
-    await bench.getByLabel(`Set ${set} weight`).fill("40");
-    await bench.getByLabel(`Set ${set} reps`).fill("10");
+    await bench.getByLabel(`Set ${set} weight`).filter({ visible: true }).fill("40");
+    await bench.getByLabel(`Set ${set} reps`).filter({ visible: true }).fill("10");
     await bench.getByRole("button", { name: "Mark set done" }).first().click();
   }
   const rest = page.getByRole("timer", { name: "Rest timer" });
@@ -190,7 +190,7 @@ test("Arif: trains with a rest timer, beats a record, shares and exports", async
   await advance(page, 50 * 60000);
   await page.getByRole("button", { name: "Clock out" }).click();
   await page.getByRole("button", { name: "Finish workout" }).click();
-  await expect(page.getByText(/Nice work! .* saved/)).toBeVisible();
+  await expect(page.getByText(/Nice work! .* saved/).filter({ visible: true })).toBeVisible();
   await expect(page.getByTestId("records")).toContainText("Barbell bench press");
   await expect(page.getByTestId("records")).toContainText("40 kg × 10");
 
@@ -204,11 +204,11 @@ test("Arif: trains with a rest timer, beats a record, shares and exports", async
   await tab(page, "Today");
   await tab(page, "Train");
   await page.getByRole("button", { name: /Clock in & start/ }).click();
-  const bench2 = page.locator(".card", { hasText: "Barbell bench press" }).first();
+  const bench2 = page.locator(".card:visible", { hasText: "Barbell bench press" }).first();
   await expect(bench2.locator(".lift-history")).toContainText("Last time: 40 kg × 10, 10, 10");
   await expect(bench2.locator(".lift-next")).toContainText("try 42.5 kg");
-  await expect(bench2.getByLabel("Set 1 weight")).toHaveValue("42.5");
-  await bench2.getByLabel("Set 1 reps").fill("10");
+  await expect(bench2.getByLabel("Set 1 weight").filter({ visible: true })).toHaveValue("42.5");
+  await bench2.getByLabel("Set 1 reps").filter({ visible: true }).fill("10");
   await bench2.getByRole("button", { name: "Mark set done" }).first().click();
   await expect(page.locator(".toast", { hasText: "New personal record" })).toContainText("New personal record · Barbell bench press 42.5 kg × 10");
   await page.getByRole("timer", { name: "Rest timer" }).getByRole("button", { name: "Skip" }).click();
@@ -235,11 +235,11 @@ test("Lina: doesn't eat vegetables or beef, so her meal plan leaves them out", a
   await onboard(page, "Lina");
   await tab(page, "Plan");
   await page.getByRole("tab", { name: "Nutrition" }).click();
-  await expect(page.locator(".card", { hasText: "Dinner" }).first()).toContainText(/vegetables/i);
+  await expect(page.locator(".card:visible", { hasText: "Dinner" }).first()).toContainText(/vegetables/i);
 
   // Profile: type it the way she'd say it, and tap a chip.
   await tab(page, "Profile");
-  const other = page.getByLabel("Another food you don't eat");
+  const other = page.getByLabel("Another food you don't eat").filter({ visible: true });
   await other.fill("I don't eat vege");
   await other.press("Enter");
   await expect(page.getByRole("button", { name: "Vegetables", exact: true })).toHaveAttribute("aria-pressed", "true");
@@ -252,13 +252,13 @@ test("Lina: doesn't eat vegetables or beef, so her meal plan leaves them out", a
   await tab(page, "Plan");
   await page.getByRole("tab", { name: "Nutrition" }).click();
   await expect(page.getByTestId("plan-without")).toContainText("Planned without vegetables, beef, durian.");
-  for (const meal of await page.locator(".card", { hasText: /kcal/ }).allTextContents()) expect(meal).not.toMatch(/vegetables|broccoli|spinach|beef/i);
-  await expect(page.getByText("Papaya").first()).toBeVisible();
+  for (const meal of await page.locator(".card:visible", { hasText: /kcal/ }).allTextContents()) expect(meal).not.toMatch(/vegetables|broccoli|spinach|beef/i);
+  await expect(page.getByText("Papaya").filter({ visible: true }).first()).toBeVisible();
 
   // It's a preference, not an allergy: broccoli can still be found and logged without a warning.
   await tab(page, "Food");
-  await page.getByLabel("Search foods").fill("broccoli");
-  await page.locator(".row", { hasText: "Broccoli" }).first().click();
+  await page.getByLabel("Search foods").filter({ visible: true }).fill("broccoli");
+  await page.locator(".row:visible", { hasText: "Broccoli" }).first().click();
   await expect(page.locator(".avoid-card")).toHaveCount(0);
 });
 
@@ -271,9 +271,9 @@ test("Mei: reminders and switching language to Malay and Chinese", async ({ page
   const meals = page.getByRole("switch", { name: "Meal reminders" });
   await meals.click();
   await expect(meals).toHaveAttribute("aria-checked", "true");
-  await expect(page.getByLabel("Lunch", { exact: true })).toHaveValue("12:30");
+  await expect(page.getByLabel("Lunch", { exact: true }).filter({ visible: true })).toHaveValue("12:30");
   await page.getByRole("switch", { name: "Gym reminders" }).click();
-  await expect(page.getByText("Reminders work in the iPhone and Android apps.", { exact: false })).toBeVisible();
+  await expect(page.getByText("Reminders work in the iPhone and Android apps.", { exact: false }).filter({ visible: true })).toBeVisible();
 
   // No step goal any more.
   await expect(page.getByRole("button", { name: "More step goal" })).toHaveCount(0);
@@ -293,7 +293,7 @@ test("Mei: reminders and switching language to Malay and Chinese", async ({ page
   await expect(page.getByRole("heading", { level: 1 })).toContainText(/[一-鿿]/);
   // Exercises are in Chinese too: open the first training day on Plan.
   await nav.getByRole("button").nth(3).click();
-  const day = page.locator(".card", { has: page.locator("[aria-expanded]") }).first();
+  const day = page.locator(".card:visible", { has: page.locator("[aria-expanded]") }).first();
   if ((await day.locator("[aria-expanded]").getAttribute("aria-expanded")) !== "true") await day.locator("[aria-expanded]").click();
   await expect(day.locator("[aria-expanded]")).toHaveAttribute("aria-expanded", "true");
   // No English exercise names (long runs of Latin letters) left in the open day.
@@ -350,11 +350,11 @@ test("Aisyah: tracks her cycle — logs a period, sees her phase and tips, and l
   // Both periods are listed in Profile and can be removed.
   await tab(page, "Profile");
   const logged = page.getByRole("group", { name: "Logged periods" });
-  await expect(logged.locator(".row")).toHaveCount(2);
+  await expect(logged.locator(".row:visible")).toHaveCount(2);
   await expect(logged).toContainText("16 Sept 2026 – 19 Sept 2026");
   await logged.getByRole("button", { name: /Remove period on/ }).first().click();
-  await expect(logged.locator(".row")).toHaveCount(1);
-  await expect(page.getByText(/not medical advice or contraception/)).toBeVisible();
+  await expect(logged.locator(".row:visible")).toHaveCount(1);
+  await expect(page.getByText(/not medical advice or contraception/).filter({ visible: true })).toBeVisible();
 
   // In Malay.
   await page.getByRole("button", { name: "Bahasa Melayu" }).click();
@@ -409,8 +409,8 @@ test("Family: Aina adds her mum, each gets their own plan and log, and they swit
 
   // Aina logs breakfast.
   await tab(page, "Food");
-  await page.getByLabel("Search foods").fill("roti canai");
-  await page.locator(".row", { hasText: /^Roti canai/ }).first().click();
+  await page.getByLabel("Search foods").filter({ visible: true }).fill("roti canai");
+  await page.locator(".row:visible", { hasText: /^Roti canai/ }).first().click();
   await page.getByRole("dialog").getByRole("tab", { name: "Breakfast" }).click();
   await page.getByRole("button", { name: "Add to Breakfast" }).click();
   await tab(page, "Today");
@@ -420,7 +420,7 @@ test("Family: Aina adds her mum, each gets their own plan and log, and they swit
   // Adding someone opens onboarding for them (skipping the welcome page); Cancel goes back.
   await tab(page, "Profile");
   await page.getByRole("button", { name: /Add a person/ }).click();
-  await expect(page.getByText("New person")).toBeVisible();
+  await expect(page.getByText("New person").filter({ visible: true })).toBeVisible();
   await page.getByRole("button", { name: "Cancel" }).click();
   await expect(page.getByRole("heading", { name: /Good \w+, Aina/ })).toBeVisible();
   await tab(page, "Profile");
@@ -428,14 +428,14 @@ test("Family: Aina adds her mum, each gets their own plan and log, and they swit
 
   // Now for real: Mum, 55, 152 cm, 70 kg, wants to lose fat, halal.
   await page.getByRole("button", { name: /Add a person/ }).click();
-  await page.getByLabel("Name").fill("Mum");
+  await page.getByLabel("Name").filter({ visible: true }).fill("Mum");
   await page.getByRole("tab", { name: "Female", exact: true }).click();
-  await page.getByLabel("Age").fill("55");
-  await page.getByLabel("Height").fill("152");
-  await page.getByLabel("Weight").fill("70");
+  await page.getByLabel("Age").filter({ visible: true }).fill("55");
+  await page.getByLabel("Height").filter({ visible: true }).fill("152");
+  await page.getByLabel("Weight").filter({ visible: true }).fill("70");
   // Women are asked (optionally) about period tracking during setup.
   await page.getByRole("switch", { name: "Track my period?" }).click();
-  await page.getByLabel("First day of your last period").fill("2026-09-20");
+  await page.getByLabel("First day of your last period").filter({ visible: true }).fill("2026-09-20");
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: /Lose fat/ }).click();
   await page.getByRole("button", { name: "Continue" }).click();
@@ -481,7 +481,7 @@ test("Exercise library: a category icon on every row, the real photos on the exe
   await page.locator("[data-tour=log-activity]").click();
   const library = page.getByRole("dialog", { name: "Exercises" });
   await library.getByRole("radio", { name: "Strength" }).or(library.getByRole("tab", { name: "Strength" })).first().click();
-  const rows = library.locator(".row");
+  const rows = library.locator(".row:visible");
   await expect(rows.first().locator(".ex-pic-icon")).toBeVisible();
   // Each exercise has its own icon: the movement, not just its muscle group.
   await expect(rows.filter({ hasText: "Barbell bench press" }).first().locator(".ex-pic-icon")).toHaveAttribute("data-icon", "bench");
@@ -509,7 +509,7 @@ test("Scrolling still works after closing stacked sheets (regression: the page s
   await page.locator("[data-tour=log-activity]").click();
   const library = page.getByRole("dialog", { name: "Exercises" });
   await library.locator("input").first().fill("futsal");
-  await library.locator(".row").first().click();
+  await library.locator(".row:visible").first().click();
   await page.getByRole("button", { name: "Log activity" }).last().click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
@@ -529,8 +529,8 @@ test("Fixing a mistake: rice added to dinner by accident is edited, moved, delet
   await onboard(page, "Hana");
   // Log rice to dinner by mistake.
   await tab(page, "Food");
-  await page.getByLabel("Search foods").fill("white rice");
-  await page.locator(".row").first().click();
+  await page.getByLabel("Search foods").filter({ visible: true }).fill("white rice");
+  await page.locator(".row:visible").first().click();
   const food = page.getByRole("dialog");
   await food.getByRole("tab", { name: "Dinner" }).click();
   await food.getByRole("button", { name: /^Add to Dinner/ }).click();
@@ -544,8 +544,8 @@ test("Fixing a mistake: rice added to dinner by accident is edited, moved, delet
   await riceRow.getByRole("button", { name: `Edit ${riceName}` }).click();
   const edit = page.getByRole("dialog", { name: "Edit food" });
   const before = Number(await edit.getByTestId("edit-kcal").innerText());
-  const grams = Number(await edit.getByLabel("Amount").inputValue());
-  await edit.getByLabel("Amount").fill(String(grams * 2));
+  const grams = Number(await edit.getByLabel("Amount").filter({ visible: true }).inputValue());
+  await edit.getByLabel("Amount").filter({ visible: true }).fill(String(grams * 2));
   await expect.poll(async () => Math.abs(Number(await edit.getByTestId("edit-kcal").innerText()) - before * 2)).toBeLessThanOrEqual(1);
   const after = Number(await edit.getByTestId("edit-kcal").innerText());
   // …and move it to lunch.
@@ -564,7 +564,7 @@ test("Fixing a mistake: rice added to dinner by accident is edited, moved, delet
 
   // Swipe it left to delete (once the earlier "Removed" message has gone, so a double delete would show).
   await expect(page.getByRole("status").filter({ hasText: `Removed ${riceName}` })).toHaveCount(0, { timeout: 10_000 });
-  const row = page.locator(".swipe-row", { hasText: riceName }).locator(".row");
+  const row = page.locator(".swipe-row", { hasText: riceName }).locator(".row:visible");
   const box = (await row.boundingBox())!;
   await page.mouse.move(box.x + box.width - 60, box.y + box.height / 2);
   await page.mouse.down();

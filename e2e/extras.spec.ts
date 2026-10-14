@@ -47,12 +47,12 @@ test("Faster logging: quick add, saying a meal, copying yesterday's breakfast an
   // Quick add: just a number.
   await page.getByRole("button", { name: /Quick add/ }).click();
   const qa = sheet(page, "Quick add");
-  await qa.getByLabel("Name").fill("Office kuih");
-  await qa.getByLabel("Calories").fill("230");
+  await qa.getByLabel("Name").filter({ visible: true }).fill("Office kuih");
+  await qa.getByLabel("Calories").filter({ visible: true }).fill("230");
   await qa.getByRole("tab", { name: "Snack" }).click();
   await qa.getByRole("button", { name: "Add to Snack" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Added Office kuih · 230 kcal" })).toBeVisible();
-  await expect(page.getByText("Office kuih", { exact: true })).toBeVisible();
+  await expect(page.getByText("Office kuih", { exact: true }).filter({ visible: true })).toBeVisible();
 
   // Say (type) a meal in Malay: two foods with amounts.
   await page.getByRole("button", { name: /Say it/ }).click();
@@ -60,7 +60,7 @@ test("Faster logging: quick add, saying a meal, copying yesterday's breakfast an
   await voice.getByPlaceholder("Or type it here").fill("dua roti canai dan teh tarik");
   await voice.getByRole("button", { name: "Find foods" }).click();
   const matches = voice.getByTestId("voice-matches");
-  await expect(matches.locator(".row")).toHaveCount(2);
+  await expect(matches.locator(".row:visible")).toHaveCount(2);
   await expect(matches).toContainText("Roti canai");
   await expect(matches).toContainText("Teh tarik");
   await voice.getByRole("tab", { name: "Lunch" }).click();
@@ -77,8 +77,8 @@ test("Faster logging: quick add, saying a meal, copying yesterday's breakfast an
 
   // Star a food and find it under Favourites.
   await tab(page, "Food");
-  await page.getByLabel("Search foods").fill("teh tarik");
-  await page.locator(".row", { hasText: "Teh tarik" }).first().click();
+  await page.getByLabel("Search foods").filter({ visible: true }).fill("teh tarik");
+  await page.locator(".row:visible", { hasText: "Teh tarik" }).first().click();
   await page.getByRole("button", { name: "Add to favourites" }).click();
   await expect(page.getByRole("button", { name: "Remove from favourites" })).toHaveAttribute("aria-pressed", "true");
   await close(page);
@@ -131,9 +131,9 @@ test("Daily habits: steps add to the budget, morning check-in, supplements ticke
   await tab(page, "Profile");
   await page.getByRole("button", { name: /Supplements & medicine/ }).click();
   const sup = sheet(page, "Supplements & medicine");
-  await sup.getByLabel("Name").fill("Vitamin D");
-  await sup.getByLabel("Dose").fill("1 capsule");
-  await sup.getByLabel("Time").fill("08:00");
+  await sup.getByLabel("Name").filter({ visible: true }).fill("Vitamin D");
+  await sup.getByLabel("Dose").filter({ visible: true }).fill("1 capsule");
+  await sup.getByLabel("Time").filter({ visible: true }).fill("08:00");
   await sup.getByRole("button", { name: "Add" }).click();
   await expect(sup).toContainText("Vitamin D");
   await close(page);
@@ -142,7 +142,7 @@ test("Daily habits: steps add to the budget, morning check-in, supplements ticke
   await expect(today).toContainText("Vitamin D");
   await today.getByRole("checkbox", { name: /Vitamin D/ }).click();
   await expect(today.getByRole("checkbox", { name: /Vitamin D/ })).toHaveAttribute("aria-checked", "true");
-  await expect(page.getByText("Supplements & medicine · 1/1")).toBeVisible();
+  await expect(page.getByText("Supplements & medicine · 1/1").filter({ visible: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -182,10 +182,10 @@ test("Training tools: plates, 1-rep max, a superset routine with warm-ups, stren
   // Plates for 100 kg on a 20 kg bar: 25 + 15 a side.
   await page.getByRole("button", { name: /Gym tools/ }).click();
   const tools = sheet(page, "Gym tools");
-  await tools.getByLabel("Working weight").fill("100");
+  await tools.getByLabel("Working weight").filter({ visible: true }).fill("100");
   await expect(tools.getByTestId("plates")).toContainText("Each side: 25 + 15 kg");
   await tools.getByRole("tab", { name: "1-rep max" }).click();
-  await tools.getByLabel("Weight lifted").fill("100");
+  await tools.getByLabel("Weight lifted").filter({ visible: true }).fill("100");
   await tools.getByRole("button", { name: "More reps" }).click(); // 6 reps
   // 100 kg × 6: Epley 120, Brzycki 116.1 → 118.1 kg.
   await expect(tools.getByTestId("one-rm")).toHaveText("118.1 kg");
@@ -197,12 +197,12 @@ test("Training tools: plates, 1-rep max, a superset routine with warm-ups, stren
   await page.getByTestId("routines").scrollIntoViewIfNeeded();
   await page.locator(".section-header", { hasText: "My routines" }).getByRole("button", { name: "New" }).click();
   const editor = sheet(page, "New routine");
-  await editor.getByLabel("Name").fill("Arms superset");
+  await editor.getByLabel("Name").filter({ visible: true }).fill("Arms superset");
   for (const q of ["barbell curl", "triceps pushdown"]) {
     await editor.getByRole("button", { name: "Add exercise" }).click();
     const lib = page.getByRole("dialog").last();
     await lib.getByPlaceholder(/Search .* exercises/).fill(q);
-    await lib.locator(".row").first().click();
+    await lib.locator(".row:visible").first().click();
     await page.getByRole("dialog").last().getByRole("button", { name: "Add to routine" }).click();
   }
   await editor.getByRole("switch", { name: /Superset .* with the one above/ }).click();
@@ -214,10 +214,10 @@ test("Training tools: plates, 1-rep max, a superset routine with warm-ups, stren
   await page.getByTestId("routines").getByRole("button", { name: "Start" }).click();
   await expect(page.locator(".superset-tag").first()).toHaveText("Superset A");
   await expect(page.locator(".superset-tag")).toHaveCount(2);
-  const first = page.locator(".card", { has: page.locator(".superset-tag") }).first();
-  await first.getByLabel("Set 1 weight").fill("30");
+  const first = page.locator(".card:visible", { has: page.locator(".superset-tag") }).first();
+  await first.getByLabel("Set 1 weight").filter({ visible: true }).fill("30");
   await first.getByRole("button", { name: "Add 2 warm-up sets" }).click();
-  await expect(first.locator(".set-grid").getByText("W", { exact: true })).toHaveCount(2);
+  await expect(first.locator(".set-grid").getByText("W", { exact: true }).filter({ visible: true })).toHaveCount(2);
   await first.getByRole("button", { name: "Mark set done" }).nth(2).click();
   await expect(page.getByRole("status").filter({ hasText: /Superset: on to/ })).toBeVisible();
   await expect(page.locator(".rest-bar")).toHaveCount(0);
@@ -263,7 +263,7 @@ test("GPS run: start, move, pause, finish, and it's saved with distance and pace
   const saved = page.getByRole("status").filter({ hasText: /Saved 0\.\d\d km/ });
   await expect(saved).toBeVisible();
   expect(Number((await saved.innerText()).match(/(\d+) kcal/)![1])).toBeLessThan(60);
-  await expect(page.locator(".row", { hasText: "Run" }).first()).toContainText("km");
+  await expect(page.locator(".row:visible", { hasText: "Run" }).first()).toContainText("km");
   expect(errors).toEqual([]);
 });
 
@@ -275,7 +275,7 @@ test("Meal planner: plan two days, log a planned meal, and tick off the grocery 
     await page.getByRole("button", { name: `Plan a food for ${meal}` }).click();
     const picker = sheet(page, "Add food");
     await picker.getByPlaceholder("Search foods").fill(food);
-    await picker.locator(".row").first().click();
+    await picker.locator(".row:visible").first().click();
   };
   await addTo("Breakfast", "oats");
   await addTo("Lunch", "chicken rice");
@@ -303,16 +303,16 @@ test("Body: measurements give a body-fat estimate, and two progress photos can b
   const errors = await open(page, state);
   await page.getByRole("button", { name: /streaks Progress$/ }).click();
   const progress = sheet(page, "Progress");
-  await progress.getByLabel("Waist").fill("84");
-  await progress.getByLabel("Neck").fill("38");
+  await progress.getByLabel("Waist").filter({ visible: true }).fill("84");
+  await progress.getByLabel("Neck").filter({ visible: true }).fill("38");
   await progress.getByRole("button", { name: "Save measurements" }).click();
   await expect(progress.getByTestId("body-fat")).toContainText(/Body fat about 1\d(\.\d)?%/);
   // Two photos (a tiny PNG each), then the before/after slider appears.
   const png = Buffer.from(PHOTO_URL.split(",")[1], "base64");
-  for (let i = 0; i < 2; i++) await progress.getByLabel("Progress photo").setInputFiles({ name: `p${i}.png`, mimeType: "image/png", buffer: png });
+  for (let i = 0; i < 2; i++) await progress.getByLabel("Progress photo").filter({ visible: true }).setInputFiles({ name: `p${i}.png`, mimeType: "image/png", buffer: png });
   await expect(progress.locator(".photo-thumb")).toHaveCount(2);
   await expect(progress.getByTestId("photo-compare")).toBeVisible();
-  await progress.getByLabel("Slide to compare before and after").fill("20");
+  await progress.getByLabel("Slide to compare before and after").filter({ visible: true }).fill("20");
   expect(errors).toEqual([]);
 });
 
@@ -321,7 +321,7 @@ test("Pregnancy mode raises the targets and pauses cycle tracking; badges and a 
   const before = await kcalLeft(page);
   await tab(page, "Profile");
   await page.getByRole("radio", { name: "Pregnant · 2nd trimester" }).click();
-  await expect(page.getByText(/maintenance plus 340 kcal/)).toBeVisible();
+  await expect(page.getByText(/maintenance plus 340 kcal/).filter({ visible: true })).toBeVisible();
   await expect(page.getByRole("switch", { name: "Track my cycle" })).toHaveAttribute("aria-checked", "false");
   await tab(page, "Today");
   // The lose-weight deficit is gone and 340 kcal added: much more to eat today.
@@ -331,7 +331,7 @@ test("Pregnancy mode raises the targets and pauses cycle tracking; badges and a 
   await page.getByRole("button", { name: /Badges & challenges/ }).click();
   const badges = sheet(page, "Badges & challenges");
   await expect(badges.getByTestId("badges")).toContainText("First bite");
-  const water = badges.getByTestId("challenges").locator(".row", { hasText: "7 days of water" });
+  const water = badges.getByTestId("challenges").locator(".row:visible", { hasText: "7 days of water" });
   await water.getByRole("button", { name: "Join" }).click();
   await expect(water).toContainText("Day 1 of 7");
   expect(errors).toEqual([]);
@@ -359,7 +359,7 @@ test("A barcode scanned once still works offline", async ({ page }) => {
   const scan = async () => {
     await page.locator('[data-tour="barcode"]').click();
     const s = sheet(page, "Scan barcode");
-    await s.getByLabel("Barcode number").fill("9556001234567");
+    await s.getByLabel("Barcode number").filter({ visible: true }).fill("9556001234567");
     await s.getByRole("button", { name: "Look up" }).click();
   };
   await scan();
@@ -417,7 +417,7 @@ test("Meal ideas: swap, like, never again, log it, and preferences that change t
   await expect(s).toContainText(second);
   await expect(s).toContainText(third);
   await s.getByRole("button", { name: "Restore" }).click();
-  await expect(s.getByText("Not suggested")).toHaveCount(0);
+  await expect(s.getByText("Not suggested").filter({ visible: true })).toHaveCount(0);
   await s.getByRole("button", { name: "Close", exact: true }).click();
   await expect(card).toContainText("Lower carb · Japanese · Something new");
 
@@ -472,8 +472,8 @@ test("Training splits: more split types, train at home, swap an exercise, and my
   await tab(page, "Plan");
   // Chest & triceps, back & biceps, legs & shoulders.
   await page.getByRole("button", { name: "Chest & Tri · Back & Bi · Legs" }).click();
-  await expect(page.getByText("Chest & Triceps", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Back & Biceps", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Chest & Triceps", { exact: true }).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.getByText("Back & Biceps", { exact: true }).filter({ visible: true }).first()).toBeVisible();
 
   // Open the chest day and swap its first exercise.
   await page.getByRole("button", { name: /Chest & Triceps/ }).first().click();
@@ -481,7 +481,7 @@ test("Training splits: more split types, train at home, swap an exercise, and my
   const before = (await swap.getAttribute("aria-label"))!.replace(/^Swap /, "");
   await swap.click();
   const sheet = page.getByRole("dialog", { name: "Swap exercise" });
-  await sheet.getByLabel("Search exercises").fill("machine chest press");
+  await sheet.getByLabel("Search exercises").filter({ visible: true }).fill("machine chest press");
   await sheet.getByTestId("swap-list").getByRole("button", { name: /Machine chest press/ }).first().click();
   await expect(page.getByRole("button", { name: "Swap Machine chest press" })).toBeVisible();
   expect(before).not.toBe("Machine chest press");
@@ -503,7 +503,7 @@ test("Training splits: more split types, train at home, swap an exercise, and my
   const day1 = editor.getByRole("group", { name: "Muscle groups for day 1" });
   await day1.getByRole("button", { name: "Glutes", exact: true }).click();
   await expect(day1.getByRole("button", { name: "Glutes", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(editor.locator(".card").first()).toContainText("Chest, Triceps & Glutes");
+  await expect(editor.locator(".card:visible").first()).toContainText("Chest, Triceps & Glutes");
 
   // Clock in from the plan: the session uses the plan's exercises.
   await page.getByRole("tab", { name: "Gym" }).click();
@@ -578,8 +578,8 @@ test("Plan: press and hold to put shoulders before legs and exercises in my own 
   await shoulder.getByRole("button", { name: `How to do ${second}` }).click();
   const detail = page.getByRole("dialog").last();
   await expect(detail.getByRole("heading", { name: second })).toBeVisible();
-  await expect(detail.getByText("In your plan")).toBeVisible();
-  await expect(detail.getByText("Muscles", { exact: true })).toBeVisible();
+  await expect(detail.getByText("In your plan").filter({ visible: true })).toBeVisible();
+  await expect(detail.getByText("Muscles", { exact: true }).filter({ visible: true })).toBeVisible();
   await detail.getByRole("button", { name: "Swap for another exercise" }).click();
   await expect(sheet(page, "Swap exercise")).toBeVisible();
   await close(page);
@@ -600,18 +600,18 @@ test("My own exercise: create it from a search, train with it, swap it into the 
   await lib.getByTestId("create-exercise").click();
 
   const form = sheet(page, "New exercise");
-  await expect(form.getByLabel("Name")).toHaveValue("Garage bar row");
+  await expect(form.getByLabel("Name").filter({ visible: true })).toHaveValue("Garage bar row");
   await form.getByRole("group", { name: "Main muscle" }).getByRole("button", { name: "Back", exact: true }).click();
   await form.getByRole("group", { name: "Equipment" }).getByRole("button", { name: "Barbell", exact: true }).click();
-  await form.getByLabel("Note").fill("Elbows tight to the ribs");
+  await form.getByLabel("Note").filter({ visible: true }).fill("Elbows tight to the ribs");
   await form.getByRole("button", { name: "Create exercise" }).click();
 
   // Its own page, then into the workout.
   const detail = sheet(page, "Your exercise");
   await expect(detail.getByRole("heading", { name: "Garage bar row" })).toBeVisible();
-  await expect(detail.getByText("Elbows tight to the ribs")).toBeVisible();
+  await expect(detail.getByText("Elbows tight to the ribs").filter({ visible: true })).toBeVisible();
   await detail.getByRole("button", { name: "Add to workout" }).click();
-  await expect(page.getByText("Garage bar row", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Garage bar row", { exact: true }).filter({ visible: true }).first()).toBeVisible();
 
   // A library name can't be reused.
   await page.getByRole("button", { name: "Add exercise" }).click();
@@ -620,7 +620,7 @@ test("My own exercise: create it from a search, train with it, swap it into the 
   await expect(lib.getByRole("button", { name: /Garage bar row/ })).toBeVisible();
   await lib.getByTestId("create-exercise").click();
   const again = sheet(page, "New exercise");
-  await again.getByLabel("Name").fill("Pull-up");
+  await again.getByLabel("Name").filter({ visible: true }).fill("Pull-up");
   await expect(again.getByRole("alert")).toContainText("already in the library");
   await expect(again.getByRole("button", { name: "Create exercise" })).toBeDisabled();
   await close(page);
@@ -642,15 +642,15 @@ test("My own exercise: create it from a search, train with it, swap it into the 
   await lib.getByRole("button", { name: /Garage bar row/ }).click();
   await detail.getByRole("button", { name: "Edit", exact: true }).click();
   const edit = sheet(page, "Edit exercise");
-  await edit.getByLabel("Name").fill("Garage pendlay row");
+  await edit.getByLabel("Name").filter({ visible: true }).fill("Garage pendlay row");
   await edit.getByRole("button", { name: "Save", exact: true }).click();
   await expect(detail.getByRole("heading", { name: "Garage pendlay row" })).toBeVisible();
   page.once("dialog", (d) => d.accept());
   await detail.getByRole("button", { name: "Delete", exact: true }).click();
-  await expect(lib.getByText("Exercises you create show up here.")).toBeVisible();
+  await expect(lib.getByText("Exercises you create show up here.").filter({ visible: true })).toBeVisible();
   await close(page);
   // The workout keeps the exercise under its new name.
-  await expect(page.getByText("Garage pendlay row", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Garage pendlay row", { exact: true }).filter({ visible: true }).first()).toBeVisible();
   await tab(page, "Plan");
   await page.getByRole("button", { name: /Back & Biceps/ }).first().click();
   await expect(page.getByRole("button", { name: "Swap Garage pendlay row" })).toHaveCount(0);
@@ -661,7 +661,7 @@ test("Steps inside the calorie card with water right after it, and the library h
   const state = { ...seedState(), profile: { ...seedState().profile, stepsOn: true } };
   const errors = await open(page, state, { steps: 4200 });
   // Steps sit inside the calorie summary card, and water logging comes straight after it.
-  const summary = page.locator(".card", { has: page.locator("[data-tour=summary]") });
+  const summary = page.locator(".card:visible", { has: page.locator("[data-tour=summary]") });
   await expect(summary.getByTestId("steps-card")).toContainText("4,200 steps");
   const next = await summary.evaluate((el) => el.nextElementSibling?.getAttribute("data-tour"));
   expect(next).toBe("water");
@@ -674,7 +674,7 @@ test("Steps inside the calorie card with water right after it, and the library h
   const placeholder = (await search.getAttribute("placeholder"))!;
   expect(Number(placeholder.replace(/\D/g, ""))).toBeGreaterThan(6000);
   await search.fill("incline close-grip barbell bench press, paused");
-  await expect(lib.locator(".row", { hasText: "Incline close-grip barbell bench press, paused" }).first()).toBeVisible();
+  await expect(lib.locator(".row:visible", { hasText: "Incline close-grip barbell bench press, paused" }).first()).toBeVisible();
   await close(page);
 
   // The same variation in Chinese.
@@ -684,7 +684,7 @@ test("Steps inside the calorie card with water right after it, and the library h
   await page.getByRole("button", { name: /动作库|Exercise library|运动库/ }).first().click();
   const zh = page.getByRole("dialog").last();
   await zh.getByRole("textbox").first().fill("上斜窄握杠铃卧推");
-  await expect(zh.locator(".row", { hasText: "上斜窄握杠铃卧推（停顿）" }).first()).toBeVisible();
+  await expect(zh.locator(".row:visible", { hasText: "上斜窄握杠铃卧推（停顿）" }).first()).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -797,8 +797,8 @@ test("My own calorie target: set it from Today, it changes the day and the plan,
   await page.reload();
   await tab(page, "Plan");
   await page.getByRole("tab", { name: "Nutrition" }).click();
-  await expect(page.getByText("You set this target yourself.")).toBeVisible();
-  await expect(page.getByText("2,000", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("You set this target yourself.").filter({ visible: true })).toBeVisible();
+  await expect(page.getByText("2,000", { exact: true }).filter({ visible: true }).first()).toBeVisible();
 
   // Back to automatic from Profile.
   await tab(page, "Profile");
