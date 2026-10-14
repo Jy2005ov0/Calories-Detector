@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { averageLength, cycleOf, cycleStatus, periodDays, periodLength, predictedDays, togglePeriodDay } from "../lib/cycle";
+import { fertileDays } from "../lib/cycleCare";
 import { actions, useStore, useTodayKey } from "../lib/store";
 import { Sheet, haptic } from "./ui";
 
@@ -32,6 +33,8 @@ export function CycleCalendar({ open, onClose }: { open: boolean; onClose: () =>
   const status = cycleStatus({ ...settings, on: true }, periods, today);
   const marked = useMemo(() => periodDays(periods, settings, today), [periods, settings, today]);
   const predicted = useMemo(() => predictedDays(status, periods, settings), [status, periods, settings]);
+  // The estimated fertile window, when it's switched on.
+  const fertile = useMemo(() => (settings.fertile ? fertileDays(status) : null), [settings.fertile, status]);
   const cells = monthGrid(shown.y, shown.m);
   const now = new Date();
   const monthsAhead = (shown.y - now.getFullYear()) * 12 + (shown.m - now.getMonth());
@@ -66,15 +69,17 @@ export function CycleCalendar({ open, onClose }: { open: boolean; onClose: () =>
             const k = key(d);
             const isPeriod = marked.has(k);
             const isPredicted = !isPeriod && predicted.has(k);
+            const isOvulation = !isPeriod && !isPredicted && !!fertile?.ovulation.has(k);
+            const isFertile = !isPeriod && !isPredicted && !isOvulation && !!fertile?.fertile.has(k);
             const future = k > today;
             const label = d.toLocaleDateString(locale(), { day: "numeric", month: "long" });
             return (
               <button
                 key={k}
-                className={`cal-day${isPeriod ? " period" : ""}${isPredicted ? " predicted" : ""}${k === today ? " today" : ""}`}
+                className={`cal-day${isPeriod ? " period" : ""}${isPredicted ? " predicted" : ""}${isFertile ? " fertile" : ""}${isOvulation ? " ovulation" : ""}${k === today ? " today" : ""}`}
                 disabled={future}
                 aria-pressed={isPeriod}
-                aria-label={isPeriod ? t("{date}: period day", { date: label }) : isPredicted ? t("{date}: predicted period", { date: label }) : label}
+                aria-label={isPeriod ? t("{date}: period day", { date: label }) : isPredicted ? t("{date}: predicted period", { date: label }) : isOvulation ? t("{date}: likely ovulation", { date: label }) : isFertile ? t("{date}: fertile window", { date: label }) : label}
                 onClick={() => {
                   haptic("light");
                   actions.setPeriods(togglePeriodDay(periods, k, settings, today));
@@ -92,11 +97,17 @@ export function CycleCalendar({ open, onClose }: { open: boolean; onClose: () =>
           <span>
             <i className="cal-dot predicted" /> {t("Predicted")}
           </span>
+          {fertile && (
+            <span>
+              <i className="cal-dot fertile" /> {t("Fertile")}
+            </span>
+          )}
           <span>
             <i className="cal-dot today" /> {t("Today")}
           </span>
         </div>
       </div>
+      {fertile && <p className="footnote">{t("The fertile window is an estimate from your past cycles. It is not a method of birth control.")}</p>}
       <p className="footnote">
         {learnedCycle || learnedPeriod
           ? t("Your cycles average {cycle} days and periods {period} days, from the days you've marked.", { cycle: learnedCycle || settings.length, period: learnedPeriod || settings.periodDays })

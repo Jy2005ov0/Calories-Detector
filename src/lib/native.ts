@@ -5,6 +5,7 @@ import { t } from "../i18n";
 import { planFor, sessionFromPlan, sessionKcal } from "./fitness";
 import { isNative, platform } from "./platform";
 import { cycleOf, cycleStatus } from "./cycle";
+import { haidToday, pillDay, qadaOwed } from "./cycleCare";
 import { minutesOf } from "./progress";
 import { setLiveRest, syncLiveActivity } from "./liveActivity";
 import { actions, getState, subscribe, todayKey, weekdayOf, type AppState } from "./store";
@@ -14,7 +15,7 @@ import { actions, getState, subscribe, todayKey, weekdayOf, type AppState } from
 // Apple Watch or Wear OS watch the phone's notifications appear on the wrist with their
 // action buttons, so "Clock in" and "Clock out" work from the watch.
 
-const ID = { meal: 1000, water: 1100, gym: 1200, workout: 2000, rest: 3000, restStart: 3001, period: 4000, supplement: 5000 };
+const ID = { meal: 1000, water: 1100, gym: 1200, workout: 2000, rest: 3000, restStart: 3001, period: 4000, supplement: 5000, pill: 6000, qada: 6100 };
 const GYM_TYPE = "GYM_REMINDER";
 const WORKOUT_TYPE = "WORKOUT_RUNNING";
 
@@ -59,7 +60,11 @@ function reminderSchedule(s: AppState): LocalNotificationSchema[] {
   const daily = (id: number, title: string, body: string, time: { hour: number; minute: number }, extra?: Partial<LocalNotificationSchema>) =>
     list.push({ id, title, body, channelId: "reminders", schedule: { on: time, repeats: true, allowWhileIdle: true }, ...extra });
 
-  if (r.meals) {
+  const c = cycleOf(p);
+  const cycleNow = c.on ? cycleStatus(c, s.periods ?? [], todayKey()) : null;
+  // A period day in Ramadan: no fast, so no sahur or iftar reminders until it ends.
+  const haid = haidToday(p, cycleNow);
+  if (r.meals && !(p.fasting === "ramadan" && haid)) {
     if (p.fasting === "ramadan") {
       daily(ID.meal, t("Sahur"), t("Sahur ends at {time}. Eat slow carbs and protein, and drink water.", { time: p.fastTimes.sahur }), hm(p.fastTimes.sahur, -45));
       daily(ID.meal + 1, t("Iftar"), t("Break your fast with water and dates, then log your meal."), hm(p.fastTimes.iftar));
@@ -94,8 +99,7 @@ function reminderSchedule(s: AppState): LocalNotificationSchema[] {
     .flatMap((x) => x.times.map((time) => ({ x, time })))
     .slice(0, 20)
     .forEach(({ x, time }, i) => daily(ID.supplement + i, t("Time for {name}", { name: x.name }), x.dose ? t("{dose} · tick it off in W", { dose: x.dose }) : t("Tick it off in W when you've taken it."), hm(time)));
-  const c = cycleOf(p);
-  const cycle = c.on && c.remind ? cycleStatus(c, s.periods ?? [], todayKey()) : null;
+  const cycle = c.remind ? cycleNow : null;
   if (cycle) {
     // 9 am two days before, and on the day it's expected.
     const at = (daysBefore: number) => {
@@ -109,19 +113,46 @@ function reminderSchedule(s: AppState): LocalNotificationSchema[] {
     if (due.getTime() > Date.now())
       list.push({ id: ID.period + 1, title: t("Period due today"), body: t("If it started, log it in W so predictions stay accurate."), channelId: "reminders", schedule: { at: due, allowWhileIdle: true } });
   }
+  // The pill: daily on active days. Scheduled day by day for the next two weeks, so the break or
+  // placebo week stays quiet.
+  const pill = p.sex === "female" ? p.cycle.pill : undefined;
+  if (pill?.on && pill.remind) {
+    const { hour, minute } = hm(pill.time);
+    for (let i = 0; i < 14; i++) {
+      const at = new Date();
+      at.setDate(at.getDate() + i);
+      at.setHours(hour, minute, 0, 0);
+      const day = pillDay(pill, todayKey(at));
+      if (at.getTime() > Date.now() && day?.active)
+        list.push({ id: ID.pill + i, title: t("Time for your pill"), body: t("Day {n} of {total} · tick it off in W", { n: day.day, total: day.pack }), channelId: "reminders", schedule: { at, allowWhileIdle: true } });
+    }
+  }
+  // Fasts to replace: the evening before Mondays and Thursdays, outside Ramadan.
+  if (p.fasting !== "ramadan" && qadaOwed(s.days, p.cycle.qadaAdjust) > 0) {
+    // Sunday and Wednesday evenings (the plan's weekdays run Monday = 0).
+    [6, 2].forEach((weekday, i) =>
+      list.push({
+        id: ID.qada + i,
+        title: t("Replace a fast tomorrow?"),
+        body: t("{n} fasts to replace. Set your intention tonight and have sahur.", { n: qadaOwed(s.days, p.cycle.qadaAdjust) }),
+        channelId: "reminders",
+        schedule: { on: { weekday: capWeekday(weekday), hour: 21, minute: 0 }, repeats: true, allowWhileIdle: true },
+      }),
+    );
+  }
   return list;
 }
 
 const allReminderIds = () =>
   [...Array(3).keys()]
     .map((i) => ID.meal + i)
-    .concat([...Array(7).keys()].map((i) => ID.water + i), [...Array(7).keys()].map((i) => ID.gym + i), [ID.period, ID.period + 1], [...Array(20).keys()].map((i) => ID.supplement + i));
+    .concat([...Array(7).keys()].map((i) => ID.water + i), [...Array(7).keys()].map((i) => ID.gym + i), [ID.period, ID.period + 1], [...Array(20).keys()].map((i) => ID.supplement + i), [...Array(14).keys()].map((i) => ID.pill + i), [ID.qada, ID.qada + 1]);
 
 /** Replace scheduled reminders with what the current settings call for. */
 export async function syncReminders(s: AppState = getState()) {
   if (!isNative) return;
   const wanted = reminderSchedule(s);
-  const any = s.reminders.meals || s.reminders.water || s.reminders.gym || (cycleOf(s.profile).on && s.profile.cycle.remind) || s.supplements.some((x) => x.remind);
+  const any = s.reminders.meals || s.reminders.water || s.reminders.gym || (cycleOf(s.profile).on && s.profile.cycle.remind) || s.supplements.some((x) => x.remind) || !!s.profile.cycle.pill?.remind || qadaOwed(s.days, s.profile.cycle.qadaAdjust) > 0;
   if (any && !(await notificationsReady())) return;
   try {
     await LocalNotifications.cancel({ notifications: allReminderIds().map((id) => ({ id })) });
@@ -217,13 +248,17 @@ export function startNativeServices() {
   let prev = getState();
   syncWorkoutNotification(prev);
   syncLiveActivity(prev);
+  // Day-by-day reminders (the pill, sahur and iftar around a period) look ahead from today: refresh
+  // them each time the app opens.
+  syncReminders(prev);
+  document.addEventListener("visibilitychange", () => !document.hidden && syncReminders());
   subscribe(() => {
     const s = getState();
     // The "clocked in" notification is posted once per workout: re-posting it after every set
     // made it pop up again each time a set was ticked.
     if (s.activeSessionId !== prev.activeSessionId) syncWorkoutNotification(s);
     if (s.activeSessionId !== prev.activeSessionId || s.sessions !== prev.sessions) syncLiveActivity(s);
-    if (s.reminders !== prev.reminders || s.profile !== prev.profile || s.split !== prev.split || s.language !== prev.language || s.periods !== prev.periods || s.supplements !== prev.supplements) syncReminders(s);
+    if (s.reminders !== prev.reminders || s.profile !== prev.profile || s.split !== prev.split || s.language !== prev.language || s.periods !== prev.periods || s.supplements !== prev.supplements || qadaOwed(s.days) !== qadaOwed(prev.days)) syncReminders(s);
     prev = s;
   });
 }

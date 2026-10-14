@@ -101,7 +101,34 @@ export interface CycleSettings {
   periodDays: number;
   /** Notify two days before the next period is expected. */
   remind: boolean;
+  /** Add a little to the calorie target in the days before a period (the luteal phase). */
+  lutealKcal?: boolean;
+  /** Show the estimated fertile window on the calendar (an estimate, not birth control). */
+  fertile?: boolean;
+  /** Privacy lock: a hash of the PIN that opens the cycle section. */
+  pin?: string;
+  /** Birth-control pill pack and reminder. */
+  pill?: PillSettings;
+  /** Fasts to replace (qada), added or taken away by hand on top of the days counted. */
+  qadaAdjust?: number;
 }
+
+export interface PillSettings {
+  on: boolean;
+  /** First day of the current (or any earlier) pack, "YYYY-MM-DD". */
+  packStart: string;
+  /** Days of active pills in a pack (21, 24 or 28). */
+  active: number;
+  /** Break or placebo days after them (0–7). */
+  breakDays: number;
+  /** Reminder time "HH:MM". */
+  time: string;
+  remind: boolean;
+}
+
+/** How heavy a period day is. */
+export type Flow = "spotting" | "light" | "medium" | "heavy";
+export type Symptom = "cramps" | "headache" | "bloating" | "breasts" | "backPain" | "acne" | "tired" | "lowMood" | "cravings" | "nausea";
 
 /** The first day of a period. */
 export interface PeriodEntry {
@@ -139,6 +166,15 @@ export interface DayStats {
   energy?: number;
   /** Supplement doses taken: "<supplement id>@<HH:MM>". */
   taken?: string[];
+  /** Period flow and symptoms logged that day. */
+  flow?: Flow;
+  symptoms?: Symptom[];
+  /** The day's birth-control pill was taken. */
+  pill?: boolean;
+  /** A Ramadan fast missed (a period day, illness or travel), to replace later. */
+  fastMissed?: boolean;
+  /** A missed fast replaced (qada) that day. */
+  qada?: boolean;
 }
 
 /** A supplement or medicine taken at set times each day. */

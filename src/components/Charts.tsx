@@ -8,7 +8,7 @@ const shortDate = (key: string) => {
 };
 
 /** Weight over time: one thin line, recessive grid, last point marked; tap a point to read it. */
-export function WeightChart({ weights, goalKg }: { weights: WeightEntry[]; goalKg?: number }) {
+export function WeightChart({ weights, goalKg, bands = [] }: { weights: WeightEntry[]; goalKg?: number; bands?: { from: string; to: string }[] }) {
   useLanguage();
   const [sel, setSel] = useState<number | null>(null);
   const pts = weights.slice(-60);
@@ -63,6 +63,13 @@ export function WeightChart({ weights, goalKg }: { weights: WeightEntry[]; goalK
         <text x={W - pad.r} y={H - 6} textAnchor="end" className="chart-axis">
           {shortDate(last.date)}
         </text>
+        {bands
+          .filter((b) => Date.parse(b.to) >= t0 && Date.parse(b.from) <= t1)
+          .map((b) => {
+            const a = Math.max(pad.l, x(b.from));
+            const z = Math.min(W - pad.r, x(b.to) + Math.max(2, (W - pad.l - pad.r) / ((t1 - t0) / 86400000)));
+            return <rect key={b.from} x={a} y={pad.t} width={Math.max(2, z - a)} height={H - pad.t - pad.b} className="chart-band" data-testid="period-band" />;
+          })}
         <path d={path} fill="none" stroke="var(--blue)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
         {pts.map((p, i) => (
           // Big invisible hit areas so a finger can pick a point.

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Calculator, Check, Clock, Dumbbell, Flame, Footprints, History, LogIn, LogOut, Plus, Share, Timer, Trash2, Trophy, Weight } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { exName, useExerciseNames } from "../i18n/exercises";
+import { CycleTrainingCard } from "../components/CycleCare";
 import { ExerciseThumb } from "../components/ExercisePicture";
 import { workoutCard } from "../lib/export";
 import { scheduleRestEnd, shareFile } from "../lib/native";
@@ -406,6 +407,15 @@ export function Train() {
     );
   }
 
+  // Start each lift at the weight progressive overload suggests from last time (or a share of it,
+  // for a lighter day around a period).
+  const planned = (day: NonNullable<typeof todaysPlan>, share = 1) =>
+    sessionFromPlan(day).map((e) => {
+      const next = suggestNext(lastPerformance(sessions, e.exerciseId), e.targetReps, e.exerciseId);
+      const kg = (w: number) => (share === 1 ? w : Math.round((w * share) / 2.5) * 2.5);
+      return next ? { ...e, sets: e.sets?.map((x) => ({ ...x, weightKg: kg(next.weightKg) })) } : share === 1 ? e : { ...e, sets: e.sets?.map((x) => ({ ...x, weightKg: x.weightKg ? kg(x.weightKg) : x.weightKg })) };
+    });
+
   return (
     <div className="screen">
       <h1 className="large-title" style={{ marginTop: 14 }}>
@@ -425,6 +435,8 @@ export function Train() {
         </div>
       </motion.button>
 
+      <CycleTrainingCard onLighter={todaysPlan ? () => clockIn(todaysPlan.title, planned(todaysPlan, 0.8)) : undefined} />
+
       {todaysPlan ? (
         <div className="card" style={{ marginTop: 12 }}>
           <div className="muted" style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.02em", fontWeight: 600 }}>
@@ -437,16 +449,7 @@ export function Train() {
           <div className="spacer" />
           <button
             className="btn"
-            onClick={() =>
-              clockIn(
-                todaysPlan.title,
-                // Start each lift at the weight progressive overload suggests from last time.
-                sessionFromPlan(todaysPlan).map((e) => {
-                  const next = suggestNext(lastPerformance(sessions, e.exerciseId), e.targetReps, e.exerciseId);
-                  return next ? { ...e, sets: e.sets?.map((x) => ({ ...x, weightKg: next.weightKg })) } : e;
-                }),
-              )
-            }
+            onClick={() => clockIn(todaysPlan.title, planned(todaysPlan))}
           >
             <LogIn size={18} /> {t("Clock in & start {title}", { title: todaysPlan.title })}
           </button>

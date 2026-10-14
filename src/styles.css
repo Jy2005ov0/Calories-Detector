@@ -3276,3 +3276,236 @@ html[data-text="xlarge"] body {
   color: #fff;
   background: var(--blue);
 }
+
+/* ── Cycle extras ───────────────────────────────────── */
+.field label .field-sub {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--label-2);
+  margin-top: 1px;
+}
+.field:has(.field-sub) {
+  padding-block: 8px;
+}
+.btn.danger {
+  background: var(--red);
+  color: #fff;
+}
+.cal-day.fertile {
+  background: color-mix(in srgb, var(--green) 22%, transparent);
+}
+.cal-day.ovulation {
+  background: color-mix(in srgb, var(--green) 22%, transparent);
+  box-shadow: inset 0 0 0 2px var(--green);
+  font-weight: 700;
+}
+.cal-dot.fertile {
+  background: color-mix(in srgb, var(--green) 40%, transparent);
+}
+.fertile-note {
+  color: var(--green);
+  font-weight: 600;
+}
+.cycle-card.locked {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.cycle-extra {
+  margin: 6px 0 0;
+  color: var(--pink-ink);
+  font-weight: 500;
+}
+.cycle-swaps-toggle {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.875rem;
+}
+.cycle-swaps {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 0.875rem;
+  color: var(--label-2);
+}
+.cycle-swaps li + li {
+  margin-top: 4px;
+}
+.cycle-warning {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: var(--pink-ink);
+  background: color-mix(in srgb, var(--pink) 10%, transparent);
+}
+.cycle-warning svg {
+  flex: none;
+  margin-top: 2px;
+}
+.cycle-log {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg-fill);
+  font-size: 0.9375rem;
+  text-align: left;
+  color: var(--label);
+}
+.cycle-log-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chip.flow-heavy.active {
+  background: var(--pink-fill);
+  color: #fff;
+}
+.cycle-train,
+.pill-card,
+.qada-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.pill-card,
+.qada-card {
+  align-items: center;
+}
+.pill-card .btn {
+  flex: none;
+  width: auto;
+}
+.doctor-note {
+  margin-top: 12px;
+  border: 1px solid color-mix(in srgb, var(--orange) 45%, transparent);
+}
+.doctor-note ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+.cycle-bars .row {
+  gap: 10px;
+}
+.cycle-bar-date {
+  width: 64px;
+  flex: none;
+  font-size: 0.875rem;
+  color: var(--label-2);
+}
+.cycle-bar {
+  flex: 1;
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--bg-fill);
+}
+.cycle-bar .bleed {
+  background: var(--pink-fill);
+}
+.cycle-bar .rest {
+  background: color-mix(in srgb, var(--pink) 25%, transparent);
+}
+.cycle-bar-len {
+  width: 72px;
+  flex: none;
+  text-align: right;
+  font-size: 0.875rem;
+}
+.chart-band {
+  fill: color-mix(in srgb, var(--pink) 16%, transparent);
+}
+.cycle-weight-note .cal-dot {
+  width: 10px;
+  height: 10px;
+  vertical-align: -1px;
+}
+
+/* PIN pad for the cycle lock. */
+.pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 8px;
+}
+.pin-title {
+  margin: 4px 0 14px;
+  font-weight: 600;
+  font-size: 1.0625rem;
+}
+.pin-dots {
+  display: flex;
+  gap: 16px;
+}
+.pin-dots i {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 2px var(--label-2);
+  transition: background 120ms;
+}
+.pin-dots i.on {
+  background: var(--label);
+  box-shadow: none;
+}
+.pin-dots.shake {
+  animation: pin-shake 360ms;
+}
+@keyframes pin-shake {
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
+}
+.pin-error {
+  min-height: 20px;
+  margin: 10px 0 6px;
+  color: var(--red);
+  font-size: 0.875rem;
+}
+.pin-keys {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 14px 22px;
+  margin-bottom: 12px;
+}
+.pin-key {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  background: var(--bg-fill);
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: var(--label);
+  display: grid;
+  place-items: center;
+}
+.pin-key:active {
+  background: var(--separator);
+}
+.pin-key.ghost {
+  background: none;
+}
+.forgot {
+  width: 100%;
+  font-size: 0.9375rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pin-dots.shake {
+    animation: none;
+  }
+}

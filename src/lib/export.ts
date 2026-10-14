@@ -4,7 +4,9 @@ import { round, sum, targets } from "./nutrition";
 import { addDays } from "./progress";
 import { personalRecords } from "./records";
 import { parseState, type AppState } from "./store";
-import type { WorkoutSession } from "./types";
+import type { Symptom, WorkoutSession } from "./types";
+import { cycleOf, periodLength } from "./cycle";
+import { healthCheck, pastCycles, type HealthFlag } from "./cycleCare";
 
 // ── CSV ──────────────────────────────────────────────────
 
@@ -54,13 +56,38 @@ export function toCsv(s: AppState): string {
   const weights = table(["date", "weight_kg"], s.weights.map((w) => [w.date, w.kg]));
   const days = table(["date", "water_ml"], s.days.map((d) => [d.id, d.waterMl]));
   const parts = [`# Food log`, food, ``, `# Workouts`, sets, ``, `# Weight`, weights, ``, `# Water`, days];
-  if (s.periods?.length) parts.push(``, `# Periods`, table(["first_day"], s.periods.map((p) => [p.date])));
+  if (s.periods?.length) parts.push(``, `# Periods`, table(["first_day", "last_day"], s.periods.map((p) => [p.date, p.end])));
+  const cycleDays = s.days.filter((d) => d.flow || d.symptoms?.length || d.pill || d.fastMissed || d.qada);
+  if (cycleDays.length)
+    parts.push(``, `# Cycle days`, table(["date", "flow", "symptoms", "pill_taken", "fast_missed", "fast_replaced"], cycleDays.map((d) => [d.id, d.flow, (d.symptoms ?? []).join(" "), d.pill ? "yes" : "", d.fastMissed ? "yes" : "", d.qada ? "yes" : ""])));
   return parts.join("\r\n");
 }
 
 // ── PDF report ───────────────────────────────────────────
 
 /** A 30-day summary for a coach or doctor: targets, daily averages, weight, workouts and records. */
+const SYMPTOM_EN: Record<Symptom, string> = {
+  cramps: "cramps",
+  headache: "headache",
+  bloating: "bloating",
+  breasts: "tender breasts",
+  backPain: "back pain",
+  acne: "acne",
+  tired: "tired",
+  lowMood: "low mood",
+  cravings: "cravings",
+  nausea: "nausea",
+};
+const FLAG_EN: Record<HealthFlag, string> = {
+  short: "Cycles shorter than 21 days, more than once",
+  long: "Cycles longer than 35 days, more than once",
+  irregular: "Cycle length varies by 8 days or more",
+  longPeriods: "Periods lasting more than 7 days",
+  heavy: "Several days of heavy flow",
+  between: "Bleeding or spotting between periods",
+  missed: "No period for 90 days or more",
+};
+
 export async function toPdf(s: AppState, today: string): Promise<Blob> {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -140,6 +167,32 @@ export async function toPdf(s: AppState, today: string): Promise<Blob> {
   if (prs.length) {
     heading("Personal records (estimated 1-rep max)");
     for (const r of prs) line(r.name, `${r.weightKg} kg × ${r.reps} · e1RM ${round(r.e1rm)} kg · ${r.date}`);
+  }
+
+  // Cycle (only when tracked): for a doctor's visit.
+  const cyc = cycleOf(p);
+  if (cyc.on && s.periods.length) {
+    const cycles = pastCycles(s.periods, cyc, s.days);
+    const check = healthCheck(cycles, s.days, s.periods, cyc, today);
+    heading("Menstrual cycle");
+    if (check.average !== null) line("Average cycle", `${check.average} days (range ${check.shortest}-${check.longest})`);
+    line("Regular", check.regular === null ? "Not enough cycles yet" : check.regular ? "Yes (varies by less than 8 days)" : "No (varies by 8 days or more)");
+    line("Usual period length", `${periodLength(s.periods, cyc.periodDays)} days`);
+    for (const c of cycles.slice(-6).reverse())
+      line(`Period from ${c.start}`, `${c.bleeding} days bleeding${c.heavyDays ? `, ${c.heavyDays} heavy` : ""} · ${c.length !== null ? `cycle ${c.length} days` : "current cycle"}`);
+    const from90 = addDays(today, -89);
+    const counts = new Map<string, number>();
+    for (const d of s.days) if (d.id >= from90) for (const x of d.symptoms ?? []) counts.set(x, (counts.get(x) ?? 0) + 1);
+    if (counts.size)
+      line(
+        "Symptoms logged (90 days)",
+        [...counts]
+          .sort((a, b) => b[1] - a[1])
+          .map(([k, n]) => `${SYMPTOM_EN[k as Symptom]} ${n}`)
+          .join(", "),
+      );
+    if (cyc.pill?.on) line("Birth-control pill", `${cyc.pill.active} active + ${cyc.pill.breakDays} break/placebo days`);
+    for (const f of check.flags) line("To discuss", FLAG_EN[f]);
   }
 
   ensure(40);

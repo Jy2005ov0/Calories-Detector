@@ -419,6 +419,15 @@ export const actions = {
   removePeriod(id: string) {
     setState((s) => ({ periods: s.periods.filter((p) => p.id !== id), deleted: tombstone(s.deleted, id) }));
   },
+  /** Forgot the cycle PIN: erase the cycle data (periods, flow, symptoms, pill ticks) and remove the lock. */
+  eraseCycle() {
+    setState((s) => ({
+      periods: [],
+      deleted: s.periods.reduce((d, p) => tombstone(d, p.id), s.deleted),
+      days: s.days.map((d) => (d.flow || d.symptoms || d.pill ? { ...d, flow: undefined, symptoms: undefined, pill: undefined, updatedAt: Date.now() } : d)),
+      profile: { ...s.profile, cycle: { ...s.profile.cycle, pin: undefined, pill: undefined } },
+    }));
+  },
   removeWeight(id: string) {
     setState((s) => ({ weights: s.weights.filter((w) => w.id !== id), deleted: tombstone(s.deleted, id) }));
   },

@@ -3,6 +3,7 @@ import { t } from "../i18n";
 import { dislikesIn, foodConflicts } from "./allergens";
 import { healthReport, scale, sum, type Targets } from "./nutrition";
 import { addDays } from "./progress";
+import { IRON_RICH } from "./cycleCare";
 import type {
   Food,
   LogEntry,
@@ -323,6 +324,8 @@ export interface IdeaContext {
   prefs: MealPrefs;
   /** Minutes after midnight now. */
   minutes: number;
+  /** On a period: iron-rich dishes come first. */
+  period?: boolean;
 }
 
 /** Meals still ahead today that have nothing logged, and how many calories and grams of protein each one gets. */
@@ -621,7 +624,11 @@ export function mealIdeas(
     score -= Math.min(30, (skippedCount.get(name) ?? 0) * 10);
     // A little day-to-day variety among equally good options.
     score += ((seed % 1000) / 1000) * 8;
+    // During a period, iron helps replace what's lost.
+    const iron = !!ctx.period && items.some((i) => IRON_RICH.test(i.food.name));
+    if (iron) score += 14;
 
+    if (iron) reasons.push(t("Iron-rich, good during your period"));
     if (liked) reasons.push(t("You liked this before"));
     else if (h && h.count >= 2 && prefs.variety !== "new")
       reasons.push(t("You often have this"));

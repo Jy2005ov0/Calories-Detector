@@ -20,6 +20,7 @@ import {
   type IdeaContext,
 } from "../lib/ideas";
 import { round, targets } from "../lib/nutrition";
+import { cycleOf, cycleStatus } from "../lib/cycle";
 import { actions, DEFAULT_MEAL_PREFS, useStore } from "../lib/store";
 import type { MealType } from "../lib/types";
 import { Segmented, Sheet, Switch, haptic, showToast } from "./ui";
@@ -45,6 +46,8 @@ export function MealIdeasCard({
   const profile = useStore((s) => s.profile);
   const log = useStore((s) => s.log);
   const prefs = useStore((s) => s.mealPrefs);
+  const periods = useStore((s) => s.periods);
+  const onPeriod = cycleStatus(cycleOf(profile), periods, today)?.phase === "period";
   const [settings, setSettings] = useState(false);
   const [picked, setPicked] = useState<MealType | null>(null);
   // Dishes already shown and swapped away this visit, per meal.
@@ -63,8 +66,9 @@ export function MealIdeasCard({
       burned: burnedStep,
       prefs,
       minutes: Math.floor(minutes / 30) * 30,
+      period: onPeriod,
     }),
-    [profile, log, today, burnedStep, prefs, Math.floor(minutes / 30)],
+    [profile, log, today, burnedStep, prefs, Math.floor(minutes / 30), onPeriod],
   );
   const budgets = useMemo(() => mealBudgets(ctx, meals), [ctx, meals.join()]);
   const current = budgets.find((b) => b.meal === picked) ?? budgets[0];

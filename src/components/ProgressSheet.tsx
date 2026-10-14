@@ -3,6 +3,8 @@ import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 
 import { Droplet, Trash2 } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { round } from "../lib/nutrition";
+import { cycleOf, periodLength } from "../lib/cycle";
+import { useCycleOpen } from "../lib/cycleLock";
 import { GLASS_ML, addDays, logStreak, waterGoalMl, weightTrend, workoutWeekStreak } from "../lib/progress";
 import { bmiBand } from "../lib/recommend";
 import { actions, useStore, useTodayKey } from "../lib/store";
@@ -27,7 +29,15 @@ export function ProgressSheet({ open, onClose }: { open: boolean; onClose: () =>
   const days = useStore((s) => s.days);
   const log = useStore((s) => s.log);
   const sessions = useStore((s) => s.sessions);
+  const periods = useStore((s) => s.periods);
   const today = useTodayKey();
+  const cycleShown = useCycleOpen() && cycleOf(profile).on;
+  // Periods as shaded bands on the weight chart (water weight often rises around them).
+  const bands = useMemo(() => {
+    if (!cycleShown) return [];
+    const usual = periodLength(periods, profile.cycle.periodDays);
+    return periods.map((p) => ({ from: p.date, to: p.end ?? addDays(p.date, usual - 1) }));
+  }, [cycleShown, periods, profile.cycle.periodDays]);
   const [kg, setKg] = useState(String(profile.weightKg));
 
   useEffect(() => {
@@ -89,10 +99,15 @@ export function ProgressSheet({ open, onClose }: { open: boolean; onClose: () =>
       <div className="section-header">{t("Weight")}</div>
       <div className="card">
         {weights.length >= 2 ? (
-          <WeightChart weights={weights} goalKg={goalKg} />
+          <WeightChart weights={weights} goalKg={goalKg} bands={bands} />
         ) : (
           <p className="row-sub" style={{ whiteSpace: "normal", margin: 0 }}>
             {t("Log your weight to start your chart. Weigh yourself at the same time of day, ideally in the morning.")}
+          </p>
+        )}
+        {bands.length > 0 && weights.length >= 2 && (
+          <p className="row-sub cycle-weight-note" style={{ whiteSpace: "normal", marginTop: 8 }} data-testid="cycle-weight-note">
+            <i className="cal-dot period" aria-hidden /> {t("Pink: your periods. Water weight often goes up 0.5–2 kg in the days before and during a period, then comes off again.")}
           </p>
         )}
         <p className="row-sub" style={{ whiteSpace: "normal", marginTop: 8 }}>

@@ -5,9 +5,11 @@ import { PregnancySection, StepsSettings, SupplementsRow, TextSizeSection } from
 import { MealIdeasRow } from "../components/MealIdeas";
 import { PeopleList, PhotoPicker } from "../components/People";
 import { CycleCalendar } from "../components/CycleCalendar";
+import { CycleHistorySheet, LockedCycle, PillSettingsGroup, PinSheet } from "../components/CycleCare";
+import { lockNow, useCycleOpen } from "../lib/cycleLock";
 import { AnimatePresence, motion } from "motion/react";
-import { Activity, Bell, CalendarDays, CalendarHeart, ChevronRight, Dumbbell, FileDown, FileText, Flame, Languages, Leaf, LineChart, Moon, MoonStar, Save, Upload, Scale, Sun, SunMoon, Target, Trash2, TrendingDown, TrendingUp, User } from "lucide-react";
-import { NumberInput, Segmented, SPRING, Stepper, Switch, showToast } from "../components/ui";
+import { Activity, Bell, CalendarDays, CalendarHeart, ChevronRight, Dumbbell, FileDown, FileText, Flame, History, Languages, Leaf, LineChart, Lock, Moon, MoonStar, Save, Upload, Scale, Sun, SunMoon, Target, Trash2, TrendingDown, TrendingUp, User } from "lucide-react";
+import { NumberInput, Segmented, SPRING, Sheet, Stepper, Switch, showToast } from "../components/ui";
 import { LANGUAGES, locale, t, useLanguage } from "../i18n";
 import { ALLERGENS, DISLIKES, dislikeLabel, isPresetDislike, parseDislike } from "../lib/allergens";
 import { averageLength, cycleStatus } from "../lib/cycle";
@@ -185,8 +187,23 @@ function CycleSection() {
   const periods = useStore((s) => s.periods);
   const today = useTodayKey();
   const [calendar, setCalendar] = useState(false);
+  const [history, setHistory] = useState(false);
+  const [pin, setPin] = useState<"set" | null>(null);
+  const [lockMenu, setLockMenu] = useState(false);
+  const unlocked = useCycleOpen();
   const c = p.cycle;
   const set = (x: Partial<typeof c>) => actions.updateProfile({ cycle: { ...c, ...x } });
+  if (c.on && !unlocked)
+    return (
+      <>
+        <div className="section-header">
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <CalendarHeart size={14} /> {t("Cycle")}
+          </span>
+        </div>
+        <LockedCycle testId="cycle-locked-profile" />
+      </>
+    );
   const status = cycleStatus(c, periods, today);
   const learned = averageLength(periods, 0);
   const show = (key: string) => {
@@ -229,9 +246,52 @@ function CycleSection() {
               </div>
               <ChevronRight size={16} className="chev" />
             </button>
+            <button className="row with-icon" onClick={() => setHistory(true)}>
+              <div className="icon-tile" style={{ background: "var(--indigo)" }}>
+                <History size={17} />
+              </div>
+              <div className="row-main">
+                <div className="row-title">{t("History and health check")}</div>
+                <div className="row-sub">{t("How regular your cycles are, and anything to ask a doctor about")}</div>
+              </div>
+              <ChevronRight size={16} className="chev" />
+            </button>
           </>
         )}
       </div>
+      {c.on && (
+        <>
+          <div className="group" style={{ marginTop: 12 }}>
+            <div className="field">
+              <label>
+                {t("Eat a little more before my period")}
+                <span className="field-sub">{t("+150 kcal a day in the luteal phase")}</span>
+              </label>
+              <Switch checked={!!c.lutealKcal} onChange={(lutealKcal) => set({ lutealKcal })} label={t("Eat a little more before my period")} />
+            </div>
+            <div className="field">
+              <label>
+                {t("Show fertile window")}
+                <span className="field-sub">{t("An estimate, not birth control")}</span>
+              </label>
+              <Switch checked={!!c.fertile} onChange={(fertile) => set({ fertile })} label={t("Show fertile window")} />
+            </div>
+          </div>
+          <PillSettingsGroup />
+          <div className="group" style={{ marginTop: 12 }}>
+            <button className="row with-icon" onClick={() => (c.pin ? setLockMenu(true) : setPin("set"))} data-testid="cycle-lock-row">
+              <div className="icon-tile" style={{ background: c.pin ? "var(--green)" : "var(--label-3)" }}>
+                <Lock size={17} />
+              </div>
+              <div className="row-main">
+                <div className="row-title">{t("Privacy lock")}</div>
+                <div className="row-sub">{c.pin ? t("On · a PIN opens your cycle") : t("Off · keep your cycle private on a shared phone")}</div>
+              </div>
+              <ChevronRight size={16} className="chev" />
+            </button>
+          </div>
+        </>
+      )}
       {c.on && periods.length > 0 && (
         <div className="group" role="group" style={{ marginTop: 12 }} aria-label={t("Logged periods")}>
           {[...periods]
@@ -250,6 +310,49 @@ function CycleSection() {
         </div>
       )}
       <CycleCalendar open={calendar} onClose={() => setCalendar(false)} />
+      <CycleHistorySheet open={history} onClose={() => setHistory(false)} />
+      <PinSheet open={pin === "set"} mode="set" onClose={() => setPin(null)} />
+      <Sheet open={lockMenu} onClose={() => setLockMenu(false)} title={t("Privacy lock")}>
+        <div className="group">
+          <button
+            className="row"
+            onClick={() => {
+              setLockMenu(false);
+              lockNow();
+            }}
+          >
+            <div className="row-main">
+              <div className="row-title">{t("Lock now")}</div>
+            </div>
+          </button>
+          <button
+            className="row"
+            onClick={() => {
+              setLockMenu(false);
+              setPin("set");
+            }}
+          >
+            <div className="row-main">
+              <div className="row-title">{t("Change PIN")}</div>
+            </div>
+          </button>
+          <button
+            className="row"
+            onClick={() => {
+              setLockMenu(false);
+              set({ pin: undefined });
+              showToast(t("Cycle lock is off"));
+            }}
+          >
+            <div className="row-main">
+              <div className="row-title" style={{ color: "var(--red)" }}>
+                {t("Turn the lock off")}
+              </div>
+            </div>
+          </button>
+        </div>
+        <p className="footnote">{t("The lock covers the cycle card, calendar, pill and training tips. It closes when you leave the app, after five minutes, or when someone else's profile is used. Each person's cycle is only ever shown in their own profile.")}</p>
+      </Sheet>
       {c.on && (
         <p className="footnote">
           {status && learned ? `${t("Your cycles average {n} days.", { n: learned })} ` : ""}

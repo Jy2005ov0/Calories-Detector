@@ -15,6 +15,7 @@ import {
   Search,
   Trash2,
   Utensils,
+  History,
 } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { exName, useExerciseNames } from "../i18n/exercises";
@@ -36,7 +37,7 @@ import {
 } from "../lib/cycle";
 import { fastStatus, logStreak } from "../lib/progress";
 import { bmiBand } from "../lib/recommend";
-import { actions, useStore, useTodayKey } from "../lib/store";
+import { actions, todayKey, useStore, useTodayKey } from "../lib/store";
 import type { LogEntry, MealType } from "../lib/types";
 import {
   Bar,
@@ -51,6 +52,9 @@ import {
 import { WaterControl } from "../components/ProgressSheet";
 import { LogEntrySheet, deleteLogEntry } from "../components/LogEntrySheet";
 import { CycleCalendar } from "../components/CycleCalendar";
+import { CycleHistorySheet, LockedCycle, PillCard, QadaCard, SymptomSheet, SymptomSummary } from "../components/CycleCare";
+import { cravingSwaps, cycleKcal, haidToday, inFertileWindow } from "../lib/cycleCare";
+import { useCycleOpen } from "../lib/cycleLock";
 import { LateAdviceSheetBody } from "../components/LateAdviceSheet";
 import { PeopleSheet, householdSize } from "../components/People";
 import { QuickAddSheet, VoiceLogSheet } from "../components/QuickLog";
@@ -72,8 +76,10 @@ const hm = (min: number) =>
 /** Where the person is in their Ramadan or 16:8 fast. */
 function FastCard({ now }: { now: number }) {
   const profile = useStore((s) => s.profile);
+  const periods = useStore((s) => s.periods);
   const f = fastStatus(profile, new Date(now));
-  if (!f) return null;
+  // A period day in Ramadan isn't a fasting day (the Fasts to replace card says so).
+  if (!f || haidToday(profile, cycleStatus(cycleOf(profile), periods, todayKey(new Date(now))))) return null;
   const ramadan = profile.fasting === "ramadan";
   const title = f.eating
     ? ramadan
@@ -126,8 +132,13 @@ function CycleCard({ today }: { today: string }) {
   const sessions = useStore((s) => s.sessions);
   const [calendar, setCalendar] = useState(false);
   const [adviceOpen, setAdviceOpen] = useState(false);
+  const [symptomsOpen, setSymptomsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [swaps, setSwaps] = useState(false);
+  const unlocked = useCycleOpen();
   const cycle = cycleOf(profile);
   if (!cycle.on) return null;
+  if (!unlocked) return <LockedCycle />;
   const calendarButton = (
     <button
       className="btn small secondary"
@@ -156,6 +167,8 @@ function CycleCard({ today }: { today: string }) {
   const sheet = (
     <>
       <CycleCalendar open={calendar} onClose={() => setCalendar(false)} />
+      <SymptomSheet open={symptomsOpen} onClose={() => setSymptomsOpen(false)} date={today} />
+      <CycleHistorySheet open={historyOpen} onClose={() => setHistoryOpen(false)} />
       <Sheet
         open={adviceOpen && !!advice}
         onClose={() => setAdviceOpen(false)}
@@ -201,6 +214,8 @@ function CycleCard({ today }: { today: string }) {
       </>
     );
   }
+  const extraKcal = cycleKcal(cycle, c);
+  const fertileNow = !!cycle.fertile && inFertileWindow(c);
   const title =
     c.phase === "period"
       ? t("Period · day {n}", { n: c.day })
@@ -233,11 +248,38 @@ function CycleCard({ today }: { today: string }) {
           <div className="row-main">
             <div className="tile-title">{title}</div>
             <div className="tile-sub">{next}</div>
+            {fertileNow && (
+              <div className="tile-sub fertile-note" data-testid="fertile-now">
+                {t("Fertile window (estimate, not birth control)")}
+              </div>
+            )}
           </div>
         </div>
         <p className="tile-sub" style={{ margin: "10px 0 0" }}>
           {phaseTip(c)}
         </p>
+        {extraKcal > 0 && (
+          <p className="tile-sub cycle-extra" data-testid="luteal-kcal">
+            {t("+{n} kcal added to today's target for the days before your period.", { n: extraKcal })}
+          </p>
+        )}
+        {(c.phase === "luteal" || c.phase === "period") && (
+          <>
+            <button className="link tap cycle-swaps-toggle" aria-expanded={swaps} onClick={() => setSwaps((v) => !v)}>
+              {swaps ? t("Hide craving swaps") : t("Craving something? Smart swaps")}
+            </button>
+            {swaps && (
+              <ul className="cycle-swaps" data-testid="craving-swaps">
+                {cravingSwaps().map((x) => (
+                  <li key={x.craving}>
+                    <strong>{x.craving}</strong> → {x.swap}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+        <SymptomSummary date={today} onOpen={() => setSymptomsOpen(true)} />
         <div className="btn-row">
           {advice && (
             <button
@@ -249,6 +291,9 @@ function CycleCard({ today }: { today: string }) {
             </button>
           )}
           {calendarButton}
+          <button className="btn small secondary" style={{ marginTop: 10 }} onClick={() => setHistoryOpen(true)}>
+            <History size={16} /> {t("History")}
+          </button>
           {periodDue(c) && (
             <button
               className="btn small secondary"
@@ -331,7 +376,10 @@ export function Today({
   const today = useTodayKey();
   // Small phones (iPhone SE 1st gen): smaller rings so calories and steps stay side by side.
   const narrow = typeof window !== "undefined" && window.innerWidth < 360;
-  const tg = targets(profile);
+  // Before a period, a little more if the person asked for it.
+  const periods = useStore((s) => s.periods);
+  const base = targets(profile);
+  const tg = { ...base, kcal: base.kcal + cycleKcal(cycleOf(profile).on ? profile.cycle : {}, cycleStatus(cycleOf(profile), periods, today)) };
   const bmiValue = bmi(profile);
 
   const entries = useMemo(
@@ -546,6 +594,8 @@ export function Today({
 
       <FastCard now={now} />
       <CycleCard today={today} />
+      <QadaCard today={today} />
+      <PillCard today={today} />
       <CheckInCard today={today} />
 
       <div className="tiles" style={{ marginTop: 12 }}>
