@@ -178,7 +178,8 @@ export async function audit(page: Page, screen: string, issues: Issue[]) {
       window.scrollTo(0, document.documentElement.scrollHeight);
       await new Promise((r) => setTimeout(r, 120));
       const bar = document.querySelector(".tabbar")!.getBoundingClientRect();
-      const items = Array.from(document.querySelectorAll(".screen button, .screen .row, .screen .card, .screen .footnote"));
+      // The screens either side wait off the edge (inert, not shown); only the current one counts.
+      const items = Array.from(document.querySelectorAll(".screen button, .screen .row, .screen .card, .screen .footnote")).filter((e) => !e.closest("[inert]"));
       const lastBottom = Math.max(...items.map((e) => e.getBoundingClientRect().bottom));
       window.scrollTo(0, 0);
       return lastBottom > bar.top + 1 ? Math.round(lastBottom - bar.top) : 0;
