@@ -123,22 +123,37 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/44-body-check-advice.jpg" width="190" alt="What to train and eat"><br><sub>What to train and eat</sub></td>
 </tr></table>
 
-#### Profile, cycle, family, Ramadan and languages
+#### Profile, family, Ramadan and languages
 
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/45-profile.jpg" width="190" alt="Profile and appearance"><br><sub>Profile and appearance</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/46-profile-allergies-fasting.jpg" width="190" alt="Allergies, halal and fasting"><br><sub>Allergies, halal and fasting</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/48-profile-reminders-language.jpg" width="190" alt="Reminders, goals, language, export"><br><sub>Reminders, goals, language, export</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/52-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/68-swipe-photo-to-switch.jpg" width="190" alt="Swipe your photo down to switch person"><br><sub>Swipe your photo down to switch person</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/53-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/54-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/67-ramadan-haid.jpg" width="190" alt="Ramadan: haid days and fasts to replace"><br><sub>Ramadan: haid days and fasts to replace</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/55-language-malay.jpg" width="190" alt="Bahasa Melayu"><br><sub>Bahasa Melayu</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/56-language-chinese.jpg" width="190" alt="中文"><br><sub>中文</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/57-exercise-chinese.jpg" width="190" alt="Exercises in Chinese"><br><sub>Exercises in Chinese</sub></td>
+</tr></table>
+
+#### Cycle
+
+<table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/49-profile-cycle.jpg" width="190" alt="Cycle tracking settings"><br><sub>Cycle tracking settings</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/50-cycle-today.jpg" width="190" alt="Cycle day, phase and tips"><br><sub>Cycle day, phase and tips</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/51-period-calendar.jpg" width="190" alt="Period calendar"><br><sub>Period calendar</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/ios/58-period-late-advice.jpg" width="190" alt="Advice when a period is late"><br><sub>Advice when a period is late</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/52-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/53-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/54-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/55-language-malay.jpg" width="190" alt="Bahasa Melayu"><br><sub>Bahasa Melayu</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/56-language-chinese.jpg" width="190" alt="中文"><br><sub>中文</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/57-exercise-chinese.jpg" width="190" alt="Exercises in Chinese"><br><sub>Exercises in Chinese</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/59-cycle-patterns-swaps.jpg" width="190" alt="Symptom heads-up and craving swaps"><br><sub>Symptom heads-up and craving swaps</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/60-cycle-symptoms.jpg" width="190" alt="Log flow and symptoms"><br><sub>Log flow and symptoms</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/61-cycle-history.jpg" width="190" alt="Cycle history and health check"><br><sub>Cycle history and health check</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/62-cycle-fertile-window.jpg" width="190" alt="Fertile window (not birth control)"><br><sub>Fertile window (not birth control)</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/63-cycle-pill.jpg" width="190" alt="Birth-control pill with break week"><br><sub>Birth-control pill with break week</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/64-cycle-training.jpg" width="190" alt="Training by cycle phase"><br><sub>Training by cycle phase</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/65-cycle-settings.jpg" width="190" alt="Cycle extras and privacy lock"><br><sub>Cycle extras and privacy lock</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/ios/66-cycle-privacy-lock.jpg" width="190" alt="PIN lock on a shared phone"><br><sub>PIN lock on a shared phone</sub></td>
 </tr></table>
 
 <details>
@@ -219,22 +234,37 @@ iPhone in light mode. The Android set, in dark mode, is below it. Regenerate bot
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/44-body-check-advice.jpg" width="190" alt="What to train and eat"><br><sub>What to train and eat</sub></td>
 </tr></table>
 
-#### Profile, cycle, family, Ramadan and languages
+#### Profile, family, Ramadan and languages
 
 <table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/45-profile.jpg" width="190" alt="Profile and appearance"><br><sub>Profile and appearance</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/46-profile-allergies-fasting.jpg" width="190" alt="Allergies, halal and fasting"><br><sub>Allergies, halal and fasting</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/48-profile-reminders-language.jpg" width="190" alt="Reminders, goals, language, export"><br><sub>Reminders, goals, language, export</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/52-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/68-swipe-photo-to-switch.jpg" width="190" alt="Swipe your photo down to switch person"><br><sub>Swipe your photo down to switch person</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/53-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/54-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/67-ramadan-haid.jpg" width="190" alt="Ramadan: haid days and fasts to replace"><br><sub>Ramadan: haid days and fasts to replace</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/55-language-malay.jpg" width="190" alt="Bahasa Melayu"><br><sub>Bahasa Melayu</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/56-language-chinese.jpg" width="190" alt="中文"><br><sub>中文</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/57-exercise-chinese.jpg" width="190" alt="Exercises in Chinese"><br><sub>Exercises in Chinese</sub></td>
+</tr></table>
+
+#### Cycle
+
+<table><tr>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/49-profile-cycle.jpg" width="190" alt="Cycle tracking settings"><br><sub>Cycle tracking settings</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/50-cycle-today.jpg" width="190" alt="Cycle day, phase and tips"><br><sub>Cycle day, phase and tips</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/51-period-calendar.jpg" width="190" alt="Period calendar"><br><sub>Period calendar</sub></td>
 <td align="center" valign="top" width="200"><img src="docs/screenshots/android/58-period-late-advice.jpg" width="190" alt="Advice when a period is late"><br><sub>Advice when a period is late</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/52-switch-person.jpg" width="190" alt="Family members on one phone"><br><sub>Family members on one phone</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/53-ramadan-today.jpg" width="190" alt="Ramadan: countdown to iftar"><br><sub>Ramadan: countdown to iftar</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/54-ramadan-meals.jpg" width="190" alt="Sahur, Iftar and Moreh"><br><sub>Sahur, Iftar and Moreh</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/55-language-malay.jpg" width="190" alt="Bahasa Melayu"><br><sub>Bahasa Melayu</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/56-language-chinese.jpg" width="190" alt="中文"><br><sub>中文</sub></td>
-<td align="center" valign="top" width="200"><img src="docs/screenshots/android/57-exercise-chinese.jpg" width="190" alt="Exercises in Chinese"><br><sub>Exercises in Chinese</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/59-cycle-patterns-swaps.jpg" width="190" alt="Symptom heads-up and craving swaps"><br><sub>Symptom heads-up and craving swaps</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/60-cycle-symptoms.jpg" width="190" alt="Log flow and symptoms"><br><sub>Log flow and symptoms</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/61-cycle-history.jpg" width="190" alt="Cycle history and health check"><br><sub>Cycle history and health check</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/62-cycle-fertile-window.jpg" width="190" alt="Fertile window (not birth control)"><br><sub>Fertile window (not birth control)</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/63-cycle-pill.jpg" width="190" alt="Birth-control pill with break week"><br><sub>Birth-control pill with break week</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/64-cycle-training.jpg" width="190" alt="Training by cycle phase"><br><sub>Training by cycle phase</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/65-cycle-settings.jpg" width="190" alt="Cycle extras and privacy lock"><br><sub>Cycle extras and privacy lock</sub></td>
+<td align="center" valign="top" width="200"><img src="docs/screenshots/android/66-cycle-privacy-lock.jpg" width="190" alt="PIN lock on a shared phone"><br><sub>PIN lock on a shared phone</sub></td>
 </tr></table>
 
 </details>
