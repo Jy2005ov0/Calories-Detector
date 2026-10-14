@@ -211,12 +211,13 @@ export function Segmented<T extends string>({
   ariaLabel?: string;
   className?: string;
 }) {
-  const id = useId();
+  const index = Math.max(0, options.findIndex((o) => o.value === value));
   return (
     <div className={`segmented ${className ?? ""}`} role="tablist" aria-label={ariaLabel}>
+      {/* One thumb that slides under the chosen segment (a plain transform: nothing to measure). */}
+      <div className="thumb" aria-hidden style={{ width: `calc((100% - 4px) / ${options.length})`, transform: `translateX(${index * 100}%)` }} />
       {options.map((o) => (
         <button key={o.value} role="tab" aria-selected={o.value === value} aria-label={o.ariaLabel} title={o.ariaLabel} onClick={() => onChange(o.value)}>
-          {o.value === value && <motion.div layoutId={`seg-${id}`} className="thumb" transition={SPRING_SNAPPY} />}
           {o.label}
         </button>
       ))}

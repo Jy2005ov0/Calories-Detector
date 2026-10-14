@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { Activity, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
 import { CalendarCheck, Dumbbell, Flame, Search, UserRound } from "lucide-react";
 import { IntroGuide } from "./components/IntroGuide";
 import { BodyCheckSheet } from "./components/BodyCheckSheet";
@@ -53,13 +53,7 @@ export default function App() {
   }, [theme]);
 
   const live = useStore((s) => !!s.activeSessionId);
-  const [tab, setTabState] = useState<Tab>("today");
-  // Which way the screen came in from: a swipe slides it in from that side; a tab tap just fades.
-  const [dir, setDir] = useState<0 | 1 | -1>(0);
-  const setTab = useCallback((next: Tab, d: 0 | 1 | -1 = 0) => {
-    setDir(d);
-    setTabState(next);
-  }, []);
+  const [tab, setTab] = useState<Tab>("today");
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [found, setFound] = useState<Food | null>(null);
   const [newFood, setNewFood] = useState(false);
@@ -81,7 +75,6 @@ export default function App() {
     actions.finishTour();
     setTab("today");
   };
-  const reduce = useReducedMotion();
   // Swipe left or right to move between tabs (not while the guide is showing).
   const swipe = useTabSwipe(
     TABS.map((x) => x.id),
@@ -97,7 +90,14 @@ export default function App() {
     setSheet(null);
   }, [personId]);
 
-  useEffect(() => window.scrollTo(0, 0), [tab]);
+  // A new screen starts at the top and slides (after a swipe) or fades (after a tap) in.
+  const firstTab = useRef(true);
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+    if (firstTab.current) firstTab.current = false;
+    else swipe.enter();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   // Android back: close the top sheet, else return to Today, else leave the app.
   const tabRef = useRef(tab);
@@ -125,19 +125,18 @@ export default function App() {
   return (
     <div className="app">
       {/* The new tab shows at once (no waiting for the old one to fade out) with a quick fade-in. */}
-      <motion.main
-        key={`${tab}-${lang}`}
-        initial={dir && !reduce ? { opacity: 0.6, x: dir * 56 } : { opacity: 0.4 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={dir && !reduce ? { type: "spring", bounce: 0, duration: 0.3 } : { duration: reduce ? 0 : 0.12, ease: "easeOut" }}
-        style={{ translateX: swipe.x }}
-        {...swipe.handlers}
-      >
-        {tab === "today" && <Today go={setTab} openSheet={setSheet} />}
-        {tab === "food" && <FoodScreen openSheet={setSheet} />}
-        {tab === "train" && <Train />}
-        {tab === "plan" && <Plan go={setTab} />}
-        {tab === "profile" && <ProfileScreen openSheet={setSheet} />}
+      {/* Every screen is kept ready: the others are built quietly in the background once and stay
+          alive (hidden), so switching, by tap or by swipe, shows the next screen at once. */}
+      <motion.main key={lang} style={{ x: swipe.x, opacity: swipe.opacity }} {...swipe.handlers}>
+        {TABS.map(({ id }) => (
+          <Activity key={id} mode={tab === id ? "visible" : "hidden"}>
+            {id === "today" && <Today go={setTab} openSheet={setSheet} />}
+            {id === "food" && <FoodScreen openSheet={setSheet} />}
+            {id === "train" && <Train />}
+            {id === "plan" && <Plan go={setTab} />}
+            {id === "profile" && <ProfileScreen openSheet={setSheet} />}
+          </Activity>
+        ))}
       </motion.main>
 
       <nav className="tabbar" aria-label={t("Main")}>

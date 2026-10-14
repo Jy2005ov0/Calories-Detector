@@ -429,7 +429,7 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
   await expect(page.getByRole("button", { name: /Body check · BMI 32\.9/ })).toContainText("Obese");
   await tab(page, "Plan");
   await expect(page.locator(".chip.active", { hasText: "Full body" })).toBeVisible();
-  await expect(page.locator(".field, .row", { hasText: "Days per week" }).locator(".stepper span")).toHaveText("3");
+  await expect(page.locator(".field:visible, .row:visible", { hasText: "Days per week" }).locator(".stepper span")).toHaveText("3");
   await tab(page, "Profile");
   await expect(page.getByLabel("Weight")).toHaveValue("95");
   await expect(page.getByRole("button", { name: /Lose fat/ })).toHaveAttribute("aria-pressed", "true");

@@ -748,7 +748,7 @@ test("Swipe between tabs: left and right, not past the ends, and never by accide
 
   // A swipe that starts on a button doesn't press it.
   await tab(page, "Food");
-  const food = page.locator("button.row").first();
+  const food = page.locator("button.row:visible").first();
   const f = (await food.boundingBox())!;
   await drag(page, [f.x + f.width - 20, f.y + f.height / 2], [20, f.y + f.height / 2]);
   expect(await current(page)).toMatch(/^Train/);

@@ -101,9 +101,9 @@ const GAP = 12;
 type Rect = { x: number; y: number; w: number; h: number };
 
 function findTarget(step: Step) {
+  // Screens not showing are kept (hidden), so take the copy that is actually on screen.
   for (const t of step.targets ?? []) {
-    const el = document.querySelector<HTMLElement>(`[data-tour="${t}"]`);
-    if (el && el.getClientRects().length) return el;
+    for (const el of document.querySelectorAll<HTMLElement>(`[data-tour="${t}"]`)) if (el.getClientRects().length) return el;
   }
   return null;
 }
