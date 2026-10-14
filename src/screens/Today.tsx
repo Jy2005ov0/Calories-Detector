@@ -144,6 +144,7 @@ function CycleCard({ today }: { today: string }) {
       className="btn small secondary"
       style={{ marginTop: 10 }}
       onClick={() => setCalendar(true)}
+      data-testid="period-calendar-btn"
     >
       <CalendarDays size={16} /> {t("Period calendar")}
     </button>

@@ -101,7 +101,7 @@ const SHEETS: { name: string; open: (page: Page) => Promise<void> }[] = [
   { name: "Body check", open: async (p) => p.locator('[data-tour="body-check"]').first().click() },
   { name: "Progress", open: async (p) => p.locator(".progress-link").first().click() },
   { name: "Cup size", open: async (p) => p.locator(".water-cup").click() },
-  { name: "Period calendar", open: async (p) => p.getByTestId("cycle-card").filter({ visible: true }).getByRole("button", { name: "Period calendar" }).click() },
+  { name: "Period calendar", open: async (p) => p.getByTestId("period-calendar-btn").filter({ visible: true }).click() },
   { name: "Switch person", open: async (p) => p.getByRole("button", { name: "Switch person" }).click() },
   { name: "Meal ideas", open: async (p) => p.getByTestId("meal-ideas").getByRole("button", { name: "Meal idea settings" }).click() },
   { name: "Barcode", open: async (p) => p.locator('[data-tour="barcode"]').click() },
@@ -276,7 +276,7 @@ for (const language of ["ms", "zh"] as const) {
     await sheet("Body check", () => page.locator('[data-tour="body-check"]').first().click());
     await sheet("Progress", () => page.locator(".progress-link").first().click());
     await sheet("Cup size", () => page.locator(".water-cup").click());
-    await sheet("Period calendar", () => page.getByTestId("cycle-card").filter({ visible: true }).getByRole("button", { name: "Period calendar" }).click());
+    await sheet("Period calendar", () => page.getByTestId("period-calendar-btn").filter({ visible: true }).click());
     await sheet("Edit a logged food", () => page.locator(".log-edit").first().click());
     await tab(page, 1);
     await audit(page, "Food", issues);
