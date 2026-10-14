@@ -151,8 +151,22 @@ jobs:
         run: |
           cp W-unsigned.ipa W-${{ env.RELEASE }}-unsigned.ipa
           cp W-unsigned.ipa W.ipa
-      # Only attaches files: the Android job writes the release notes.
+      # Only attaches files: the Android job writes the release notes. GitHub sometimes answers 404
+      # while the release is being created by the Android job at the same moment: wait and try again.
       - if: env.RELEASE != ''
+        id: attach
+        continue-on-error: true
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ env.RELEASE }}
+          target_commitish: ${{ github.sha }}
+          name: W ${{ env.RELEASE }}
+          files: |
+            W.ipa
+            W-${{ env.RELEASE }}-unsigned.ipa
+      - if: env.RELEASE != '' && steps.attach.outcome == 'failure'
+        run: sleep 90
+      - if: env.RELEASE != '' && steps.attach.outcome == 'failure'
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.RELEASE }}
