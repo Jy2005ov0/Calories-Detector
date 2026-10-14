@@ -410,11 +410,9 @@ export const EXTRAS: AreaDict = {
     "Daily target {n} kcal, change": "Sasaran harian {n} kcal, tukar",
     "My target": "Sasaran saya",
     "You set this target yourself. Suggested for your goal: {n} kcal. Change it in Profile.": "Anda menetapkan sasaran ini sendiri. Dicadangkan untuk matlamat anda: {n} kcal. Tukar di Profil.",
-    "Pull to switch to {name}": "Tarik ke bawah untuk tukar ke {name}",
-    "Release to switch to {name}": "Lepaskan untuk tukar ke {name}",
-    "Tip: on Today, pull the page down to switch to the next person.": "Petua: di Hari Ini, tarik halaman ke bawah untuk tukar ke orang seterusnya.",
-    "Pull to switch to": "Tarik untuk tukar ke",
-    "Release to switch to": "Lepaskan untuk tukar ke"
+    "Swipe down to switch to {name}": "Leret ke bawah untuk tukar ke {name}",
+    "Let go for {name}": "Lepaskan untuk {name}",
+    "Tip: on Today, swipe your photo down to switch to the next person.": "Petua: di Hari Ini, leret gambar anda ke bawah untuk tukar ke orang seterusnya."
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -823,10 +821,8 @@ export const EXTRAS: AreaDict = {
     "Daily target {n} kcal, change": "每日目标 {n} 千卡,点击修改",
     "My target": "我的目标",
     "You set this target yourself. Suggested for your goal: {n} kcal. Change it in Profile.": "这是你自己设定的目标。根据你的目标建议:{n} 千卡。可在个人资料中修改。",
-    "Pull to switch to {name}": "下拉切换到{name}",
-    "Release to switch to {name}": "松开即切换到{name}",
-    "Tip: on Today, pull the page down to switch to the next person.": "提示:在今天页面向下拉,即可切换到下一位。",
-    "Pull to switch to": "下拉切换到",
-    "Release to switch to": "松开即切换到"
+    "Swipe down to switch to {name}": "向下滑动切换到{name}",
+    "Let go for {name}": "松开切换到{name}",
+    "Tip: on Today, swipe your photo down to switch to the next person.": "提示:在今天页面把你的头像向下滑,即可切换到下一位。"
   }
 };

@@ -13,7 +13,7 @@ const colorFor = (id: string) => COLORS[[...id].reduce((a, c) => a + c.charCodeA
 export const nameOf = (name: string) => name.trim() || t("No name");
 
 export function PersonAvatar({ id, name, photo, size = 34 }: { id: string; name: string; photo?: string; size?: number }) {
-  if (photo) return <img className="avatar" src={photo} alt="" aria-hidden width={size} height={size} style={{ width: size, height: size, objectFit: "cover" }} />;
+  if (photo) return <img className="avatar" src={photo} alt="" aria-hidden draggable={false} width={size} height={size} style={{ width: size, height: size, objectFit: "cover" }} />;
   return (
     <div className="avatar" aria-hidden style={{ width: size, height: size, fontSize: size * 0.42, background: colorFor(id) }}>
       {(name.trim()[0] ?? "?").toUpperCase()}
@@ -159,7 +159,7 @@ export function PeopleSheet({ open, onClose }: { open: boolean; onClose: () => v
   return (
     <Sheet open={open} onClose={onClose} title={t("Who's using W?")}>
       <PeopleList onSwitched={onClose} />
-      <p className="footnote">{t("Tip: on Today, pull the page down to switch to the next person.")}</p>
+      <p className="footnote">{t("Tip: on Today, swipe your photo down to switch to the next person.")}</p>
     </Sheet>
   );
 }

@@ -52,11 +52,11 @@ import { WaterControl } from "../components/ProgressSheet";
 import { LogEntrySheet, deleteLogEntry } from "../components/LogEntrySheet";
 import { CycleCalendar } from "../components/CycleCalendar";
 import { LateAdviceSheetBody } from "../components/LateAdviceSheet";
-import { PeopleSheet, PersonAvatar, householdSize } from "../components/People";
+import { PeopleSheet, householdSize } from "../components/People";
 import { QuickAddSheet, VoiceLogSheet } from "../components/QuickLog";
 import { CheckInCard, StepsRing, SupplementsCard } from "../components/Daily";
 import { DailyTargetButton } from "../components/CalorieTarget";
-import { PullToSwitch } from "../components/PullToSwitch";
+import { AvatarSwitch } from "../components/AvatarSwitch";
 import { WeeklyReportSheet } from "../components/WeeklyReport";
 import { MealIdeasCard } from "../components/MealIdeas";
 import { stepKcal, useStepUpdates } from "../lib/steps";
@@ -392,7 +392,6 @@ export function Today({
   };
 
   return (
-    <PullToSwitch>
     <div className="screen">
       <PeopleSheet open={peopleOpen} onClose={() => setPeopleOpen(false)} />
       <LogEntrySheet entry={editing} onClose={() => setEditing(null)} />
@@ -420,19 +419,7 @@ export function Today({
           // Stacked on the right, so a long name and "Good afternoon" never push them off a small screen.
           <div className="title-actions">
             {(household > 1 || !!profile.photo) && (
-              <button
-                className="pressable"
-                style={{ background: "none", border: 0, padding: 0 }}
-                onClick={() => setPeopleOpen(true)}
-                aria-label={t("Switch person")}
-              >
-                <PersonAvatar
-                  id={personId}
-                  name={profile.name}
-                  photo={profile.photo}
-                  size={36}
-                />
-              </button>
+<AvatarSwitch id={personId} name={profile.name} photo={profile.photo} onOpen={() => setPeopleOpen(true)} />
             )}
             {streak > 0 && (
               <button
@@ -787,6 +774,5 @@ export function Today({
         )}
       </div>
     </div>
-    </PullToSwitch>
   );
 }

@@ -3180,53 +3180,6 @@ html[data-text="xlarge"] body {
   color: var(--blue);
 }
 
-/* Today: pull down from the top to switch to the next person. The panel opens above the page. */
-.pull-switch-wrap {
-  position: relative;
-}
-.pull-switch {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  pointer-events: none;
-}
-.pull-switch-inner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  /* Clear of the floating ? button on the right. */
-  max-width: calc(100% - 128px);
-  padding-bottom: 14px;
-}
-.pull-switch-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.pull-switch-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--label-2);
-}
-.pull-switch-hint.armed {
-  color: var(--blue);
-}
-.pull-switch-name {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* Tab pages. The screens either side of the current one wait, laid out but not drawn, just off each
    edge; a swipe shows one (data-peek) and moves it in with the finger. */
 .page.side {
@@ -3261,4 +3214,65 @@ html[data-text="xlarge"] body {
 .swiping .help-btn {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+}
+
+/* Today's profile photo: tap for everyone, swipe it down to switch to the next person. */
+.avatar-switch {
+  position: relative;
+  background: none;
+  border: 0;
+  padding: 0;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.avatar-switch-stack {
+  position: relative;
+  display: block;
+  width: 36px;
+  height: 36px;
+}
+.avatar-switch-cur,
+.avatar-switch-next {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.avatar-switch-next {
+  z-index: 1;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.18));
+}
+.avatar-switch-hint {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--label-2);
+  background: var(--bg-elev);
+  box-shadow: 0 0 0 0.5px var(--separator), 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.avatar-switch-pill {
+  position: absolute;
+  top: calc(100% + 26px);
+  right: -4px;
+  z-index: 2;
+  max-width: 60vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--label-2);
+  background: var(--bg-elev);
+  box-shadow: 0 0 0 0.5px var(--separator), 0 4px 12px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+.avatar-switch-pill.armed {
+  color: #fff;
+  background: var(--blue);
 }

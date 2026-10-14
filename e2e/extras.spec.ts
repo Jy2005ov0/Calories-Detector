@@ -897,74 +897,122 @@ test("Finger swipes (real touch) turn the page at natural angles on every tab, e
   expect(errors).toEqual([]);
 });
 
-test("Family: pull Today down to switch to the next person, and again to switch back", async ({ page }) => {
+test("Family: swipe the photo on Today down to switch to the next person, and again to switch back", async ({ page }) => {
   const errors = await open(page);
   const { width, height } = page.viewportSize()!;
   const title = page.locator(".large-title:visible").first();
   await expect(title).toContainText("Aisyah");
-  const panel = page.getByTestId("pull-switch");
+  const avatar = page.getByTestId("avatar-switch").filter({ visible: true });
+  const pill = page.getByTestId("avatar-switch-pill");
+  const at = async () => {
+    const b = (await avatar.boundingBox())!;
+    return [b.x + b.width / 2, b.y + b.height / 2] as const;
+  };
 
-  // Pull a little: the panel says who's next; let go early and nothing changes.
-  let f = await finger(page);
-  await f.down(width / 2, height * 0.3);
-  await f.move(width / 2 + 6, height * 0.3 + 90);
-  await expect(panel.locator(".pull-switch-hint")).toHaveText("Pull to switch to");
-  await expect(panel.locator(".pull-switch-name")).toHaveText("Puan Rohana binti Ismail (Mum)");
-  await f.up();
+  // Pulling the page itself down no longer switches anyone.
+  await fingerSwipe(page, [width / 2, height * 0.3], [width / 2, height * 0.3 + 260]);
   await expect(title).toContainText("Aisyah");
 
-  // Pull far enough: it says Release; letting go switches to Mum, smoothly, on Today.
+  // Pull the photo a little: it says who's next; let go early and nothing changes.
+  let [x, y] = await at();
+  let f = await finger(page);
+  await f.down(x, y);
+  await f.move(x + 2, y + 30);
+  await expect(pill).toHaveText("Puan Rohana binti Ismail (Mum)");
+  await f.up();
+  await expect(pill).toHaveCount(0);
+  await expect(title).toContainText("Aisyah");
+
+  // Pull it far enough: "Let go for Mum"; letting go switches, on Today.
   f = await finger(page);
-  await f.down(width / 2, height * 0.3);
-  await f.move(width / 2 - 8, height * 0.3 + 260);
-  await expect(panel.locator(".pull-switch-hint")).toHaveText("Release to switch to");
+  await f.down(x, y);
+  await f.move(x - 3, y + 90);
+  await expect(pill).toHaveText("Let go for Puan Rohana binti Ismail (Mum)");
   await f.up();
   await expect(title).toContainText("Puan Rohana");
   await expect(page.getByRole("status")).toContainText("Now using W as Puan Rohana binti Ismail (Mum)");
   expect(await current(page)).toMatch(/^Today/);
+  expect(await page.getByRole("dialog").count()).toBe(0);
 
   // And again: back to Aisyah.
-  await fingerSwipe(page, [width / 2, height * 0.3], [width / 2 + 10, height * 0.3 + 280], { steps: 14, ms: 260 });
+  [x, y] = await at();
+  await fingerSwipe(page, [x, y], [x + 4, y + 110], { steps: 12, ms: 240 });
   await expect(title).toContainText("Aisyah");
 
-  // Scrolled down the page, pulling down only scrolls back up.
-  await page.evaluate(() => window.scrollTo(0, 600));
-  await page.waitForTimeout(200);
-  await fingerSwipe(page, [width / 2, height * 0.3], [width / 2, height * 0.3 + 260]);
-  await expect(title).toContainText("Aisyah");
-  expect(await page.evaluate(() => window.scrollY)).toBeLessThan(600);
+  // A tap on the photo still shows everyone.
+  await avatar.tap();
+  await expect(page.getByRole("dialog")).toContainText("Puan Rohana");
+  await page.getByRole("button", { name: "Close" }).filter({ visible: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 
-  // Sideways still turns the tab, not the person.
-  await page.evaluate(() => window.scrollTo(0, 0));
+  // Sideways from the page still turns the tab, not the person.
   await fingerSwipe(page, [width * 0.8, height * 0.4], [width * 0.2, height * 0.4 + 20]);
-  expect(await current(page)).toMatch(/^Food/);
+  await expect.poll(() => current(page)).toMatch(/^Food/);
   expect(errors).toEqual([]);
 });
 
-test("Pull to switch works with a mouse too", async ({ page }) => {
-  const state = seedState();
-  const errors = await open(page, state);
-  const { width, height } = page.viewportSize()!;
+test("Swiping the photo down works with a mouse too, and let go off the screen springs back", async ({ page }) => {
+  const errors = await open(page, seedState());
   const title = page.locator(".large-title:visible").first();
-  await drag(page, [width / 2, height * 0.3], [width / 2 + 4, height * 0.3 + 280], 16);
+  const box = (await page.getByTestId("avatar-switch").filter({ visible: true }).boundingBox())!;
+  const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+  // Pulled, then dragged off the top and let go there: nothing switches and the photo is back.
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + 30, { steps: 5 });
+  await page.mouse.move(x, -20, { steps: 5 });
+  await page.mouse.up();
+  await page.waitForTimeout(600);
+  await expect(title).toContainText("Aisyah");
+  await expect(page.getByTestId("avatar-switch-pill")).toHaveCount(0);
+  await drag(page, [x, y], [x + 2, y + 120], 12);
   await expect(title).toContainText("Puan Rohana");
   expect(errors).toEqual([]);
 });
 
-test("Pulling down when you're the only person does nothing", async ({ page }) => {
+test("Swiping your photo down when you're the only person does nothing", async ({ page }) => {
   const state = { ...seedState(), people: [] };
   const errors = await open(page, state);
-  const { width, height } = page.viewportSize()!;
-  await fingerSwipe(page, [width / 2, height * 0.3], [width / 2, height * 0.3 + 280]);
-  await expect(page.getByTestId("pull-switch")).toHaveCount(0);
+  const avatar = page.getByTestId("avatar-switch").filter({ visible: true });
+  // The photo shows (it has one) but there's no one to switch to.
+  if (await avatar.count()) {
+    const b = (await avatar.boundingBox())!;
+    await fingerSwipe(page, [b.x + 18, b.y + 18], [b.x + 18, b.y + 140]);
+    await expect(page.getByTestId("avatar-switch-pill")).toHaveCount(0);
+  }
   await expect(page.locator(".large-title:visible").first()).toContainText("Aisyah");
+  expect(errors).toEqual([]);
+});
+
+test("Mid-swipe the next screen is already there, moving in with the finger", async ({ page }) => {
+  const errors = await open(page);
+  const { width, height } = page.viewportSize()!;
+  await page.waitForTimeout(900); // the screens either side get ready once nothing's moving
+  const f = await finger(page);
+  await f.down(width * 0.85, height * 0.45);
+  await f.move(width * 0.45, height * 0.45 + 6, 8);
+  // Food's page shows beside Today's, each moved by the finger's distance.
+  const food = page.locator(".page[data-peek]");
+  await expect(food).toHaveCount(1);
+  await expect(food.locator(".large-title")).toBeVisible();
+  const shift = (sel: string) => page.locator(sel).evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
+  const cur = await shift(".page.current");
+  expect(cur).toBeLessThan(-width * 0.3);
+  expect(Math.abs((await shift(".page[data-peek]")) - (cur + width))).toBeLessThan(2);
+  await f.up();
+  await expect.poll(() => current(page)).toMatch(/^Food/);
+  // Once it's turned: one page, in place, nothing peeking, no sideways scrolling.
+  await expect(page.locator(".page[data-peek]")).toHaveCount(0);
+  expect(Math.abs(await shift(".page.current"))).toBeLessThan(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.classList.contains("swiping"))).toBe(false);
   expect(errors).toEqual([]);
 });
 
 test("A swipe never leaves the page stuck: let go off the screen, or the thing under the finger goes away", async ({ page }) => {
   const errors = await open(page);
   const { width, height } = page.viewportSize()!;
-  const offset = () => page.locator("main").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
+  const offset = () => page.locator(".page.current").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
   // Mouse: drag sideways, then out past the edge and let go there.
   await page.mouse.move(width - 40, height * 0.45);
   await page.mouse.down();
@@ -992,14 +1040,5 @@ test("A swipe never leaves the page stuck: let go off the screen, or the thing u
   expect(await current(page)).toMatch(/^Food/);
   await fingerSwipe(page, [width * 0.8, height * 0.5], [width * 0.2, height * 0.5 + 10]);
   expect(await current(page)).toMatch(/^Train/);
-  // And a pull on Today let go off the top of the screen springs back.
-  await tab(page, "Today");
-  await page.mouse.move(width / 2, height * 0.3);
-  await page.mouse.down();
-  await page.mouse.move(width / 2, height * 0.3 + 80, { steps: 8 });
-  await page.mouse.move(width / 2, -20, { steps: 6 });
-  await page.mouse.up();
-  await page.waitForTimeout(700);
-  await expect(page.locator(".large-title:visible").first()).toContainText("Aisyah");
   expect(errors).toEqual([]);
 });
