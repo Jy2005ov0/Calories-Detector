@@ -2,6 +2,7 @@ import { devices, expect, test, type Page } from "@playwright/test";
 import { FOOD_BY_NAME } from "../src/data/foods";
 import { scale } from "../src/lib/nutrition";
 import { EXERCISE_BY_NAME } from "../src/data/exercises";
+import { fakeMapTiles } from "./support/mapTiles";
 
 /**
  * Regenerates the README screenshots: `npm run screenshots`.
@@ -118,7 +119,8 @@ for (const set of SETS) {
     test.setTimeout(300_000);
     // A reload under the fake clock stalls animation frames, so the seeded day gets its own context.
     const open = async (state?: object) => {
-      const ctx = await browser.newContext({ ...devices[set.device], colorScheme: set.scheme, locale: "en-MY", timezoneId: "Asia/Kuala_Lumpur", baseURL: info.project.use.baseURL });
+      const ctx = await browser.newContext({ ...devices[set.device], colorScheme: set.scheme, locale: "en-MY", timezoneId: "Asia/Kuala_Lumpur", baseURL: info.project.use.baseURL, geolocation: { latitude: 3.1478, longitude: 101.6953, accuracy: 6 }, permissions: ["geolocation"] });
+      await fakeMapTiles(ctx);
       if (state) await ctx.addInitScript((s) => {
           if (localStorage.getItem("calories-detector:v1")) return;
           localStorage.setItem("calories-detector:v1", s);
@@ -355,7 +357,20 @@ for (const set of SETS) {
     await shot("gym-tools");
     await closeSheet();
     await page.getByRole("button", { name: /Track a run/ }).click();
+    await sheet().getByRole("button", { name: "Start", exact: true }).click();
+    // A short jog: north, then east along the next street.
+    {
+      let [lat, lng] = [3.1478, 101.6953];
+      for (const [dl, dg, n] of [[0.00006, 0, 18], [0, 0.00006, 12], [0.00006, 0, 8]] as const)
+        for (let i = 0; i < n; i++) {
+          await page.waitForTimeout(700);
+          lat += dl;
+          lng += dg;
+          await page.context().setGeolocation({ latitude: lat, longitude: lng, accuracy: 6 });
+        }
+    }
     await shot("run-tracker");
+    await sheet().getByRole("button", { name: "Discard" }).click();
     await closeSheet();
 
     // Plan
