@@ -205,6 +205,8 @@ for (const set of SETS) {
     await page.waitForTimeout(1200);
     await shot("guided-tour");
     await page.getByRole("button", { name: "Skip" }).click();
+    await page.getByRole("button", { name: "How to use the app" }).click();
+    await shot("guides-menu");
 
     // A real day
     await page.context().close();
@@ -500,6 +502,10 @@ for (const set of SETS) {
     await sheet().getByRole("button", { name: "Cramps" }).click();
     await sheet().getByRole("button", { name: "Light" }).click();
     await shot("cycle-symptoms");
+    await sheet().getByRole("button", { name: "Heavy" }).click();
+    await sheet().getByTestId("period-food").scrollIntoViewIfNeeded();
+    await shot("cycle-food-idea");
+    await sheet().getByRole("button", { name: "Light" }).click();
     await closeSheet();
     await cycleCard.getByRole("button", { name: "History" }).click();
     await shot("cycle-history");
