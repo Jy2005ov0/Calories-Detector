@@ -151,7 +151,7 @@ const TRAIN: Step[] = [
 const PLAN: Step[] = [
   { tab: "plan", targets: ["plan-tabs"], title: "Training, nutrition and meals", body: "Training is your weekly workout plan, Nutrition your daily targets and what to eat, and Meal planner lets you plan the week's meals with a grocery list." },
   { tab: "plan", targets: ["split"], title: "Choose your split", body: "Full body, upper/lower, push/pull/legs and more, with how many days a week you train." },
-  { tab: "plan", targets: ["css:[data-testid=plan-day]"], title: "Your week", body: "Tap a day to see its exercises; tap an exercise to see how it's done. Press and hold a day or an exercise to drag it into your own order." },
+  { tab: "plan", targets: ["css:[data-testid=plan-day]"], title: "Your week", body: "Tap a day to see its exercises; tap an exercise to see how it's done. Press and hold a day or an exercise to drag it into your own order, or swipe an exercise left to take it out." },
   { tab: "plan", targets: ["header:How to progress"], optional: true, title: "How to progress", body: "When to add weight or reps, so you keep getting stronger." },
 ];
 

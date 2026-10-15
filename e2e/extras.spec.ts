@@ -590,7 +590,18 @@ test("Plan: press and hold to put shoulders before legs and exercises in my own 
   expect(errors).toEqual([]);
 });
 
-test("Plan: remove an exercise I don't want, undo it, and put it back later", async ({ page }) => {
+/** Drag a row to the left with a finger (the mouse here), as far as a delete swipe goes. */
+async function swipeLeft(page: Page, row: Locator) {
+  await row.scrollIntoViewIfNeeded();
+  const box = (await row.boundingBox())!;
+  const y = box.y + Math.min(40, box.height / 2);
+  await page.mouse.move(box.x + box.width - 60, y);
+  await page.mouse.down();
+  for (let i = 1; i <= 8; i++) await page.mouse.move(box.x + box.width - 60 - i * 20, y);
+  await page.mouse.up();
+}
+
+test("Plan: swipe an exercise I don't want out of the day, undo it, and put it back later", async ({ page }) => {
   const errors = await open(page);
   await tab(page, "Plan");
   await page.getByRole("button", { name: "Body-part split", exact: true }).click();
@@ -601,14 +612,27 @@ test("Plan: remove an exercise I don't want, undo it, and put it back later", as
   const before = await names();
   const gone = before[1];
 
-  // Remove it: it leaves the day, and Undo brings it straight back.
-  await day.getByRole("button", { name: `Remove ${gone}` }).click();
+  const row = (name: string) => rows.filter({ has: page.getByRole("button", { name: `How to do ${name}`, exact: true }) });
+  // Swipe it left: it leaves the day, and Undo brings it straight back.
+  await swipeLeft(page, row(gone));
   expect(await names()).toEqual(before.filter((n) => n !== gone));
   await page.getByRole("button", { name: "Undo" }).click();
   expect(await names()).toEqual(before);
 
-  // Remove it for good: it's listed under the day, still gone after a reload, and a tap puts it back.
-  await day.getByRole("button", { name: `Remove ${gone}` }).click();
+  // A short drag isn't enough, and doesn't open the exercise either.
+  const b = (await row(gone).boundingBox())!;
+  await page.mouse.move(b.x + b.width - 60, b.y + 30);
+  await page.mouse.down();
+  await page.mouse.move(b.x + b.width - 100, b.y + 30, { steps: 4 });
+  await page.mouse.up();
+  expect(await names()).toEqual(before);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // Remove it for good (Delete on the keyboard works too): it's listed under the day, still gone
+  // after a reload, and a tap puts it back.
+  await expect(page.getByRole("status").filter({ hasText: `Removed ${gone}` })).toHaveCount(0, { timeout: 10_000 });
+  await day.getByRole("button", { name: `How to do ${gone}`, exact: true }).focus();
+  await page.keyboard.press("Delete");
   await expect(day.getByTestId("plan-removed")).toContainText(gone);
   await expect.poll(() => page.evaluate(() => localStorage.getItem("calories-detector:v1"))).toContain(':"-"');
   await page.reload();
@@ -620,9 +644,13 @@ test("Plan: remove an exercise I don't want, undo it, and put it back later", as
   await expect(day.getByTestId("plan-removed")).toHaveCount(0);
 
   // A day always keeps at least one exercise.
-  for (const n of before.slice(1)) await day.getByRole("button", { name: `Remove ${n}` }).click();
+  for (const n of before.slice(1)) {
+    await swipeLeft(page, row(n));
+    await expect(row(n)).toHaveCount(0);
+  }
   expect(await names()).toEqual([before[0]]);
-  await expect(day.getByRole("button", { name: /^Remove / })).toHaveCount(0);
+  await swipeLeft(page, row(before[0]));
+  expect(await names()).toEqual([before[0]]);
   expect(errors).toEqual([]);
 });
 

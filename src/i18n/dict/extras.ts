@@ -786,7 +786,9 @@ export const EXTRAS: AreaDict = {
     "{kcal} kcal": "{kcal} kcal",
     "Pick heavy flow or a symptom and W suggests a food that helps, and why. Tap Another idea for more, or Log it to add it to today.": "Pilih aliran banyak atau satu simptom dan W cadangkan makanan yang membantu, berserta sebabnya. Ketik Idea lain untuk lagi, atau Rekod untuk menambahkannya ke hari ini.",
     "Taken out of this day:": "Dikeluarkan daripada hari ini:",
-    "Put back {name}": "Masukkan semula {name}"
+    "Put back {name}": "Masukkan semula {name}",
+    "Swipe left to remove": "Leret ke kiri untuk buang",
+    "Tap a day to see its exercises; tap an exercise to see how it's done. Press and hold a day or an exercise to drag it into your own order, or swipe an exercise left to take it out.": "Ketik satu hari untuk melihat senaman; ketik senaman untuk melihat cara melakukannya. Tekan lama satu hari atau senaman untuk menyeretnya ke susunan anda sendiri, atau leret senaman ke kiri untuk membuangnya."
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -1571,6 +1573,8 @@ export const EXTRAS: AreaDict = {
     "{kcal} kcal": "{kcal} 千卡",
     "Pick heavy flow or a symptom and W suggests a food that helps, and why. Tap Another idea for more, or Log it to add it to today.": "选择经量多或某个症状,W 会推荐有帮助的食物并说明原因。点「换一个」看更多,或点「记录」加到今天。",
     "Taken out of this day:": "已从这一天移除:",
-    "Put back {name}": "放回{name}"
+    "Put back {name}": "放回{name}",
+    "Swipe left to remove": "向左滑动以移除",
+    "Tap a day to see its exercises; tap an exercise to see how it's done. Press and hold a day or an exercise to drag it into your own order, or swipe an exercise left to take it out.": "点一天查看动作;点动作查看做法。按住一天或一个动作可拖到你想要的顺序,向左滑动动作可将其移除。"
   }
 };

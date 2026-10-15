@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { AnimatePresence, Reorder, motion } from "motion/react";
+import { useMemo, useRef, useState } from "react";
+import { AnimatePresence, Reorder, motion, useMotionValue, useTransform } from "motion/react";
 import { ArrowLeftRight, ChevronDown, GripVertical, Lightbulb, LogIn, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { t as tr, useLanguage } from "../i18n";
 import { exName, exTip, useExerciseNames } from "../i18n/exercises";
@@ -482,7 +482,10 @@ function DayCard({
   );
 }
 
-/** One exercise in a day: tap to see how it's done, press and hold to drag it up or down. */
+/**
+ * One exercise in a day: tap to see how it's done, press and hold to drag it up or down, swipe it
+ * left to take it out of the day (Delete on the keyboard does the same).
+ */
 function ExerciseRow({
   value,
   exercise: e,
@@ -500,6 +503,10 @@ function ExerciseRow({
   onRemove?: () => void;
 }) {
   const hold = useHoldToMove(onKeyMove);
+  const x = useMotionValue(0);
+  const reveal = useTransform(x, [-96, -24, 0], [1, 0.4, 0]);
+  // A swipe that starts on a button must not also count as tapping it.
+  const swiped = useRef(false);
   return (
     <Reorder.Item
       as="div"
@@ -509,42 +516,74 @@ function ExerciseRow({
       onDragEnd={hold.end}
       whileDrag={{ ...LIFTED, borderRadius: 14 }}
       transition={SPRING}
-      className={`plan-ex-row hold-move${hold.moving ? " moving" : ""}`}
+      className={`plan-ex-item hold-move${hold.moving ? " moving" : ""}`}
       data-testid="plan-exercise"
       {...hold.bind}
     >
-      <button className="plan-ex" onClick={onView} aria-label={tr("How to do {name}", { name: exName(e.name) })} aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown">
-        <ExerciseThumb name={e.name} size={48} />
-        <div className="row-main">
-          <div style={{ fontWeight: 600 }}>{exName(e.name)}</div>
-          <div className="row-sub" style={{ whiteSpace: "normal" }}>
-            {tr("{sets} sets × {reps} reps · rest {rest} · RIR {rir}", {
-              sets: e.sets,
-              reps: e.reps,
-              rest: e.restSec >= 120 ? `${e.restSec / 60} min` : `${e.restSec}s`,
-              rir: e.rir,
-            })}
-          </div>
-          {e.tip && (
-            <div className="row-sub" style={{ whiteSpace: "normal", marginTop: 2, fontStyle: "italic" }}>
-              {exTip(e.tip)}
-            </div>
-          )}
-        </div>
-      </button>
-      <div className="plan-ex-actions">
-        {e.group ? (
-          <button className="icon-btn" onClick={onSwap} aria-label={tr("Swap {name}", { name: exName(e.name) })}>
-            <ArrowLeftRight size={17} />
-          </button>
-        ) : (
-          <GripVertical size={18} className="grip" aria-hidden />
-        )}
+      <div className={onRemove ? "swipe-row" : undefined}>
         {onRemove && (
-          <button className="icon-btn" onClick={onRemove} aria-label={tr("Remove {name}", { name: exName(e.name) })}>
-            <Trash2 size={17} />
-          </button>
+          <motion.div className="swipe-delete" style={{ opacity: reveal }} aria-hidden>
+            <Trash2 size={18} /> {tr("Remove")}
+          </motion.div>
         )}
+        <motion.div
+          className="plan-ex-row"
+          drag={onRemove && !hold.moving ? "x" : false}
+          dragDirectionLock
+          dragConstraints={{ left: -110, right: 0 }}
+          dragElastic={{ left: 0.25, right: 0 }}
+          dragSnapToOrigin
+          style={{ x, touchAction: "pan-y" }}
+          onPointerDownCapture={() => (swiped.current = false)}
+          onDragStart={() => (swiped.current = true)}
+          onDragEnd={(_, info) => {
+            if (onRemove && (info.offset.x < -90 || info.velocity.x < -700)) onRemove();
+          }}
+          onClickCapture={(ev) => {
+            if (!swiped.current) return;
+            ev.preventDefault();
+            ev.stopPropagation();
+          }}
+        >
+          <button
+            className="plan-ex"
+            onClick={onView}
+            onKeyDown={(ev) => {
+              if (onRemove && (ev.key === "Delete" || ev.key === "Backspace")) {
+                ev.preventDefault();
+                onRemove();
+              }
+            }}
+            aria-label={tr("How to do {name}", { name: exName(e.name) })}
+            aria-description={onRemove ? tr("Swipe left to remove") : undefined}
+            aria-keyshortcuts={onRemove ? "Alt+ArrowUp Alt+ArrowDown Delete" : "Alt+ArrowUp Alt+ArrowDown"}
+          >
+            <ExerciseThumb name={e.name} size={48} />
+            <div className="row-main">
+              <div style={{ fontWeight: 600 }}>{exName(e.name)}</div>
+              <div className="row-sub" style={{ whiteSpace: "normal" }}>
+                {tr("{sets} sets × {reps} reps · rest {rest} · RIR {rir}", {
+                  sets: e.sets,
+                  reps: e.reps,
+                  rest: e.restSec >= 120 ? `${e.restSec / 60} min` : `${e.restSec}s`,
+                  rir: e.rir,
+                })}
+              </div>
+              {e.tip && (
+                <div className="row-sub" style={{ whiteSpace: "normal", marginTop: 2, fontStyle: "italic" }}>
+                  {exTip(e.tip)}
+                </div>
+              )}
+            </div>
+          </button>
+          {e.group ? (
+            <button className="icon-btn" style={{ alignSelf: "center" }} onClick={onSwap} aria-label={tr("Swap {name}", { name: exName(e.name) })}>
+              <ArrowLeftRight size={17} />
+            </button>
+          ) : (
+            <GripVertical size={18} className="grip" aria-hidden />
+          )}
+        </motion.div>
       </div>
     </Reorder.Item>
   );

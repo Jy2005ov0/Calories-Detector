@@ -2906,16 +2906,12 @@ html[data-text="xlarge"] body {
   color: var(--label-3);
   flex: none;
 }
-/* Swap and remove, one above the other so the name keeps its width. */
-.plan-ex-actions {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-  flex: none;
+/* The row slides left over a red "Remove" to take the exercise out of the day. */
+.plan-ex-item {
+  position: relative;
 }
-.plan-ex-actions .grip {
-  align-self: center;
+.plan-ex-item .swipe-delete {
+  border-top: 0.5px solid transparent;
 }
 /* Exercises taken out of a day, a tap to put back. */
 .plan-removed {
