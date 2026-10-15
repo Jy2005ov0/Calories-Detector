@@ -56,14 +56,14 @@ test("Flow and symptoms: log them, see the patterns, and get a heads-up before t
   const d = dialog(page);
   await expect(d).toContainText("Cramps: usually on day 1 of your period (2 cycles)");
   await expect(d).toContainText("Headache: usually 2 days before your period (2 cycles)");
-  await d.getByRole("button", { name: "Spotting" }).click();
-  await d.getByRole("button", { name: "Bloating" }).click();
-  await d.getByRole("button", { name: "Tired" }).click();
-  await expect(d.getByRole("button", { name: "Bloating" })).toHaveAttribute("aria-pressed", "true");
+  await d.getByRole("button", { name: "Spotting", exact: true }).click();
+  await d.getByRole("button", { name: "Bloating", exact: true }).click();
+  await d.getByRole("button", { name: "Tired", exact: true }).click();
+  await expect(d.getByRole("button", { name: "Bloating", exact: true })).toHaveAttribute("aria-pressed", "true");
   // Tap again to take one off; picking another flow replaces it.
-  await d.getByRole("button", { name: "Tired" }).click();
-  await d.getByRole("button", { name: "Light" }).click();
-  await expect(d.getByRole("button", { name: "Spotting" })).toHaveAttribute("aria-pressed", "false");
+  await d.getByRole("button", { name: "Tired", exact: true }).click();
+  await d.getByRole("button", { name: "Light", exact: true }).click();
+  await expect(d.getByRole("button", { name: "Spotting", exact: true })).toHaveAttribute("aria-pressed", "false");
   await close(page);
   await expect(visible(page, "symptom-log")).toHaveText("Light flow · Bloating");
 

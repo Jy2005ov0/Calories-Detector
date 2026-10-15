@@ -63,7 +63,9 @@ async function expectFree(page: Page, where: string) {
 
 /** Close every open sheet from the top down, waiting for each to finish sliding away. */
 async function closeAll(page: Page) {
-  for (let n = await page.getByRole("dialog").count(); n > 0; n = await page.getByRole("dialog").count()) {
+  // Let a sheet the last tap was opening or closing finish moving before counting.
+  const settled = async () => (await page.waitForTimeout(500), page.getByRole("dialog").count());
+  for (let n = await settled(); n > 0; n = await settled()) {
     await closeTop(page, "✕");
     await expect(page.getByRole("dialog")).toHaveCount(n - 1);
   }
