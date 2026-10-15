@@ -2,109 +2,32 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { pushBackHandler } from "../lib/platform";
 import type { Tab } from "../App";
-import { SPRING } from "./ui";
+import { SPRING, Sheet } from "./ui";
+import { ChevronRight, Compass } from "lucide-react";
+import { GUIDES, type Guide, type Step } from "./guides";
 import { t, useLanguage } from "../i18n";
 
-interface Step {
-  tab: Tab;
-  /** data-tour targets, first match wins. Missing target → card shows centred. */
-  targets?: string[];
-  /** Skip the step when none of its targets are on screen (e.g. mid-workout). */
-  optional?: boolean;
-  title: string;
-  body: string;
-}
-
-export const TOUR_STEPS: Step[] = [
-  {
-    tab: "today",
-    title: "Welcome to W 👋",
-    body: "This short guide shows you how to count calories, track workouts and follow your plan. It takes about a minute.",
-  },
-  {
-    tab: "today",
-    targets: ["summary"],
-    title: "Your day at a glance",
-    body: "The orange ring shows the calories you have left: eating fills it, workouts give calories back. The teal ring counts your steps, and protein, carbs and fat sit below.",
-  },
-  {
-    tab: "today",
-    targets: ["water-cup"],
-    title: "Drink water",
-    body: "Tap the cup each time you drink. The water drains as the cup is counted, then the cup fills back up. Hold it to take a cup back.",
-  },
-  {
-    tab: "today",
-    targets: ["barcode"],
-    title: "Scan a barcode",
-    body: "Point the camera at the barcode on packaged food to get its calories and nutrition. You can also type the number.",
-  },
-  {
-    tab: "today",
-    targets: ["body-check"],
-    title: "Body check & BMI",
-    body: "Enter your height and weight to see your BMI and get a recommendation on how to train and what to eat. One tap applies it to your plan.",
-  },
-  {
-    tab: "food",
-    targets: ["food-search"],
-    title: "Search any food",
-    body: "Type a food like 'nasi lemak' or 'Milo'. Pick the portion and you'll see the calories, a health grade and whether it suits your goal.",
-  },
-  {
-    tab: "food",
-    targets: ["food-tools"],
-    title: "Build your own meals",
-    body: "Build a meal from any foods and amounts and save it to log in one tap later. Add your own foods from a nutrition label with 'New food'.",
-  },
-  {
-    tab: "train",
-    targets: ["clock-in", "clock-out"],
-    title: "Clock in at the gym",
-    body: "Tap Clock in when you start. A live timer counts your time and calories. Log sets and weights, then clock out to save the workout.",
-  },
-  {
-    tab: "train",
-    targets: ["log-activity"],
-    optional: true,
-    title: "Log other activities",
-    body: "Played futsal or went for a run? Log it here with its duration and the calories are added to your day. There are 6,000+ exercises and sports, and you can create your own.",
-  },
-  {
-    tab: "plan",
-    targets: ["split"],
-    title: "Your training plan",
-    body: "Choose a split and your days per week. Press and hold a day or an exercise to drag it into your own order, and tap an exercise to see how it's done.",
-  },
-  {
-    tab: "plan",
-    targets: ["plan-tabs"],
-    title: "What to eat",
-    body: "The Nutrition tab shows your calorie and protein targets, foods to eat and limit, and a sample day of meals you can log.",
-  },
-  {
-    tab: "profile",
-    targets: ["field-weight"],
-    title: "Keep your profile up to date",
-    body: "Update your weight here as it changes, along with your goal and activity below. Every target and plan in the app adjusts automatically.",
-  },
-  {
-    tab: "today",
-    targets: ["help"],
-    title: "Need help again?",
-    body: "Tap the ? button any time to replay this guide.",
-  },
-];
+export type { Guide, Step } from "./guides";
 
 const PAD = 8;
 const GAP = 12;
 type Rect = { x: number; y: number; w: number; h: number };
 
+/** Elements a target names (see guides.ts): by data-tour, CSS, or a header, tile or row's text. */
+function candidates(target: string): HTMLElement[] {
+  if (target.startsWith("css:")) return [...document.querySelectorAll<HTMLElement>(target.slice(4))];
+  const m = target.match(/^(header|tile|row):(.*)$/);
+  if (!m) return [...document.querySelectorAll<HTMLElement>(`[data-tour="${target}"]`)];
+  const text = t(m[2]);
+  const sel = m[1] === "header" ? ".section-header" : m[1] === "tile" ? ".tile-title" : ".row-title";
+  return [...document.querySelectorAll<HTMLElement>(sel)]
+    .filter((el) => (el.textContent ?? "").trim().startsWith(text))
+    .map((el) => (m[1] === "header" ? el : ((el.closest(m[1] === "tile" ? ".tile" : ".row") as HTMLElement | null) ?? el)));
+}
+
 function findTarget(step: Step) {
-  // Screens not showing are kept (hidden), so take the copy that is actually on screen.
-  for (const t of step.targets ?? []) {
-    for (const el of document.querySelectorAll<HTMLElement>(`[data-tour="${t}"]`)) if (el.getClientRects().length && !el.closest("[inert]")) return el;
-  }
+  // Screens not showing are kept (hidden or waiting off the edge), so take the copy actually on screen.
+  for (const target of step.targets ?? []) for (const el of candidates(target)) if (el.getClientRects().length && !el.closest("[inert]")) return el;
   return null;
 }
 
@@ -130,7 +53,7 @@ async function settled(el: HTMLElement, maxMs = 900) {
  * the page scrolls smoothly underneath, and the card slides to its new place and crossfades its
  * text; it only waits when it has to switch tab.
  */
-export function Tour({ open, onClose, setTab }: { open: boolean; onClose: () => void; setTab: (t: Tab) => void }) {
+export function Tour({ open, steps = GUIDES[0].steps, onClose, setTab }: { open: boolean; steps?: Step[]; onClose: () => void; setTab: (t: Tab) => void }) {
   useLanguage();
   const reduce = useReducedMotion();
   const [index, setIndex] = useState(0);
@@ -141,18 +64,24 @@ export function Tour({ open, onClose, setTab }: { open: boolean; onClose: () => 
   const nextRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardH, setCardH] = useState(240);
+  const cardHRef = useRef(240);
+  cardHRef.current = cardH;
   const targetRef = useRef<HTMLElement | null>(null);
   const directionRef = useRef(1);
   const tabRef = useRef<Tab | null>(null);
   const movingRef = useRef(false);
-  const step = TOUR_STEPS[index];
-  const last = index === TOUR_STEPS.length - 1;
+  // A different guide can open before the step number is reset: never look past its last step.
+  const at = Math.min(index, steps.length - 1);
+  const step = steps[at];
+  const last = at === steps.length - 1;
 
   useEffect(() => {
     if (open) {
       setIndex(0);
       directionRef.current = 1;
     } else {
+      // Ready for the next guide, which may be shorter.
+      setIndex(0);
       tabRef.current = null;
       setShown(false);
       setRect(null);
@@ -164,7 +93,11 @@ export function Tour({ open, onClose, setTab }: { open: boolean; onClose: () => 
     const el = targetRef.current;
     if (!el) return null;
     const r = el.getBoundingClientRect();
-    const next = { x: r.left - PAD, y: r.top - PAD, w: r.width + PAD * 2, h: r.height + PAD * 2 };
+    // Something taller than the room left for the card (a whole card with a clock in it): frame
+    // its top part, so the card fits underneath instead of covering it.
+    const room = window.innerHeight - cardHRef.current - GAP * 3 - Math.max(0, r.top);
+    const h = Math.max(80, Math.min(r.height + PAD * 2, room));
+    const next = { x: r.left - PAD, y: r.top - PAD, w: r.width + PAD * 2, h };
     setRect(next);
     return next;
   }, []);
@@ -184,7 +117,7 @@ export function Tour({ open, onClose, setTab }: { open: boolean; onClose: () => 
       if (cancelled) return;
       const el = findTarget(step);
       if (!el && step.optional) {
-        setIndex((i) => Math.min(TOUR_STEPS.length - 1, Math.max(0, i + directionRef.current)));
+        setIndex((i) => Math.min(steps.length - 1, Math.max(0, i + directionRef.current)));
         return;
       }
       targetRef.current = el;
@@ -235,7 +168,7 @@ export function Tour({ open, onClose, setTab }: { open: boolean; onClose: () => 
   const go = (dir: 1 | -1) => {
     if (dir === 1 && last) return onClose();
     directionRef.current = dir;
-    setIndex((i) => Math.min(TOUR_STEPS.length - 1, Math.max(0, i + dir)));
+    setIndex((i) => Math.min(steps.length - 1, Math.max(0, i + dir)));
   };
 
   useLayoutEffect(() => {
@@ -281,7 +214,7 @@ export function Tour({ open, onClose, setTab }: { open: boolean; onClose: () => 
               transition={move}
             >
               <div className="tour-progress" aria-hidden>
-                {TOUR_STEPS.map((_, i) => (
+                {steps.map((_, i) => (
                   <span key={i} className={i <= index ? "on" : undefined} />
                 ))}
               </div>
@@ -294,7 +227,7 @@ export function Tour({ open, onClose, setTab }: { open: boolean; onClose: () => 
                   transition={{ duration: 0.18, ease: "easeOut" }}
                 >
                   <div className="muted" style={{ fontSize: 13, fontWeight: 600 }}>
-                    {t("Step {n} of {total}", { n: index + 1, total: TOUR_STEPS.length })}
+                    {t("Step {n} of {total}", { n: index + 1, total: steps.length })}
                   </div>
                   <h2 id="tour-title" style={{ margin: "2px 0 6px", fontSize: 20, letterSpacing: "-0.02em" }}>
                     {t(step.title)}
@@ -333,5 +266,33 @@ export function HelpButton({ onClick }: { onClick: () => void }) {
     <button className="help-btn" data-tour="help" onClick={onClick} aria-label={t("How to use the app")}>
       ?
     </button>
+  );
+}
+
+/** What the ? button opens: the quick tour, or a full guide to one part of the app. */
+export function HelpSheet({ open, onClose, onPick, showCycle }: { open: boolean; onClose: () => void; onPick: (g: Guide) => void; showCycle: boolean }) {
+  useLanguage();
+  return (
+    <Sheet open={open} onClose={onClose} title={t("Guides")}>
+      <p className="footnote" style={{ margin: "0 0 12px" }}>
+        {t("Pick a guide: it goes to each feature and shows you how it works.")}
+      </p>
+      <div className="group" data-testid="guides">
+        {GUIDES.filter((g) => g.id !== "cycle" || showCycle).map((g) => (
+          <button key={g.id} className="row with-icon" onClick={() => onPick(g)}>
+            <div className="icon-tile" style={{ background: g.id === "quick" ? "var(--blue)" : "var(--indigo)" }}>
+              <Compass size={17} />
+            </div>
+            <div className="row-main">
+              <div className="row-title">{t(g.title)}</div>
+              <div className="row-sub" style={{ whiteSpace: "normal" }}>
+                {t(g.sub)} · {t("{n} steps", { n: g.steps.length })}
+              </div>
+            </div>
+            <ChevronRight size={16} className="chev" />
+          </button>
+        ))}
+      </div>
+    </Sheet>
   );
 }

@@ -299,3 +299,31 @@ test("Ramadan: a period day is not a fasting day, it counts as a fast to replace
   await expect(page.getByRole("status").filter({ hasText: "Fast replaced · 2 to go" })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test("Foods that help: several foods for heavy flow and each symptom, and one tap logs one", async ({ page }) => {
+  const errors = await open(page, cycleState());
+  // Nothing logged and not on a period: no food suggestions yet.
+  await expect(page.getByTestId("period-food")).toHaveCount(0);
+  await visible(page, "symptom-log").click();
+  await dialog(page).getByRole("button", { name: "Heavy" }).click();
+  await dialog(page).getByRole("button", { name: "Cramps" }).click();
+  await dialog(page).getByRole("button", { name: "Nausea" }).click();
+  await expect(dialog(page).getByTestId("period-food")).toHaveText("Foods that help: heavy flow, cramps, nausea");
+  await close(page);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  await visible(page, "period-food").click();
+  const sheet = page.getByRole("dialog", { name: "Foods that help" });
+  for (const key of ["heavyFlow", "cramps", "nausea"]) expect(await sheet.getByTestId(`food-help-${key}`).locator(".row").count()).toBeGreaterThanOrEqual(5);
+  await expect(sheet.getByTestId("food-help-heavyFlow")).toContainText("Guava");
+  await expect(sheet.getByTestId("food-help-heavyFlow")).toContainText("needs a doctor");
+  await expect(sheet.getByTestId("food-help-cramps")).toContainText("Cut back on:");
+  await expect(sheet.getByTestId("food-help-nausea")).toContainText("Ginger");
+
+  // Log one: it opens the food, then goes in today's log.
+  await sheet.getByRole("button", { name: "Log Guava" }).click();
+  const food = page.getByRole("dialog").last();
+  await food.getByRole("button", { name: /^Add to (Breakfast|Lunch|Dinner|Snack|Sahur|Iftar|Moreh)$/ }).click();
+  await expect.poll(async () => (await stored(page)).log.some((e: { name: string; date: string }) => e.name === "Guava" && e.date === dayKey(0))).toBe(true);
+  expect(errors).toEqual([]);
+});

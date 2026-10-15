@@ -398,8 +398,9 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
   await expect(page.getByRole("heading", { name: /Good \w+, Farid/ })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
-  // …but the ? button replays it any time.
+  // …but the ? button replays it any time, from the guides menu.
   await page.getByRole("button", { name: "How to use the app" }).click();
+  await page.getByRole("dialog", { name: "Guides" }).getByRole("button", { name: /Quick tour/ }).click();
   await expect(guide("Welcome to W 👋")).toBeVisible();
   await page.getByRole("button", { name: "Skip" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -438,6 +439,7 @@ test("Farid: first-timer follows the guide, then uses Body check to set his plan
   await tab(page, "Train");
   await page.locator('[data-tour="clock-in"]').click();
   await page.getByRole("button", { name: "How to use the app" }).click();
+  await page.getByRole("dialog", { name: "Guides" }).getByRole("button", { name: /Quick tour/ }).click();
   await page.getByRole("button", { name: "Show me" }).click();
   for (let i = 0; i < 6; i++) await page.getByRole("button", { name: "Next" }).click();
   await expect(guide("Clock in at the gym")).toBeVisible();

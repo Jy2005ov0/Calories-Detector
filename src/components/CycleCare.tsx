@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity as Pulse, ChevronRight, Delete, Dumbbell, HeartPulse, Lock, MoonStar, Pill, Stethoscope } from "lucide-react";
+import { Activity as Pulse, ChevronRight, Delete, Dumbbell, HeartPulse, Lock, MoonStar, Pill, Plus, Salad, Stethoscope } from "lucide-react";
 import { locale, t, useLanguage } from "../i18n";
 import { cycleOf, cycleStatus } from "../lib/cycle";
 import {
@@ -20,7 +20,10 @@ import {
 } from "../lib/cycleCare";
 import { hashPin, unlock, useCycleOpen } from "../lib/cycleLock";
 import { actions, getState, useStore, useTodayKey } from "../lib/store";
-import type { Flow, Symptom } from "../lib/types";
+import type { Flow, Food, Symptom } from "../lib/types";
+import { foodHelp } from "../lib/periodFood";
+import { FoodIcon } from "./FoodIcon";
+import { FoodSheet } from "./FoodSheet";
 import { Sheet, Stepper, Switch, haptic, showToast } from "./ui";
 
 const shortDate = (key: string) => {
@@ -209,6 +212,7 @@ export function SymptomSheet({ open, onClose, date }: { open: boolean; onClose: 
           </button>
         ))}
       </div>
+      <PeriodFoodButton date={date} />
       <div className="section-header">{t("Your patterns")}</div>
       {patterns.length ? (
         <div className="group">
@@ -531,5 +535,81 @@ export function PillSettingsGroup() {
         </>
       )}
     </div>
+  );
+}
+
+// ── Food for how you feel ────────────────────────────────
+
+/** Opens the foods that help with today's flow and symptoms; shows what they're for. */
+export function PeriodFoodButton({ date }: { date: string }) {
+  useLanguage();
+  const profile = useStore((s) => s.profile);
+  const periods = useStore((s) => s.periods);
+  const day = useStore((s) => s.days.find((d) => d.id === date));
+  const [open, setOpen] = useState(false);
+  const help = foodHelp(day, cycleStatus(cycleOf(profile), periods, date)?.phase, profile);
+  if (!help.length) return null;
+  return (
+    <>
+      <button className="cycle-log pressable period-food-btn" onClick={() => setOpen(true)} data-testid="period-food">
+        <Salad size={15} aria-hidden />
+        <span className="cycle-log-text">{t("Foods that help: {list}", { list: help.map((h) => t(h.title).toLowerCase()).join(", ") })}</span>
+        <ChevronRight size={15} className="chev" aria-hidden />
+      </button>
+      <PeriodFoodSheet open={open} onClose={() => setOpen(false)} date={date} />
+    </>
+  );
+}
+
+export function PeriodFoodSheet({ open, onClose, date }: { open: boolean; onClose: () => void; date: string }) {
+  useLanguage();
+  const profile = useStore((s) => s.profile);
+  const periods = useStore((s) => s.periods);
+  const day = useStore((s) => s.days.find((d) => d.id === date));
+  const [picked, setPicked] = useState<Food | null>(null);
+  const help = foodHelp(day, cycleStatus(cycleOf(profile), periods, date)?.phase, profile);
+  return (
+    <>
+      <Sheet open={open} onClose={onClose} title={t("Foods that help")}>
+        <p className="footnote" style={{ margin: "0 0 4px" }}>
+          {t("Picked for the flow and symptoms you logged today. Tap + to log one.")}
+        </p>
+        {help.map((h) => (
+          <section key={h.key} data-testid={`food-help-${h.key}`}>
+            <div className="section-header">{t(h.title)}</div>
+            <p className="tile-sub" style={{ margin: "0 0 8px", whiteSpace: "normal" }}>
+              {t(h.intro)}
+            </p>
+            <div className="group">
+              {h.foods.map(({ food, why }) => (
+                <div className="row" key={food.id}>
+                  <FoodIcon name={food.name} category={food.category} />
+                  <div className="row-main">
+                    <div className="row-title">{food.name}</div>
+                    <div className="row-sub" style={{ whiteSpace: "normal" }}>
+                      {t(why)}
+                    </div>
+                  </div>
+                  <button className="icon-btn" aria-label={t("Log {food}", { food: food.name })} onClick={() => setPicked(food)}>
+                    <Plus size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <p className="footnote" style={{ margin: "8px 0 0" }}>
+              <strong>{t("Cut back on:")}</strong> {t(h.limit)}
+            </p>
+            {h.warn && (
+              <p className="cycle-warning" role="note">
+                <Stethoscope size={14} aria-hidden /> {t(h.warn)}
+              </p>
+            )}
+          </section>
+        ))}
+        {!help.length && <p className="footnote">{t("Log your flow or a symptom and foods that help will show here.")}</p>}
+        <p className="footnote">{t("General guidance from nutrition research, not medical advice. Foods that clash with your diet or allergies are left out.")}</p>
+      </Sheet>
+      <FoodSheet food={picked} onClose={() => setPicked(null)} />
+    </>
   );
 }

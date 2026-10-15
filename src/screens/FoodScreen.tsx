@@ -168,7 +168,7 @@ export function FoodScreen({ openSheet }: { openSheet: (k: SheetKind) => void })
             </button>
           </div>
 
-          <div style={{ marginTop: 22 }}>
+          <div style={{ marginTop: 22 }} data-tour="food-lists">
             <Segmented
               value={view}
               onChange={setView}

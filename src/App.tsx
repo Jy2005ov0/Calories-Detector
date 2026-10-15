@@ -9,7 +9,8 @@ import { CustomFoodSheet } from "./components/MealBuilder";
 import { ProgressSheet } from "./components/ProgressSheet";
 import { t, useLanguage } from "./i18n";
 import type { Food } from "./lib/types";
-import { HelpButton, Tour } from "./components/Tour";
+import { HelpButton, HelpSheet, Tour, type Guide } from "./components/Tour";
+import { GUIDES } from "./components/guides";
 import { ToastHost } from "./components/ui";
 import { applyTheme, onBackButton } from "./lib/platform";
 import { actions, useStore } from "./lib/store";
@@ -62,7 +63,12 @@ export default function App() {
     document.documentElement.lang = lang === "zh" ? "zh-CN" : lang === "ms" ? "ms-MY" : "en";
   }, [lang]);
   const tourDone = useStore((s) => s.tourDone);
-  const [tour, setTour] = useState(false);
+  // The guide showing (the quick tour after onboarding, or one picked from the ? menu).
+  const [guide, setGuide] = useState<Guide | null>(null);
+  const tour = guide !== null;
+  const setTour = (on: boolean) => setGuide(on ? GUIDES[0] : null);
+  const [help, setHelp] = useState(false);
+  const canCycle = useStore((s) => s.profile.sex === "female");
 
   // Offer the guide once, right after onboarding.
   useEffect(() => {
@@ -193,7 +199,17 @@ export default function App() {
         </div>
       </nav>
 
-      <HelpButton onClick={() => setTour(true)} />
+      <HelpButton onClick={() => setHelp(true)} />
+      <HelpSheet
+        open={help}
+        onClose={() => setHelp(false)}
+        showCycle={canCycle}
+        onPick={(g) => {
+          setHelp(false);
+          // Let the sheet slide away before the guide takes over.
+          setTimeout(() => setGuide(g), 250);
+        }}
+      />
       <BodyCheckSheet open={sheet === "bodyCheck"} onClose={closeSheet} />
       <BarcodeSheet
         open={sheet === "barcode"}
@@ -210,7 +226,7 @@ export default function App() {
       <FoodSheet food={found} onClose={() => setFound(null)} />
       <CustomFoodSheet open={newFood} onClose={() => setNewFood(false)} />
       <ProgressSheet open={sheet === "progress"} onClose={closeSheet} />
-      <Tour open={tour} onClose={closeTour} setTab={setTab} />
+      <Tour open={tour} steps={guide ? guide.steps.filter((st) => !st.women || canCycle) : undefined} onClose={closeTour} setTab={setTab} />
       <ToastHost />
     </div>
   );

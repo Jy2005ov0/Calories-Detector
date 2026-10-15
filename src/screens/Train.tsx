@@ -438,7 +438,7 @@ export function Train() {
       <CycleTrainingCard onLighter={todaysPlan ? () => clockIn(todaysPlan.title, planned(todaysPlan, 0.8)) : undefined} />
 
       {todaysPlan ? (
-        <div className="card" style={{ marginTop: 12 }}>
+        <div className="card" style={{ marginTop: 12 }} data-tour="todays-plan">
           <div className="muted" style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.02em", fontWeight: 600 }}>
             {t("Today's plan")}
           </div>
@@ -455,7 +455,7 @@ export function Train() {
           </button>
         </div>
       ) : (
-        <div className="card" style={{ marginTop: 12 }}>
+        <div className="card" style={{ marginTop: 12 }} data-tour="todays-plan">
           <div style={{ fontWeight: 600 }}>{t("Rest day")}</div>
           <div className="row-sub" style={{ whiteSpace: "normal" }}>
             {t("No session planned today. Light cardio or a walk helps recovery.")}

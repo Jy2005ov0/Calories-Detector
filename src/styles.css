@@ -3652,3 +3652,11 @@ html[data-text="xlarge"] body {
     animation: none;
   }
 }
+
+/* "Foods that help" on the cycle card and in the symptom sheet. */
+.period-food-btn {
+  margin-top: 8px;
+}
+.period-food-btn .cycle-log-text {
+  white-space: normal;
+}
