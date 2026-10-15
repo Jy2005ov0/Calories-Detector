@@ -3536,6 +3536,10 @@ html[data-text="xlarge"] body {
   font: inherit;
   background: var(--bg-fill);
 }
+/* Dark streets: the light map turned negative, with colours turned back round. */
+.run-map.dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.6);
+}
 .run-map .leaflet-control-attribution.leaflet-control {
   font-size: 10px;
   background: color-mix(in srgb, var(--bg-elev) 75%, transparent);

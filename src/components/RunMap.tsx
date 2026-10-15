@@ -4,17 +4,18 @@ import { LocateFixed } from "lucide-react";
 import { t, useLanguage } from "../i18n";
 import type { Pt } from "../lib/runTracking";
 
-// The run's map: real streets (OpenStreetMap, drawn by CARTO) with your route on top, a blue dot
+// The run's map: real streets from OpenStreetMap (no API key) with your route on top, a blue dot
 // for where you are now and a ring for how sure the GPS is. It follows you as you move; drag the
-// map to look around and tap the button to come back. With no internet the streets don't load,
-// but the route still draws and records.
+// map to look around and tap the button to come back. In dark mode the streets are dimmed with a
+// filter. With no internet the streets don't load, but the route still draws and records.
 
-const TILES = {
-  light: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-  dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-};
+// Tile servers in order: if one refuses the app's requests, the next takes over.
+export const TILE_SOURCES = [
+  { url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", subdomains: "abc", maxNativeZoom: 19 },
+  { url: "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", subdomains: "abc", maxNativeZoom: 19 },
+];
 // Credited in plain text: links this small would be too fiddly to tap.
-const ATTRIBUTION = "© OpenStreetMap contributors © CARTO";
+const ATTRIBUTION = "© OpenStreetMap contributors";
 
 const isDark = () => document.documentElement.style.colorScheme === "dark" || (!document.documentElement.style.colorScheme && matchMedia("(prefers-color-scheme: dark)").matches);
 
@@ -46,7 +47,24 @@ export function RunMap({ segments, here, height }: { segments: Pt[][]; here: { l
       const L = (mod as unknown as { default: typeof Leaflet }).default ?? (mod as unknown as typeof Leaflet);
       const map = L.map(box.current, { zoomControl: false, attributionControl: true, center: [3.139, 101.6869], zoom: 16 });
       map.attributionControl.setPrefix(false);
-      const tiles = L.tileLayer(isDark() ? TILES.dark : TILES.light, { maxZoom: 19, subdomains: "abcd", attribution: ATTRIBUTION, detectRetina: false }).addTo(map);
+      const layer = (i: number) =>
+        L.tileLayer(TILE_SOURCES[i].url, { maxZoom: 19, maxNativeZoom: TILE_SOURCES[i].maxNativeZoom, subdomains: TILE_SOURCES[i].subdomains, attribution: ATTRIBUTION, detectRetina: false });
+      let source = 0;
+      let tiles = layer(0).addTo(map);
+      // A server that fails every tile it's asked for gets swapped for the next one.
+      const watch = () => {
+        let loaded = 0;
+        let failed = 0;
+        tiles.on("tileload", () => loaded++);
+        tiles.on("tileerror", () => {
+          if (++failed < 4 || loaded > 0 || source >= TILE_SOURCES.length - 1 || !navigator.onLine) return;
+          tiles.remove();
+          tiles = layer(++source).addTo(map);
+          if (layers.current) layers.current.tiles = tiles;
+          watch();
+        });
+      };
+      watch();
       const start = L.circleMarker([0, 0], { radius: 7, color: "#fff", weight: 3, fillColor: "#34c759", fillOpacity: 1 });
       const ring = L.circle([0, 0], { radius: 10, stroke: false, fillColor: "#0a84ff", fillOpacity: 0.15, interactive: false });
       const dot = L.circleMarker([0, 0], { radius: 8, color: "#fff", weight: 3, fillColor: "#0a84ff", fillOpacity: 1, interactive: false });
@@ -61,13 +79,19 @@ export function RunMap({ segments, here, height }: { segments: Pt[][]; here: { l
     };
   }, []);
 
-  // Light or dark streets with the app's theme.
+  // Dimmed streets in dark mode, following the app's theme.
+  const [dark, setDark] = useState(isDark);
   useEffect(() => {
-    if (!ready) return;
-    const obs = new MutationObserver(() => layers.current?.tiles.setUrl(isDark() ? TILES.dark : TILES.light));
+    const update = () => setDark(isDark());
+    const obs = new MutationObserver(update);
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["style"] });
-    return () => obs.disconnect();
-  }, [ready]);
+    const mq = matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener("change", update);
+    return () => {
+      obs.disconnect();
+      mq.removeEventListener("change", update);
+    };
+  }, []);
 
   // Draw the route: one line per stretch (pauses leave a gap), and a green dot where it began.
   useEffect(() => {
@@ -115,7 +139,7 @@ export function RunMap({ segments, here, height }: { segments: Pt[][]; here: { l
   };
 
   return (
-    <div className="run-map" style={height ? { height } : undefined} data-testid="run-map" role="region" aria-label={t("Map of your route")}>
+    <div className={`run-map${dark ? " dark" : ""}`} style={height ? { height } : undefined} data-testid="run-map" role="region" aria-label={t("Map of your route")}>
       <div ref={box} className="run-map-canvas" />
       {!follow && (
         <button className="run-map-recenter" onClick={recenter} aria-label={t("Back to where I am")}>

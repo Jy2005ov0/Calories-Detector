@@ -6,11 +6,11 @@ import type { BrowserContext, Page } from "@playwright/test";
  * river, in the light or dark map colours.
  */
 export async function fakeMapTiles(target: Page | BrowserContext) {
-  await target.route(/basemaps\.cartocdn\.com\/.+\/(\d+)\/(\d+)\/(\d+)(@2x)?\.png/, (route) => {
-    const m = route.request().url().match(/\/(voyager|dark_all)\/(\d+)\/(\d+)\/(\d+)/)!;
-    const dark = m[1] === "dark_all";
-    const [z, x, y] = [Number(m[2]), Number(m[3]), Number(m[4])];
-    route.fulfill({ contentType: "image/svg+xml", body: tile(z, x, y, dark) });
+  await target.route(/tile\.openstreetmap\.(org|fr)\/(hot\/)?(\d+)\/(\d+)\/(\d+)\.png/, (route) => {
+    const m = route.request().url().match(/\/(\d+)\/(\d+)\/(\d+)\.png/)!;
+    const [z, x, y] = [Number(m[1]), Number(m[2]), Number(m[3])];
+    // Always light: the app dims the map itself in dark mode.
+    route.fulfill({ contentType: "image/svg+xml", body: tile(z, x, y, false) });
   });
 }
 

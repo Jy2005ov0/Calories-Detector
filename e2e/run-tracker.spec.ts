@@ -150,3 +150,18 @@ test("Auto-pause: standing still stops the clock, moving starts it again, and it
   expect(await km(page)).toBe(0);
   expect(errors).toEqual([]);
 });
+
+test("If the map server refuses the app, the map switches to the backup server and still shows streets", async ({ page, context }) => {
+  const errors = await open(page, context);
+  // The main server turns every tile down (as a server that wants an API key would)…
+  await context.route(/tile\.openstreetmap\.org\//, (r) => r.fulfill({ status: 403, body: "API key required" }));
+  const asked: string[] = [];
+  page.on("request", (r) => /openstreetmap\.fr/.test(r.url()) && asked.push(r.url()));
+  await openTracker(page);
+  // …so the streets come from the backup.
+  const map = tracker(page).getByTestId("run-map");
+  await expect(map.locator("img.leaflet-tile-loaded").first()).toBeVisible();
+  expect(asked.length).toBeGreaterThan(0);
+  await expect(map.locator('img.leaflet-tile-loaded[src*="openstreetmap.fr"]').first()).toBeVisible();
+  expect(errors.filter((e) => !/403/.test(e))).toEqual([]);
+});
