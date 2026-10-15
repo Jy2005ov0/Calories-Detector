@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, Reorder, motion } from "motion/react";
-import { ArrowLeftRight, ChevronDown, GripVertical, Lightbulb, LogIn, Plus, RotateCcw } from "lucide-react";
+import { ArrowLeftRight, ChevronDown, GripVertical, Lightbulb, LogIn, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { t as tr, useLanguage } from "../i18n";
 import { exName, exTip, useExerciseNames } from "../i18n/exercises";
 import { ExerciseThumb } from "../components/ExercisePicture";
@@ -15,7 +15,7 @@ import { mealTiming, recommendedFoods, sampleDay } from "../lib/diet";
 import { foodIcon } from "../lib/foodIcon";
 import { FoodIcon, MealIcon, mealOfName } from "../components/FoodIcon";
 import { dislikeLabel } from "../lib/allergens";
-import { SPLITS, WEEKDAYS, dayOrderKey, exerciseOrderKey, planFor, sessionFromPlan, type PlannedDay, type PlannedExercise } from "../lib/fitness";
+import { REMOVED, SPLITS, WEEKDAYS, dayOrderKey, exerciseOrderKey, planFor, sessionFromPlan, type PlannedDay, type PlannedExercise } from "../lib/fitness";
 import { CustomSplitEditor, EquipmentPicker, SwapSheet } from "../components/PlanTools";
 import { bmr, round, suggestedKcal, targets, tdee } from "../lib/nutrition";
 import { actions, todayKey, useStore, useTodayKey, weekdayOf } from "../lib/store";
@@ -72,6 +72,14 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
   // Orders are kept as the plan's own positions: a day's index, an exercise's place in its swap key.
   const orderDays = (keys: string[]) => actions.setPlanOrder(dayKey, keys.map((k) => plan.days.find((d) => d.key === k)!.index));
   const orderExercises = (d: PlannedDay, keys: string[]) => actions.setPlanOrder(exerciseOrderKey(d.template, d.exercises.length), keys.map((k) => Number(k.split("#")[1])));
+  const remove = (e: PlannedExercise) => {
+    if (!e.swapKey) return;
+    const key = e.swapKey;
+    const before = planSwaps[key] ?? null;
+    actions.swapExercise(key, REMOVED);
+    haptic();
+    showToast(tr("Removed {name}", { name: exName(e.name) }), { label: tr("Undo"), run: () => actions.swapExercise(key, before) });
+  };
   const today = weekdayOf(useTodayKey());
   const [open, setOpen] = useState<string | null>(plan.days.find((d) => d.weekday === today)?.key ?? plan.days[0]?.key ?? null);
 
@@ -181,6 +189,7 @@ function TrainingPlan({ go }: { go: (t: Tab) => void }) {
             onOrderExercises={(keys) => orderExercises(d, keys)}
             onView={setViewing}
             onSwap={setSwapping}
+            onRemove={remove}
             onStart={() => start(d)}
           />
         ))}
@@ -377,6 +386,7 @@ function DayCard({
   onOrderExercises,
   onView,
   onSwap,
+  onRemove,
   onStart,
 }: {
   day: PlannedDay;
@@ -387,6 +397,7 @@ function DayCard({
   onOrderExercises: (keys: string[]) => void;
   onView: (e: PlannedExercise) => void;
   onSwap: (e: PlannedExercise) => void;
+  onRemove: (e: PlannedExercise) => void;
   onStart: () => void;
 }) {
   const hold = useHoldToMove(onKeyMove);
@@ -441,9 +452,20 @@ function DayCard({
                     onKeyMove={(step) => onOrderExercises(moved(keys, ei, ei + step))}
                     onView={() => onView(e)}
                     onSwap={() => onSwap(e)}
+                    onRemove={d.exercises.length > 1 ? () => onRemove(e) : undefined}
                   />
                 ))}
               </Reorder.Group>
+              {d.removed.length > 0 && (
+                <div className="plan-removed" data-testid="plan-removed">
+                  <div className="row-sub">{tr("Taken out of this day:")}</div>
+                  {d.removed.map((r) => (
+                    <button key={r.swapKey} className="chip" onClick={() => actions.swapExercise(r.swapKey, null)} aria-label={tr("Put back {name}", { name: exName(r.name) })}>
+                      <Plus size={14} /> {exName(r.name)}
+                    </button>
+                  ))}
+                </div>
+              )}
               {d.cardio && (
                 <div className="row-sub" style={{ whiteSpace: "normal", padding: "10px 0", borderTop: "0.5px solid var(--separator)" }}>
                   + {d.cardio}
@@ -461,7 +483,22 @@ function DayCard({
 }
 
 /** One exercise in a day: tap to see how it's done, press and hold to drag it up or down. */
-function ExerciseRow({ value, exercise: e, onKeyMove, onView, onSwap }: { value: string; exercise: PlannedExercise; onKeyMove: (step: -1 | 1) => void; onView: () => void; onSwap: () => void }) {
+function ExerciseRow({
+  value,
+  exercise: e,
+  onKeyMove,
+  onView,
+  onSwap,
+  onRemove,
+}: {
+  value: string;
+  exercise: PlannedExercise;
+  onKeyMove: (step: -1 | 1) => void;
+  onView: () => void;
+  onSwap: () => void;
+  /** Missing on a day's last exercise, which can't be taken out. */
+  onRemove?: () => void;
+}) {
   const hold = useHoldToMove(onKeyMove);
   return (
     <Reorder.Item
@@ -495,13 +532,20 @@ function ExerciseRow({ value, exercise: e, onKeyMove, onView, onSwap }: { value:
           )}
         </div>
       </button>
-      {e.group ? (
-        <button className="icon-btn" style={{ alignSelf: "center" }} onClick={onSwap} aria-label={tr("Swap {name}", { name: exName(e.name) })}>
-          <ArrowLeftRight size={17} />
-        </button>
-      ) : (
-        <GripVertical size={18} className="grip" aria-hidden />
-      )}
+      <div className="plan-ex-actions">
+        {e.group ? (
+          <button className="icon-btn" onClick={onSwap} aria-label={tr("Swap {name}", { name: exName(e.name) })}>
+            <ArrowLeftRight size={17} />
+          </button>
+        ) : (
+          <GripVertical size={18} className="grip" aria-hidden />
+        )}
+        {onRemove && (
+          <button className="icon-btn" onClick={onRemove} aria-label={tr("Remove {name}", { name: exName(e.name) })}>
+            <Trash2 size={17} />
+          </button>
+        )}
+      </div>
     </Reorder.Item>
   );
 }

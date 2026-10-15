@@ -278,6 +278,8 @@ export interface PlannedDay {
   title: string;
   focus: string;
   exercises: PlannedExercise[];
+  /** Exercises the person took out of this day, to put back. */
+  removed: { swapKey: string; name: string }[];
   cardio?: string;
   estMinutes: number;
 }
@@ -308,7 +310,7 @@ function scheme(goal: Goal, exp: Experience, compound: boolean) {
 /** Where the person trains, exercises they swapped, and their own split, if any. */
 export interface PlanOptions {
   equipment?: Equipment;
-  /** "<day template>#<position>" → exercise name. */
+  /** "<day template>#<position>" → exercise name, or REMOVED. */
   swaps?: Record<string, string>;
   custom?: CustomDay[];
   /** Days and exercises the person put in their own order: key → original positions in the new order. */
@@ -318,6 +320,9 @@ export interface PlanOptions {
 /** Where the order of a plan's days is kept: per split and number of days. */
 export const dayOrderKey = (split: string, days: number) => `days:${split}:${days}`;
 /** Where the order of a day's exercises is kept: per day and number of exercises. */
+/** A swap to this takes the exercise out of the day. */
+export const REMOVED = "-";
+
 export const exerciseOrderKey = (template: string, count: number) => `ex:${template}:${count}`;
 
 
@@ -389,14 +394,20 @@ export function buildPlan(p: Pick<Profile, "goal" | "experience" | "trainingDays
   );
 
   const planned = templates.map(([key, tpl, orig], idx): PlannedDay => {
-    const slots = daySlots(tpl, where, count).map((slot, pos) => {
+    const all = daySlots(tpl, where, count).map((slot, pos) => {
       const swapped = opts.swaps?.[`${key}#${pos}`];
       const name = swapped && exerciseByName(swapped) ? swapped : slot.name;
       const ex = EXERCISE_BY_NAME.get(name);
       const compound = swapped ? (ex?.muscles?.length ?? 0) >= 3 || slot.compound : slot.compound;
       return { name, group: slot.group, swapKey: `${key}#${pos}`, ...scheme(p.goal, p.experience, compound), tip: ex?.tip, muscles: ex?.muscles };
     });
-    const exercises = inOrder(slots, opts.order?.[exerciseOrderKey(key, slots.length)]);
+    // Exercises taken out of the day (never the last one).
+    const out = new Set(all.filter((e) => opts.swaps?.[e.swapKey] === REMOVED).map((e) => e.swapKey));
+    const slots = out.size < all.length ? all.filter((e) => !out.has(e.swapKey)) : all;
+    const removed = all.filter((e) => out.has(e.swapKey) && !slots.includes(e)).map((e) => ({ swapKey: e.swapKey, name: e.name }));
+    // A saved order lists the exercises' positions in the day; with some taken out, find where each is now.
+    const saved = opts.order?.[exerciseOrderKey(key, slots.length)];
+    const exercises = inOrder(slots, saved?.map((pos) => slots.findIndex((e) => e.swapKey === `${key}#${pos}`)));
     const cardio =
       p.goal === "lose"
         ? t("Finish with 15–20 min incline walk or bike (zone 2)")
@@ -414,6 +425,7 @@ export function buildPlan(p: Pick<Profile, "goal" | "experience" | "trainingDays
       title: resolved === "custom" ? tpl.title : t(tpl.title),
       focus: resolved === "custom" ? tpl.focus : t(tpl.focus),
       exercises,
+      removed,
       cardio,
       estMinutes: Math.round((lifting + 8 + (cardio ? 15 : 0)) / 5) * 5,
     };

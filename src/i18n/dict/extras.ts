@@ -784,7 +784,9 @@ export const EXTRAS: AreaDict = {
     "{what} · idea {n} of {total}": "{what} · idea {n} daripada {total}",
     "Foods for": "Makanan untuk",
     "{kcal} kcal": "{kcal} kcal",
-    "Pick heavy flow or a symptom and W suggests a food that helps, and why. Tap Another idea for more, or Log it to add it to today.": "Pilih aliran banyak atau satu simptom dan W cadangkan makanan yang membantu, berserta sebabnya. Ketik Idea lain untuk lagi, atau Rekod untuk menambahkannya ke hari ini."
+    "Pick heavy flow or a symptom and W suggests a food that helps, and why. Tap Another idea for more, or Log it to add it to today.": "Pilih aliran banyak atau satu simptom dan W cadangkan makanan yang membantu, berserta sebabnya. Ketik Idea lain untuk lagi, atau Rekod untuk menambahkannya ke hari ini.",
+    "Taken out of this day:": "Dikeluarkan daripada hari ini:",
+    "Put back {name}": "Masukkan semula {name}"
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -1567,6 +1569,8 @@ export const EXTRAS: AreaDict = {
     "{what} · idea {n} of {total}": "{what} · 第 {n} 个,共 {total} 个",
     "Foods for": "适合的食物",
     "{kcal} kcal": "{kcal} 千卡",
-    "Pick heavy flow or a symptom and W suggests a food that helps, and why. Tap Another idea for more, or Log it to add it to today.": "选择经量多或某个症状,W 会推荐有帮助的食物并说明原因。点「换一个」看更多,或点「记录」加到今天。"
+    "Pick heavy flow or a symptom and W suggests a food that helps, and why. Tap Another idea for more, or Log it to add it to today.": "选择经量多或某个症状,W 会推荐有帮助的食物并说明原因。点「换一个」看更多,或点「记录」加到今天。",
+    "Taken out of this day:": "已从这一天移除:",
+    "Put back {name}": "放回{name}"
   }
 };

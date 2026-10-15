@@ -75,6 +75,24 @@ describe("training splits", () => {
     const bad = planFor({ profile: { ...DEFAULT_PROFILE, ...p }, split: "bodypart", planSwaps: { "chest#0": "Nonexistent lift" } });
     expect(bad.days[0].exercises[0].name).toBe("Barbell bench press");
   });
+
+  it("takes an exercise out of a day, keeps your order for the rest, and never empties a day", async () => {
+    const { REMOVED, exerciseOrderKey } = await import("./fitness");
+    const profile = { ...DEFAULT_PROFILE, ...p };
+    const base = planFor({ profile, split: "bodypart" }).days[0];
+    const names = base.exercises.map((e) => e.name);
+    const less = planFor({ profile, split: "bodypart", planSwaps: { "chest#1": REMOVED } }).days[0];
+    expect(less.exercises.map((e) => e.name)).toEqual(names.filter((_, i) => i !== 1));
+    expect(less.removed).toEqual([{ swapKey: "chest#1", name: names[1] }]);
+    expect(less.estMinutes).toBeLessThanOrEqual(base.estMinutes);
+    // An order saved after taking one out uses the exercises' own positions.
+    const order = { [exerciseOrderKey("chest", names.length - 1)]: [2, 0, ...names.map((_, i) => i).filter((i) => i > 2)] };
+    const ordered = planFor({ profile, split: "bodypart", planSwaps: { "chest#1": REMOVED }, planOrder: order }).days[0];
+    expect(ordered.exercises.map((e) => e.name).slice(0, 2)).toEqual([names[2], names[0]]);
+    // Everything taken out: the day keeps its exercises.
+    const all = Object.fromEntries(names.map((_, i) => [`chest#${i}`, REMOVED]));
+    expect(planFor({ profile, split: "bodypart", planSwaps: all }).days[0].exercises).toHaveLength(names.length);
+  });
 });
 
 describe("your own order", () => {

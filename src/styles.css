@@ -2906,6 +2906,39 @@ html[data-text="xlarge"] body {
   color: var(--label-3);
   flex: none;
 }
+/* Swap and remove, one above the other so the name keeps its width. */
+.plan-ex-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  flex: none;
+}
+.plan-ex-actions .grip {
+  align-self: center;
+}
+/* Exercises taken out of a day, a tap to put back. */
+.plan-removed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 10px 0;
+  border-top: 0.5px solid var(--separator);
+}
+.plan-removed .row-sub {
+  width: 100%;
+}
+.plan-removed .chip {
+  background: var(--bg-fill);
+  color: var(--blue-ink, var(--blue));
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: auto;
+  min-height: 32px;
+  white-space: normal;
+}
 
 /* A plan exercise: tap the picture or name to see how it's done. */
 .plan-ex {

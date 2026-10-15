@@ -560,7 +560,7 @@ test("Plan: press and hold to put shoulders before legs and exercises in my own 
   const rows = days.filter({ hasText: "Shoulder Day" }).getByTestId("plan-exercise");
   const names = () => rows.getByRole("button", { name: /^How to do / }).evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")!.replace(/^How to do /, "")));
   const [first, second, third] = await names();
-  await holdAndDrag(page, rows.nth(0), rows.nth(1).locator(".row-sub").first());
+  await holdAndDrag(page, rows.nth(0), rows.nth(1));
   expect((await names()).slice(0, 2)).toEqual([second, first]);
   // From the keyboard too: Alt + ↓.
   await rows.nth(1).getByRole("button", { name: `How to do ${first}` }).focus();
@@ -587,6 +587,42 @@ test("Plan: press and hold to put shoulders before legs and exercises in my own 
   // Back to the suggested order.
   await page.getByRole("button", { name: "Suggested order" }).click();
   expect(await dayTitles()).toEqual(before);
+  expect(errors).toEqual([]);
+});
+
+test("Plan: remove an exercise I don't want, undo it, and put it back later", async ({ page }) => {
+  const errors = await open(page);
+  await tab(page, "Plan");
+  await page.getByRole("button", { name: "Body-part split", exact: true }).click();
+  const day = page.getByTestId("plan-day").filter({ hasText: "Shoulder Day" });
+  if (!(await day.getByRole("button", { expanded: true }).count())) await day.getByRole("button", { expanded: false }).first().click();
+  const rows = day.getByTestId("plan-exercise");
+  const names = () => rows.getByRole("button", { name: /^How to do / }).evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")!.replace(/^How to do /, "")));
+  const before = await names();
+  const gone = before[1];
+
+  // Remove it: it leaves the day, and Undo brings it straight back.
+  await day.getByRole("button", { name: `Remove ${gone}` }).click();
+  expect(await names()).toEqual(before.filter((n) => n !== gone));
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect(await names()).toEqual(before);
+
+  // Remove it for good: it's listed under the day, still gone after a reload, and a tap puts it back.
+  await day.getByRole("button", { name: `Remove ${gone}` }).click();
+  await expect(day.getByTestId("plan-removed")).toContainText(gone);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("calories-detector:v1"))).toContain(':"-"');
+  await page.reload();
+  await tab(page, "Plan");
+  if (!(await day.getByRole("button", { expanded: true }).count())) await day.getByRole("button", { expanded: false }).first().click();
+  expect(await names()).toEqual(before.filter((n) => n !== gone));
+  await day.getByRole("button", { name: `Put back ${gone}` }).click();
+  expect(await names()).toEqual(before);
+  await expect(day.getByTestId("plan-removed")).toHaveCount(0);
+
+  // A day always keeps at least one exercise.
+  for (const n of before.slice(1)) await day.getByRole("button", { name: `Remove ${n}` }).click();
+  expect(await names()).toEqual([before[0]]);
+  await expect(day.getByRole("button", { name: /^Remove / })).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
