@@ -52,7 +52,7 @@ import {
 import { WaterControl } from "../components/ProgressSheet";
 import { LogEntrySheet, deleteLogEntry } from "../components/LogEntrySheet";
 import { CycleCalendar } from "../components/CycleCalendar";
-import { CycleHistorySheet, LockedCycle, PeriodFoodButton, PillCard, QadaCard, SymptomSheet, SymptomSummary } from "../components/CycleCare";
+import { CycleHistorySheet, LockedCycle, PeriodFoodIdea, PillCard, QadaCard, SymptomSheet, SymptomSummary } from "../components/CycleCare";
 import { cravingSwaps, cycleKcal, haidToday, inFertileWindow } from "../lib/cycleCare";
 import { useCycleOpen } from "../lib/cycleLock";
 import { LateAdviceSheetBody } from "../components/LateAdviceSheet";
@@ -281,7 +281,7 @@ function CycleCard({ today }: { today: string }) {
           </>
         )}
         <SymptomSummary date={today} onOpen={() => setSymptomsOpen(true)} />
-        <PeriodFoodButton date={today} />
+        <PeriodFoodIdea date={today} />
         <div className="btn-row">
           {advice && (
             <button

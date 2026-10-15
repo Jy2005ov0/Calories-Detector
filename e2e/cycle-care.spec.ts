@@ -300,30 +300,44 @@ test("Ramadan: a period day is not a fasting day, it counts as a fast to replace
   expect(errors).toEqual([]);
 });
 
-test("Foods that help: several foods for heavy flow and each symptom, and one tap logs one", async ({ page }) => {
+test("Foods that help: picking a symptom brings up a food idea for it, with more a tap away, and Log it logs it", async ({ page }) => {
   const errors = await open(page, cycleState());
-  // Nothing logged and not on a period: no food suggestions yet.
+  // Nothing logged and not on a period: no food idea yet.
   await expect(page.getByTestId("period-food")).toHaveCount(0);
   await visible(page, "symptom-log").click();
-  await dialog(page).getByRole("button", { name: "Heavy" }).click();
-  await dialog(page).getByRole("button", { name: "Cramps" }).click();
-  await dialog(page).getByRole("button", { name: "Nausea" }).click();
-  await expect(dialog(page).getByTestId("period-food")).toHaveText("Foods that help: heavy flow, cramps, nausea");
+  const sheet = dialog(page);
+  await expect(sheet.getByTestId("period-food")).toHaveCount(0);
+
+  // Heavy flow: an iron-rich idea pops up, with a doctor note.
+  await sheet.getByRole("button", { name: "Heavy" }).click();
+  const idea = sheet.getByTestId("period-food");
+  await expect(idea).toContainText("Heavy flow · idea 1 of");
+  await expect(idea).toContainText("needs a doctor");
+  // Picking cramps brings its idea to the front; the others stay a chip away.
+  await sheet.getByRole("button", { name: "Cramps", exact: true }).click();
+  await expect(idea).toContainText("Cramps · idea 1 of");
+  await expect(idea.getByRole("tab")).toHaveText(["Heavy flow", "Cramps"]);
+  await expect(idea.getByRole("tab", { name: "Cramps" })).toHaveAttribute("aria-selected", "true");
+
+  // Another idea: several different foods for the same symptom.
+  const names = new Set<string>();
+  for (let i = 0; i < 5; i++) {
+    names.add((await idea.getByTestId("period-food-name").innerText()).trim());
+    await idea.getByRole("button", { name: "Another idea" }).click();
+    await expect(idea).toContainText(`Cramps · idea ${i + 2} of`);
+  }
+  expect(names.size).toBe(5);
+
+  // Log it puts the food shown in today's log.
+  const name = (await idea.getByTestId("period-food-name").innerText()).trim();
+  await idea.getByRole("button", { name: "Log it" }).click();
+  await expect.poll(async () => (await stored(page)).log.some((e: { name: string; date: string }) => e.name === name && e.date === dayKey(0))).toBe(true);
+
+  // Back on Today, the cycle card shows the same idea.
   await close(page);
   await expect(page.getByRole("dialog")).toHaveCount(0);
-
-  await visible(page, "period-food").click();
-  const sheet = page.getByRole("dialog", { name: "Foods that help" });
-  for (const key of ["heavyFlow", "cramps", "nausea"]) expect(await sheet.getByTestId(`food-help-${key}`).locator(".row").count()).toBeGreaterThanOrEqual(5);
-  await expect(sheet.getByTestId("food-help-heavyFlow")).toContainText("Guava");
-  await expect(sheet.getByTestId("food-help-heavyFlow")).toContainText("needs a doctor");
-  await expect(sheet.getByTestId("food-help-cramps")).toContainText("Cut back on:");
-  await expect(sheet.getByTestId("food-help-nausea")).toContainText("Ginger");
-
-  // Log one: it opens the food, then goes in today's log.
-  await sheet.getByRole("button", { name: "Log Guava" }).click();
-  const food = page.getByRole("dialog").last();
-  await food.getByRole("button", { name: /^Add to (Breakfast|Lunch|Dinner|Snack|Sahur|Iftar|Moreh)$/ }).click();
-  await expect.poll(async () => (await stored(page)).log.some((e: { name: string; date: string }) => e.name === "Guava" && e.date === dayKey(0))).toBe(true);
+  await expect(visible(page, "period-food")).toContainText("Food that helps");
+  await visible(page, "period-food").getByRole("tab", { name: "Heavy flow" }).click();
+  await expect(visible(page, "period-food")).toContainText("Heavy flow · idea 1 of");
   expect(errors).toEqual([]);
 });

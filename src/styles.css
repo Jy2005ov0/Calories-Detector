@@ -3654,9 +3654,17 @@ html[data-text="xlarge"] body {
 }
 
 /* "Foods that help" on the cycle card and in the symptom sheet. */
-.period-food-btn {
-  margin-top: 8px;
+.period-idea {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--bg-fill-2);
 }
-.period-food-btn .cycle-log-text {
+.period-idea .idea-reason {
   white-space: normal;
+}
+.period-idea-note {
+  margin: 10px 0 0;
+  font-size: 0.8125rem;
+  color: var(--label-2);
 }

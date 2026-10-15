@@ -779,7 +779,12 @@ export const EXTRAS: AreaDict = {
     "Log your flow or a symptom and foods that help will show here.": "Rekod aliran atau simptom anda dan makanan yang membantu akan dipaparkan di sini.",
     "General guidance from nutrition research, not medical advice. Foods that clash with your diet or allergies are left out.": "Panduan umum daripada kajian nutrisi, bukan nasihat perubatan. Makanan yang bercanggah dengan diet atau alahan anda dikecualikan.",
     "Guides": "Panduan",
-    "Pick a guide: it goes to each feature and shows you how it works.": "Pilih panduan: ia membawa anda ke setiap ciri dan menunjukkan cara ia berfungsi."
+    "Pick a guide: it goes to each feature and shows you how it works.": "Pilih panduan: ia membawa anda ke setiap ciri dan menunjukkan cara ia berfungsi.",
+    "Food that helps": "Makanan yang membantu",
+    "{what} · idea {n} of {total}": "{what} · idea {n} daripada {total}",
+    "Foods for": "Makanan untuk",
+    "{kcal} kcal": "{kcal} kcal",
+    "Pick heavy flow or a symptom and W suggests a food that helps, and why. Tap Another idea for more, or Log it to add it to today.": "Pilih aliran banyak atau satu simptom dan W cadangkan makanan yang membantu, berserta sebabnya. Ketik Idea lain untuk lagi, atau Rekod untuk menambahkannya ke hari ini."
   },
   "zh": {
     "Count your steps": "统计你的步数",
@@ -1557,6 +1562,11 @@ export const EXTRAS: AreaDict = {
     "Log your flow or a symptom and foods that help will show here.": "记录经量或症状后，有帮助的食物会显示在这里。",
     "General guidance from nutrition research, not medical advice. Foods that clash with your diet or allergies are left out.": "基于营养研究的一般建议，不构成医疗建议。与你的饮食习惯或过敏冲突的食物已排除。",
     "Guides": "指南",
-    "Pick a guide: it goes to each feature and shows you how it works.": "选择一个指南：它会带你逐一查看各项功能并演示用法。"
+    "Pick a guide: it goes to each feature and shows you how it works.": "选择一个指南：它会带你逐一查看各项功能并演示用法。",
+    "Food that helps": "有帮助的食物",
+    "{what} · idea {n} of {total}": "{what} · 第 {n} 个,共 {total} 个",
+    "Foods for": "适合的食物",
+    "{kcal} kcal": "{kcal} 千卡",
+    "Pick heavy flow or a symptom and W suggests a food that helps, and why. Tap Another idea for more, or Log it to add it to today.": "选择经量多或某个症状,W 会推荐有帮助的食物并说明原因。点「换一个」看更多,或点「记录」加到今天。"
   }
 };
